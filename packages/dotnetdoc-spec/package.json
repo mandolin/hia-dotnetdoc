@@ -1,0 +1,16 @@
+{
+  "name": "@hia-doc/dotnetdoc-spec",
+  "version": "0.0.0",
+  "description": "Shared DotNetDoc contract constants and member kind registry.",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/index.mjs"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ]
+}
+

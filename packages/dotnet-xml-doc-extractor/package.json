@@ -1,0 +1,20 @@
+{
+  "name": "@hia-doc/dotnet-xml-doc-extractor",
+  "version": "0.0.0",
+  "description": "Parse compiler XML documentation files into DotNetDoc extraction artifacts.",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/index.mjs"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "@hia-doc/dotnetdoc-spec": "0.0.0",
+    "fast-xml-parser": "5.3.2"
+  }
+}
+
