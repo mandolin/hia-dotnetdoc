@@ -1,6 +1,6 @@
 # Project Status
 
-`hia-dotnetdoc` is at P0/P1 skeleton status.
+`hia-dotnetdoc` is at local 0.1.0 release candidate status.
 
 Completed in the first slice:
 
@@ -28,6 +28,14 @@ Completed in W-P16.4b first slice:
 - source range mapping into HIA `definedIn.position` / `definedIn.range`;
 - release gate coverage for helper build, source fixture and runner source input.
 
+Completed in the 0.1.0 release-candidate slice:
+
+- package versions and internal dependencies aligned to `0.1.0`;
+- public npm metadata, repository links and `publishConfig.access = "public"` for all six packages;
+- package-level README/LICENSE coverage;
+- `npm pack --dry-run --json` gate for all package contents;
+- release gate coverage for syntax, skeleton, Roslyn helper build, fixtures, standalone smoke, license audit, pack dry-run and tests.
+
 Not yet implemented:
 
 - DocFX metadata bridge;
@@ -35,4 +43,4 @@ Not yet implemented:
 - SHFB project bridge;
 - ASP.NET OpenAPI endpoint inventory;
 - inherited docs, exact overload member ids and semantic cref resolution;
-- package publishing setup.
+- GitHub remote / npm trusted publisher setup and real package publishing.

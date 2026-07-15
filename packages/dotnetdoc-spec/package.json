@@ -1,11 +1,29 @@
 {
   "name": "@hia-doc/dotnetdoc-spec",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Shared DotNetDoc contract constants and member kind registry.",
   "type": "module",
   "license": "MIT",
+  "keywords": [
+    "hia",
+    "dotnetdoc",
+    "dotnet",
+    "documentation"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mandolin/hia-dotnetdoc.git",
+    "directory": "packages/dotnetdoc-spec"
+  },
+  "bugs": {
+    "url": "https://github.com/mandolin/hia-dotnetdoc/issues"
+  },
+  "homepage": "https://github.com/mandolin/hia-dotnetdoc/tree/main/packages/dotnetdoc-spec#readme",
   "exports": {
     ".": "./src/index.mjs"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "files": [
     "src",
@@ -13,4 +31,3 @@
     "LICENSE"
   ]
 }
-

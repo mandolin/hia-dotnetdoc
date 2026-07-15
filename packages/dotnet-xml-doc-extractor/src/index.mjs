@@ -43,7 +43,7 @@ export function extractDotnetXmlDocs(xmlText, options = {}) {
     contractVersion: DOTNETDOC_XML_DOC_EXTRACTION_CONTRACT_VERSION,
     producer: {
       name: "@hia-doc/dotnet-xml-doc-extractor",
-      version: "0.0.0"
+      version: "0.1.0"
     },
     source: {
       kind: "dotnet-xml-doc",
@@ -174,4 +174,3 @@ function normalizePath(value) {
 function slug(value) {
   return String(value).trim().toLowerCase().replace(/[^a-z0-9._:-]+/g, "-").replace(/^-|-$/g, "") || "member";
 }
-

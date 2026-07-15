@@ -1,19 +1,39 @@
 {
   "name": "@hia-doc/dotnet-source-extractor",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Parse C# source files into DotNetDoc extraction artifacts through a Roslyn helper.",
   "type": "module",
   "license": "MIT",
+  "keywords": [
+    "hia",
+    "dotnetdoc",
+    "csharp",
+    "roslyn",
+    "documentation"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mandolin/hia-dotnetdoc.git",
+    "directory": "packages/dotnet-source-extractor"
+  },
+  "bugs": {
+    "url": "https://github.com/mandolin/hia-dotnetdoc/issues"
+  },
+  "homepage": "https://github.com/mandolin/hia-dotnetdoc/tree/main/packages/dotnet-source-extractor#readme",
   "exports": {
     ".": "./src/index.mjs"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     "src",
-    "tools",
+    "tools/DotNetDoc.RoslynSourceExtractor/DotNetDoc.RoslynSourceExtractor.csproj",
+    "tools/DotNetDoc.RoslynSourceExtractor/Program.cs",
     "README.md",
     "LICENSE"
   ],
   "dependencies": {
-    "@hia-doc/dotnetdoc-spec": "0.0.0"
+    "@hia-doc/dotnetdoc-spec": "0.1.0"
   }
 }

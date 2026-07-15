@@ -1,11 +1,29 @@
 {
   "name": "@hia-doc/dotnetdoc-producer",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Documentation producer adapter for DotNetDoc.",
   "type": "module",
   "license": "MIT",
+  "keywords": [
+    "hia",
+    "dotnetdoc",
+    "producer",
+    "documentation"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mandolin/hia-dotnetdoc.git",
+    "directory": "packages/dotnetdoc-producer"
+  },
+  "bugs": {
+    "url": "https://github.com/mandolin/hia-dotnetdoc/issues"
+  },
+  "homepage": "https://github.com/mandolin/hia-dotnetdoc/tree/main/packages/dotnetdoc-producer#readme",
   "exports": {
     ".": "./src/index.mjs"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "files": [
     "src",
@@ -13,6 +31,6 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@hia-doc/dotnetdoc-runner": "0.0.0"
+    "@hia-doc/dotnetdoc-runner": "0.1.0"
   }
 }

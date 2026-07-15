@@ -1,11 +1,30 @@
 {
   "name": "@hia-doc/dotnet-xml-doc-extractor",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Parse compiler XML documentation files into DotNetDoc extraction artifacts.",
   "type": "module",
   "license": "MIT",
+  "keywords": [
+    "hia",
+    "dotnetdoc",
+    "dotnet",
+    "xml-docs",
+    "documentation"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mandolin/hia-dotnetdoc.git",
+    "directory": "packages/dotnet-xml-doc-extractor"
+  },
+  "bugs": {
+    "url": "https://github.com/mandolin/hia-dotnetdoc/issues"
+  },
+  "homepage": "https://github.com/mandolin/hia-dotnetdoc/tree/main/packages/dotnet-xml-doc-extractor#readme",
   "exports": {
     ".": "./src/index.mjs"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "files": [
     "src",
@@ -13,8 +32,7 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@hia-doc/dotnetdoc-spec": "0.0.0",
+    "@hia-doc/dotnetdoc-spec": "0.1.0",
     "fast-xml-parser": "5.3.2"
   }
 }
-

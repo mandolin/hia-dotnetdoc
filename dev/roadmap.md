@@ -33,4 +33,10 @@
 - Add documentation producer descriptor and result output.
 - Add source-linkage privacy checks.
 
-Status: first runner/producer slice is implemented for compiler XML documentation inputs. A Roslyn syntax-only source extractor is now available for explicit `.cs` files. Rich semantic source-linkage remains a follow-up Roslyn/DocFX/SHFB bridge concern.
+## P1.7 Package Release Candidate
+
+- Align package versions and internal dependency pins.
+- Add npm publish metadata and public package README/LICENSE files.
+- Add pack dry-run verification for package contents.
+
+Status: first runner/producer slice is implemented for compiler XML documentation inputs. A Roslyn syntax-only source extractor is now available for explicit `.cs` files. The local `0.1.0` release candidate passes the release gate. Rich semantic source-linkage remains a follow-up Roslyn/DocFX/SHFB bridge concern.
