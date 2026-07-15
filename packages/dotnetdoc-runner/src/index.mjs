@@ -1,12 +1,9 @@
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
+import { extractDotnetSourceFiles } from "@hia-doc/dotnet-source-extractor";
 import { extractDotnetXmlDocs } from "@hia-doc/dotnet-xml-doc-extractor";
 import { dotnetXmlDocsToHiaDocument } from "@hia-doc/dotnetdoc-adapter";
-import {
-  DOTNETDOC_XML_DOC_EXTRACTION_CONTRACT,
-  DOTNETDOC_XML_DOC_EXTRACTION_CONTRACT_VERSION
-} from "@hia-doc/dotnetdoc-spec";
 
 export {
   DOTNETDOC_CONFIG_JSON_SCHEMA,
@@ -16,7 +13,7 @@ export {
 import { DOTNETDOC_CONFIG_SCHEMA_ID, DOTNETDOC_CONFIG_SCHEMA_VERSION } from "./schema.mjs";
 
 export const DOTNETDOC_RUNNER_VERSION = "0.0.0";
-export const DOTNETDOC_INPUT_KINDS = Object.freeze(["dotnet-xml-doc"]);
+export const DOTNETDOC_INPUT_KINDS = Object.freeze(["dotnet-xml-doc", "dotnet-csharp-source"]);
 export const DOTNETDOC_OUTPUT_KINDS = Object.freeze(["dotnetdoc-extraction", "hia-document"]);
 
 const RESULT_CONTRACT = "documentation-producer-result";
@@ -156,8 +153,8 @@ function normalizeRequest(request) {
 function normalizeInput(input, index) {
   assertRecord(input, `inputs[${index}] must be an object.`);
   assertKnownKeys(input, ["kind", "path", "artifactBasePath", "hiaDocumentId", "title"], `inputs[${index}]`);
-  if (input.kind !== "dotnet-xml-doc") {
-    throw new TypeError(`inputs[${index}].kind must be dotnet-xml-doc.`);
+  if (!DOTNETDOC_INPUT_KINDS.includes(input.kind)) {
+    throw new TypeError(`inputs[${index}].kind must be one of: ${DOTNETDOC_INPUT_KINDS.join(", ")}.`);
   }
 
   const inputPath = normalizeSafeRelativePath(input.path, `inputs[${index}].path`);
@@ -175,9 +172,9 @@ function normalizeInput(input, index) {
 }
 
 async function processInput(input, request) {
-  const xmlPath = path.join(request.workspaceRoot, input.path);
-  const xmlText = await readFile(xmlPath, "utf8");
-  const dotnetdoc = extractDotnetXmlDocs(xmlText, { path: input.path });
+  const dotnetdoc = input.kind === "dotnet-xml-doc"
+    ? await processXmlDocInput(input, request)
+    : await processCSharpSourceInput(input, request);
   const hiaDocument = dotnetXmlDocsToHiaDocument(dotnetdoc, {
     id: input.hiaDocumentId,
     title: input.title
@@ -192,13 +189,26 @@ async function processInput(input, request) {
     artifacts: [
       {
         ...artifact(`${safeArtifactId(input.artifactBasePath)}-dotnetdoc`, "dotnetdoc-extraction", dotnetdocPath, request.profileIds),
-        contract: DOTNETDOC_XML_DOC_EXTRACTION_CONTRACT,
-        contractVersion: DOTNETDOC_XML_DOC_EXTRACTION_CONTRACT_VERSION
+        contract: dotnetdoc.contract,
+        contractVersion: dotnetdoc.contractVersion
       },
       artifact(`${safeArtifactId(input.artifactBasePath)}-hia-document`, "hia-document", hiaPath, request.profileIds)
     ],
     diagnostics: [...(dotnetdoc.diagnostics ?? []), ...(hiaDocument.diagnostics ?? [])]
   };
+}
+
+async function processXmlDocInput(input, request) {
+  const xmlPath = path.join(request.workspaceRoot, input.path);
+  const xmlText = await readFile(xmlPath, "utf8");
+  return extractDotnetXmlDocs(xmlText, { path: input.path });
+}
+
+async function processCSharpSourceInput(input, request) {
+  return extractDotnetSourceFiles({
+    workspaceRoot: request.workspaceRoot,
+    paths: [input.path]
+  });
 }
 
 function artifact(id, kind, artifactPath, profileIds) {

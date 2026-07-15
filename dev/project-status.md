@@ -19,10 +19,20 @@ Completed in W-P16.3 first slice:
 - `@hia-doc/dotnetdoc-producer` descriptor and adapter;
 - standalone example and release gate checks.
 
+Completed in W-P16.4b first slice:
+
+- `@hia-doc/dotnet-source-extractor`;
+- Roslyn helper project using `Microsoft.CodeAnalysis.CSharp@5.6.0`;
+- `dotnetdoc-csharp-source-extraction@0.1.0-draft`;
+- `dotnet-csharp-source` runner input kind;
+- source range mapping into HIA `definedIn.position` / `definedIn.range`;
+- release gate coverage for helper build, source fixture and runner source input.
+
 Not yet implemented:
 
 - DocFX metadata bridge;
-- Roslyn semantic extraction;
+- Roslyn semantic extraction over `.sln` / `.csproj`;
+- SHFB project bridge;
 - ASP.NET OpenAPI endpoint inventory;
-- source-linkage beyond compiler XML documentation paths;
+- inherited docs, exact overload member ids and semantic cref resolution;
 - package publishing setup.

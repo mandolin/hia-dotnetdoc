@@ -2,4 +2,6 @@ node_modules/
 fixtures/out/
 temp/
 dist/
+packages/dotnet-source-extractor/tools/**/bin/
+packages/dotnet-source-extractor/tools/**/obj/
 .DS_Store

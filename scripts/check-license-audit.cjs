@@ -12,6 +12,7 @@ function main() {
   for (const packageFile of [
     "packages/dotnetdoc-spec/package.json",
     "packages/dotnet-xml-doc-extractor/package.json",
+    "packages/dotnet-source-extractor/package.json",
     "packages/dotnetdoc-adapter/package.json",
     "packages/dotnetdoc-runner/package.json",
     "packages/dotnetdoc-producer/package.json"
@@ -19,6 +20,14 @@ function main() {
     const packageJson = readPackageJson(packageFile);
     assert.equal(forbiddenLicensePattern.test(packageJson.license ?? ""), false, `Forbidden license detected in ${packageFile}.`);
   }
+
+  const roslynProject = fs.readFileSync(
+    path.join(root, "packages/dotnet-source-extractor/tools/DotNetDoc.RoslynSourceExtractor/DotNetDoc.RoslynSourceExtractor.csproj"),
+    "utf8"
+  );
+  assert.match(roslynProject, /PackageReference Include="Microsoft\.CodeAnalysis\.CSharp" Version="5\.6\.0"/, "Roslyn helper dependency must stay pinned to the reviewed package.");
+  const notices = fs.readFileSync(path.join(root, "THIRD_PARTY_NOTICES.md"), "utf8");
+  assert.match(notices, /Microsoft\.CodeAnalysis\.CSharp`\s+\|\s+`5\.6\.0`\s+\|\s+MIT/, "Roslyn helper dependency must be recorded in third-party notices.");
 
   console.log("DotNetDoc dependency license audit passed.");
 }

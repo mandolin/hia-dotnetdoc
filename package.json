@@ -6,12 +6,13 @@
   "license": "MIT",
   "scripts": {
     "build:fixtures": "node scripts/build-fixtures.cjs",
+    "check:dotnet-helper": "dotnet build packages/dotnet-source-extractor/tools/DotNetDoc.RoslynSourceExtractor/DotNetDoc.RoslynSourceExtractor.csproj --nologo --verbosity minimal",
     "check:fixtures": "node scripts/check-fixtures.cjs",
     "check:license": "node scripts/check-license-audit.cjs",
     "check:skeleton": "node scripts/check-skeleton.cjs",
     "check:standalone": "node scripts/check-standalone.cjs",
-    "check:syntax": "node --check scripts/build-fixtures.cjs && node --check scripts/check-fixtures.cjs && node --check scripts/check-license-audit.cjs && node --check scripts/check-skeleton.cjs && node --check scripts/check-standalone.cjs && node --check packages/dotnetdoc-spec/src/index.mjs && node --check packages/dotnet-xml-doc-extractor/src/index.mjs && node --check packages/dotnetdoc-adapter/src/index.mjs && node --check packages/dotnetdoc-runner/src/schema.mjs && node --check packages/dotnetdoc-runner/src/index.mjs && node --check packages/dotnetdoc-runner/src/cli.mjs && node --check packages/dotnetdoc-producer/src/index.mjs",
-    "release:gate": "npm run check:syntax && npm run check:skeleton && npm run build:fixtures && npm run check:fixtures && npm run check:standalone && npm run check:license && npm test",
+    "check:syntax": "node --check scripts/build-fixtures.cjs && node --check scripts/check-fixtures.cjs && node --check scripts/check-license-audit.cjs && node --check scripts/check-skeleton.cjs && node --check scripts/check-standalone.cjs && node --check packages/dotnetdoc-spec/src/index.mjs && node --check packages/dotnet-xml-doc-extractor/src/index.mjs && node --check packages/dotnet-source-extractor/src/index.mjs && node --check packages/dotnetdoc-adapter/src/index.mjs && node --check packages/dotnetdoc-runner/src/schema.mjs && node --check packages/dotnetdoc-runner/src/index.mjs && node --check packages/dotnetdoc-runner/src/cli.mjs && node --check packages/dotnetdoc-producer/src/index.mjs",
+    "release:gate": "npm run check:syntax && npm run check:skeleton && npm run check:dotnet-helper && npm run build:fixtures && npm run check:fixtures && npm run check:standalone && npm run check:license && npm test",
     "smoke:standalone": "node packages/dotnetdoc-runner/src/cli.mjs --config examples/standalone/dotnetdoc.config.json",
     "test": "node --test test/dotnetdoc-xml-fixture.test.mjs",
     "test:all": "npm run release:gate"

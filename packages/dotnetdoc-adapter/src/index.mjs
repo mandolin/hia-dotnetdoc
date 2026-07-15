@@ -1,5 +1,5 @@
 import {
-  DOTNETDOC_XML_DOC_EXTRACTION_CONTRACT
+  isDotnetDocMemberExtractionContract
 } from "@hia-doc/dotnetdoc-spec";
 
 const HIA_CORE_SCHEMA_VERSION = "0.2.0";
@@ -57,11 +57,11 @@ export function dotnetXmlDocsToHiaDocument(artifact, options = {}) {
  * @lang zh-CN 断言某个值是 DotNetDoc XML documentation extraction artifact。
  */
 export function assertDotnetXmlDocArtifact(artifact) {
-  if (!artifact || artifact.contract !== DOTNETDOC_XML_DOC_EXTRACTION_CONTRACT) {
-    throw new Error(`Expected ${DOTNETDOC_XML_DOC_EXTRACTION_CONTRACT} artifact.`);
+  if (!artifact || !isDotnetDocMemberExtractionContract(artifact.contract)) {
+    throw new Error("Expected a DotNetDoc member extraction artifact.");
   }
   if (!Array.isArray(artifact.members)) {
-    throw new Error("DotNetDoc XML documentation extraction must contain members array.");
+    throw new Error("DotNetDoc member extraction must contain members array.");
   }
 }
 
@@ -78,12 +78,12 @@ function mapMemberToSymbol(member) {
       definedIn: {
         kind: "defined-in",
         relativePath: member.source?.path ?? "documentation.xml",
-        language: "xml",
+        language: member.source?.language ?? "xml",
         position: {
-          line: 1,
-          column: 1
+          line: member.source?.range?.start?.line ?? 1,
+          column: member.source?.range?.start?.column ?? 1
         },
-        range: null,
+        range: member.source?.range ?? null,
         link: {
           enabled: false,
           openMode: "same-tab"
@@ -109,4 +109,3 @@ function mapMemberToSymbol(member) {
     }
   };
 }
-

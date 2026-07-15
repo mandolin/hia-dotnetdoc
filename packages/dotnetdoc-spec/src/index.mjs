@@ -13,6 +13,20 @@ export const DOTNETDOC_XML_DOC_EXTRACTION_CONTRACT = "dotnetdoc-xml-doc-extracti
 export const DOTNETDOC_XML_DOC_EXTRACTION_CONTRACT_VERSION = "0.1.0-draft";
 
 /**
+ * Contract name for Roslyn-backed C# source extraction artifacts.
+ *
+ * @lang zh-CN Roslyn 驱动的 C# 源码抽取产物合同名称。
+ */
+export const DOTNETDOC_CSHARP_SOURCE_EXTRACTION_CONTRACT = "dotnetdoc-csharp-source-extraction";
+
+/**
+ * Draft contract version for Roslyn-backed C# source extraction artifacts.
+ *
+ * @lang zh-CN Roslyn 驱动的 C# 源码抽取产物草案合同版本。
+ */
+export const DOTNETDOC_CSHARP_SOURCE_EXTRACTION_CONTRACT_VERSION = "0.1.0-draft";
+
+/**
  * Draft contract name reserved for ASP.NET endpoint extraction artifacts.
  *
  * @lang zh-CN 预留给 ASP.NET endpoint 抽取产物的草案合同名称。
@@ -88,3 +102,16 @@ export function isDotnetDocXmlDocumentationTag(tag) {
   return DOTNETDOC_XML_DOCUMENTATION_TAGS.includes(tag);
 }
 
+/**
+ * Check whether a contract is a DotNetDoc member extraction artifact.
+ *
+ * @param {string} contract <lang><en>Artifact contract name.</en><zh-CN>产物合同名称。</zh-CN></lang>
+ * @returns {boolean} <lang><en>Whether the contract exposes DotNetDoc members.</en><zh-CN>该合同是否暴露 DotNetDoc member。</zh-CN></lang>
+ * @lang zh-CN 检查合同是否属于 DotNetDoc member 抽取产物。
+ */
+export function isDotnetDocMemberExtractionContract(contract) {
+  return [
+    DOTNETDOC_XML_DOC_EXTRACTION_CONTRACT,
+    DOTNETDOC_CSHARP_SOURCE_EXTRACTION_CONTRACT
+  ].includes(contract);
+}
