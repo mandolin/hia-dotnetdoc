@@ -6,6 +6,8 @@ import { fileURLToPath } from "node:url";
 
 import { extractDotnetXmlDocs, createDotnetMemberId } from "../packages/dotnet-xml-doc-extractor/src/index.mjs";
 import { dotnetXmlDocsToHiaDocument } from "../packages/dotnetdoc-adapter/src/index.mjs";
+import { runDotnetDoc } from "../packages/dotnetdoc-runner/src/index.mjs";
+import { dotnetdocProducer } from "../packages/dotnetdoc-producer/src/index.mjs";
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const fixturePath = "fixtures/xml-doc/Portal.Components.xml";
@@ -42,5 +44,44 @@ describe("DotNetDoc XML documentation intake", () => {
     assert.ok(hiaDocument.symbols.some((symbol) => symbol.kind === "dotnet-property" && symbol.name === "Items"));
     assert.ok(hiaDocument.symbols.every((symbol) => symbol.source.definedIn.link.enabled === false));
   });
+
+  it("runs the standalone runner and producer adapter from the same request", async () => {
+    const outputDirectory = path.join(repositoryRoot, "temp", "out-test-runner");
+    await fs.rm(outputDirectory, { recursive: true, force: true });
+    const request = {
+      workspaceRoot: repositoryRoot,
+      outputDirectory,
+      inputs: [
+        {
+          kind: "dotnet-xml-doc",
+          path: fixturePath,
+          artifactBasePath: "Portal.Components",
+          hiaDocumentId: "dotnetdoc:Portal.Components",
+          title: "Portal.Components API"
+        }
+      ],
+      options: {
+        writeResultManifest: true
+      }
+    };
+
+    const runnerResult = await runDotnetDoc(request);
+    const producerResult = await dotnetdocProducer.produce(request);
+
+    assert.equal(runnerResult.status, "success");
+    assert.equal(runnerResult.artifacts.length, 2);
+    assert.equal(producerResult.status, "success");
+    assert.equal(dotnetdocProducer.descriptor.id, "dotnetdoc");
+    assert.ok(await exists(path.join(outputDirectory, "Portal.Components.dotnetdoc.json")));
+    assert.ok(await exists(path.join(outputDirectory, "Portal.Components.hia.json")));
+  });
 });
 
+async function exists(filePath) {
+  try {
+    await fs.access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}

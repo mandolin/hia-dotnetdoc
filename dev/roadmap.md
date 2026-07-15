@@ -26,3 +26,4 @@
 - Add documentation producer descriptor and result output.
 - Add source-linkage privacy checks.
 
+Status: first runner/producer slice is implemented for compiler XML documentation inputs. Rich source-linkage remains a follow-up Roslyn/DocFX bridge concern.

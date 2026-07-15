@@ -12,7 +12,9 @@ function main() {
   for (const packageFile of [
     "packages/dotnetdoc-spec/package.json",
     "packages/dotnet-xml-doc-extractor/package.json",
-    "packages/dotnetdoc-adapter/package.json"
+    "packages/dotnetdoc-adapter/package.json",
+    "packages/dotnetdoc-runner/package.json",
+    "packages/dotnetdoc-producer/package.json"
   ]) {
     const packageJson = readPackageJson(packageFile);
     assert.equal(forbiddenLicensePattern.test(packageJson.license ?? ""), false, `Forbidden license detected in ${packageFile}.`);
@@ -28,4 +30,3 @@ function readPackageJson(relativePath) {
 }
 
 main();
-

@@ -4,7 +4,7 @@
 
 It starts with C# XML documentation comments and a small HIA adapter. Later
 stages are expected to add DocFX metadata, Roslyn semantic extraction, ASP.NET
-OpenAPI endpoint intake, source-linkage, and a documentation producer adapter.
+OpenAPI endpoint intake, and richer source-linkage.
 
 ## Packages
 
@@ -13,6 +13,8 @@ OpenAPI endpoint intake, source-linkage, and a documentation producer adapter.
 | `@hia-doc/dotnetdoc-spec` | Shared constants for DotNetDoc contracts and member kinds. |
 | `@hia-doc/dotnet-xml-doc-extractor` | Parses compiler XML documentation files into `dotnetdoc-xml-doc-extraction`. |
 | `@hia-doc/dotnetdoc-adapter` | Converts DotNetDoc extraction artifacts to HIA document shapes. |
+| `@hia-doc/dotnetdoc-runner` | Runs XML documentation inputs from JSON config or CLI and emits producer result manifests. |
+| `@hia-doc/dotnetdoc-producer` | Exposes the runner through the HIA documentation producer contract. |
 
 ## Current Scope
 
@@ -21,10 +23,10 @@ The first milestone is intentionally narrow:
 - consume compiler-generated XML documentation files;
 - preserve .NET member ids such as `T:`, `M:`, `P:`, `F:`, and `E:`;
 - keep XML documentation tags such as `summary`, `remarks`, `param`, `returns`, and `exception`;
-- emit a HIA-compatible document artifact without embedding private source text.
+- emit HIA-compatible document artifacts and producer result manifests without embedding private source text.
 
-DocFX, Roslyn, ASP.NET OpenAPI, and full producer integration are planned
-follow-up layers, not assumptions hidden inside this first package set.
+DocFX, Roslyn, ASP.NET OpenAPI, and richer source-linkage are planned follow-up
+layers, not assumptions hidden inside this first package set.
 
 ## Development
 
@@ -35,7 +37,40 @@ npm run release:gate
 
 Generated fixture artifacts are written to `fixtures/out/` and are ignored.
 
+Run the standalone CLI against the bundled fixture:
+
+```bash
+npm run smoke:standalone
+```
+
+For a normal project, create a `dotnetdoc.config.json`:
+
+```json
+{
+  "$schema": "https://mandolin.github.io/HIA-Documentation/schemas/dotnetdoc-config-0.1.0-draft.schema.json",
+  "schemaVersion": "0.1.0-draft",
+  "workspaceRoot": ".",
+  "outputDirectory": "dist/dotnetdoc",
+  "inputs": [
+    {
+      "kind": "dotnet-xml-doc",
+      "path": "bin/Debug/Your.Assembly.xml",
+      "artifactBasePath": "Your.Assembly",
+      "title": "Your.Assembly API"
+    }
+  ],
+  "options": {
+    "writeResultManifest": true
+  }
+}
+```
+
+Then run:
+
+```bash
+hia-dotnetdoc --config dotnetdoc.config.json
+```
+
 ## License
 
 MIT.
-

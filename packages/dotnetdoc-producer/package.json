@@ -1,0 +1,18 @@
+{
+  "name": "@hia-doc/dotnetdoc-producer",
+  "version": "0.0.0",
+  "description": "Documentation producer adapter for DotNetDoc.",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/index.mjs"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "@hia-doc/dotnetdoc-runner": "0.0.0"
+  }
+}

@@ -18,16 +18,25 @@ const requiredPaths = [
   "dev/task-template.md",
   "dev/test-checklist.md",
   "fixtures/xml-doc/Portal.Components.xml",
+  "examples/standalone/dotnetdoc.config.json",
+  "examples/standalone/xml-doc/Portal.Components.xml",
   "scripts/build-fixtures.cjs",
   "scripts/check-fixtures.cjs",
   "scripts/check-license-audit.cjs",
   "scripts/check-skeleton.cjs",
+  "scripts/check-standalone.cjs",
   "packages/dotnetdoc-spec/package.json",
   "packages/dotnetdoc-spec/src/index.mjs",
   "packages/dotnet-xml-doc-extractor/package.json",
   "packages/dotnet-xml-doc-extractor/src/index.mjs",
   "packages/dotnetdoc-adapter/package.json",
   "packages/dotnetdoc-adapter/src/index.mjs",
+  "packages/dotnetdoc-runner/package.json",
+  "packages/dotnetdoc-runner/src/index.mjs",
+  "packages/dotnetdoc-runner/src/cli.mjs",
+  "packages/dotnetdoc-runner/src/schema.mjs",
+  "packages/dotnetdoc-producer/package.json",
+  "packages/dotnetdoc-producer/src/index.mjs",
   "test/dotnetdoc-xml-fixture.test.mjs"
 ];
 
@@ -42,4 +51,3 @@ function main() {
 }
 
 main();
-

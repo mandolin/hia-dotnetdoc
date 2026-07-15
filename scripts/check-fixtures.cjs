@@ -8,6 +8,7 @@ const outputRoot = path.join(root, "fixtures", "out");
 function main() {
   const dotnetdoc = readJson("Portal.Components.dotnetdoc.json");
   const hia = readJson("Portal.Components.hia.json");
+  const result = readJson("dotnetdoc.producer-result.json");
 
   assert.equal(dotnetdoc.contract, "dotnetdoc-xml-doc-extraction");
   assert.equal(dotnetdoc.contractVersion, "0.1.0-draft");
@@ -20,8 +21,13 @@ function main() {
   assert.equal(hia.title, "Portal.Components API");
   assert.ok(hia.symbols.some((symbol) => symbol.kind === "dotnet-type" && symbol.name === "PortalMenu"));
   assert.ok(hia.symbols.some((symbol) => symbol.metadata.dotnetdoc.returns === "HTML fragment for the tenant menu."));
+  assert.equal(result.contract, "documentation-producer-result");
+  assert.equal(result.status, "success");
+  assert.equal(result.artifacts.length, 2);
+  assert.ok(result.artifacts.some((artifact) => artifact.kind === "dotnetdoc-extraction"));
+  assert.ok(result.artifacts.some((artifact) => artifact.kind === "hia-document"));
 
-  expectNoUnsafePaths(dotnetdoc, hia);
+  expectNoUnsafePaths(dotnetdoc, hia, result);
   expectNoSourcesContent(outputRoot);
   console.log("DotNetDoc fixture check passed.");
 }
@@ -69,4 +75,3 @@ function expectNoSourcesContent(directory) {
 }
 
 main();
-
