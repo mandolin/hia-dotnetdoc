@@ -47,6 +47,25 @@ Run the standalone CLI against the bundled fixture:
 npm run smoke:standalone
 ```
 
+## Release Checks
+
+Before publishing the package set, check the npm registry state:
+
+```bash
+npm run release:registry:check
+npm run release:registry:preflight
+```
+
+`release:registry:preflight` is intentionally conservative. It fails if any
+current package version is already present on npm, so a first publish cannot
+silently overwrite or duplicate an existing release.
+
+To print the GitHub CLI commands for the manual Trusted Publisher workflow:
+
+```bash
+npm run release:trusted-publish:plan
+```
+
 For a normal project, create a `dotnetdoc.config.json`:
 
 ```json

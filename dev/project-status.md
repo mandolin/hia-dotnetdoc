@@ -44,6 +44,21 @@ Completed in W-P18.2 first slice:
 - release package resolver added for the six publishable `@hia-doc/*dotnet*` packages;
 - release gate remains green after workflow and resolver additions.
 
+Completed in W-P19.1 first slice:
+
+- shared release package inventory for resolver, registry checks and Trusted Publisher planning;
+- npm registry status check for all six `0.1.0` DotNetDoc release packages;
+- conservative prepublish check that fails when a current package version already exists;
+- GitHub CLI Trusted Publisher command plan for the ordered package batch;
+- README release-check instructions for registry and Trusted Publisher preparation.
+- verified npm registry state: all six `0.1.0` DotNetDoc packages are currently missing;
+- verified `release:registry:preflight`, `release:trusted-publish:plan`, and `release:gate`.
+
+Current external release status:
+
+- npm CLI login is not available in this environment: `npm whoami --registry=https://registry.npmjs.org/` returns `E401 Unauthorized`;
+- real publishing still depends on npm package-level Trusted Publisher setup or a restored npm auth/token path.
+
 Not yet implemented:
 
 - DocFX metadata bridge;

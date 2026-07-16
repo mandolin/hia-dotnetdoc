@@ -1,28 +1,13 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
-const path = require("node:path");
 
-const root = path.resolve(__dirname, "..");
+const { loadReleasePackages } = require("./release-packages.cjs");
+
 const releaseVersion = "0.1.0";
 const packageName = process.argv[2];
 const writeGithubOutput = process.argv.includes("--github-output");
 
-const packages = [
-  "packages/dotnetdoc-spec",
-  "packages/dotnet-xml-doc-extractor",
-  "packages/dotnet-source-extractor",
-  "packages/dotnetdoc-adapter",
-  "packages/dotnetdoc-runner",
-  "packages/dotnetdoc-producer"
-].map((directory) => {
-  const packageJson = JSON.parse(fs.readFileSync(path.join(root, directory, "package.json"), "utf8"));
-  return {
-    directory,
-    name: packageJson.name,
-    packageJson,
-    version: packageJson.version
-  };
-});
+const packages = loadReleasePackages();
 
 function main() {
   assert.ok(packageName, "Usage: node scripts/resolve-release-package.cjs <package-name> [--github-output]");
