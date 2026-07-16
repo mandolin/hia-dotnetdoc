@@ -13,7 +13,7 @@ import {
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const helperProjectPath = path.join(packageRoot, "tools", "DotNetDoc.RoslynSourceExtractor", "DotNetDoc.RoslynSourceExtractor.csproj");
 const PRODUCER_NAME = "@hia-doc/dotnet-source-extractor";
-const PRODUCER_VERSION = "0.1.0";
+const PRODUCER_VERSION = "0.1.1";
 const ASPNET_SURFACE_EXTENSIONS = new Set([".aspx", ".ascx", ".ashx", ".asmx", ".cs"]);
 const HTTP_ATTRIBUTE_METHODS = Object.freeze({
   HttpGet: ["GET"],
