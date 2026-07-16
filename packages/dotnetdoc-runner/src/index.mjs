@@ -4,6 +4,12 @@ import path from "node:path";
 import { extractDotnetSourceFiles } from "@hia-doc/dotnet-source-extractor";
 import { extractDotnetXmlDocs } from "@hia-doc/dotnet-xml-doc-extractor";
 import { dotnetXmlDocsToHiaDocument } from "@hia-doc/dotnetdoc-adapter";
+import {
+  DOTNETDOC_CSHARP_SOURCE_EXTRACTION_CONTRACT,
+  DOTNETDOC_SOURCE_RELATION_CONTRACT,
+  DOTNETDOC_SOURCE_RELATION_CONTRACT_VERSION,
+  DOTNETDOC_XML_DOC_EXTRACTION_CONTRACT
+} from "@hia-doc/dotnetdoc-spec";
 
 export {
   DOTNETDOC_CONFIG_JSON_SCHEMA,
@@ -14,7 +20,7 @@ import { DOTNETDOC_CONFIG_SCHEMA_ID, DOTNETDOC_CONFIG_SCHEMA_VERSION } from "./s
 
 export const DOTNETDOC_RUNNER_VERSION = "0.1.0";
 export const DOTNETDOC_INPUT_KINDS = Object.freeze(["dotnet-xml-doc", "dotnet-csharp-source"]);
-export const DOTNETDOC_OUTPUT_KINDS = Object.freeze(["dotnetdoc-extraction", "hia-document"]);
+export const DOTNETDOC_OUTPUT_KINDS = Object.freeze(["dotnetdoc-extraction", "hia-document", "dotnetdoc-source-relation"]);
 
 const RESULT_CONTRACT = "documentation-producer-result";
 const RESULT_CONTRACT_VERSION = "0.1.0-draft";
@@ -36,6 +42,7 @@ export async function runDotnetDoc(request, context = {}) {
 
   const artifacts = [];
   const diagnostics = [];
+  const extractionRecords = [];
   let completed = 0;
 
   for (const [index, input] of normalized.inputs.entries()) {
@@ -55,6 +62,7 @@ export async function runDotnetDoc(request, context = {}) {
       const generated = await processInput(input, normalized);
       artifacts.push(...generated.artifacts);
       diagnostics.push(...generated.diagnostics);
+      extractionRecords.push(generated.extractionRecord);
       completed += 1;
     } catch (error) {
       diagnostics.push(createDiagnostic(
@@ -65,6 +73,20 @@ export async function runDotnetDoc(request, context = {}) {
         { cause: error instanceof Error ? error.message : String(error) }
       ));
     }
+  }
+
+  const sourceRelation = normalized.options.writeSourceRelationArtifact
+    ? buildSourceRelationArtifact(extractionRecords, normalized)
+    : null;
+  if (sourceRelation) {
+    const relationPath = "dotnetdoc.source-relation.json";
+    await writeJson(path.join(normalized.outputDirectory, relationPath), sourceRelation);
+    artifacts.push({
+      ...artifact("dotnetdoc-source-relation", "dotnetdoc-source-relation", relationPath, normalized.profileIds),
+      contract: sourceRelation.contract,
+      contractVersion: sourceRelation.contractVersion
+    });
+    diagnostics.push(...sourceRelation.diagnostics);
   }
 
   const hasErrors = diagnostics.some((diagnostic) => diagnostic.severity === "error");
@@ -137,7 +159,8 @@ function normalizeRequest(request) {
   }
 
   const options = {
-    writeResultManifest: request.options?.writeResultManifest !== false
+    writeResultManifest: request.options?.writeResultManifest !== false,
+    writeSourceRelationArtifact: request.options?.writeSourceRelationArtifact !== false
   };
   const profileIds = normalizeProfileIds(request.profileIds ?? ["dotnetdoc"]);
 
@@ -194,7 +217,174 @@ async function processInput(input, request) {
       },
       artifact(`${safeArtifactId(input.artifactBasePath)}-hia-document`, "hia-document", hiaPath, request.profileIds)
     ],
-    diagnostics: [...(dotnetdoc.diagnostics ?? []), ...(hiaDocument.diagnostics ?? [])]
+    diagnostics: [...(dotnetdoc.diagnostics ?? []), ...(hiaDocument.diagnostics ?? [])],
+    extractionRecord: {
+      input,
+      artifactPath: dotnetdocPath,
+      hiaPath,
+      artifact: dotnetdoc,
+      hiaDocument
+    }
+  };
+}
+
+/**
+ * Build a relation artifact from compiler XML documentation members to C# declarations.
+ *
+ * @param {object[]} extractionRecords <lang><en>Extraction records produced by the current runner request.</en><zh-CN>当前 runner 请求生成的抽取记录。</zh-CN></lang>
+ * @param {object} request <lang><en>Normalized runner request.</en><zh-CN>规范化后的 runner 请求。</zh-CN></lang>
+ * @returns {object|null} <lang><en>Relation artifact when XML and source inputs both exist.</en><zh-CN>当 XML 与源码输入同时存在时返回关系产物。</zh-CN></lang>
+ * @lang zh-CN 从编译器 XML documentation member 到 C# declaration 构建关系产物。
+ */
+function buildSourceRelationArtifact(extractionRecords, request) {
+  const xmlRecords = extractionRecords.filter((record) => record.artifact.contract === DOTNETDOC_XML_DOC_EXTRACTION_CONTRACT);
+  const sourceRecords = extractionRecords.filter((record) => record.artifact.contract === DOTNETDOC_CSHARP_SOURCE_EXTRACTION_CONTRACT);
+  if (xmlRecords.length === 0 || sourceRecords.length === 0) {
+    return null;
+  }
+
+  const sourceMembers = groupMembersByName(sourceRecords);
+  const xmlMembers = groupMembersByName(xmlRecords);
+  const relations = [];
+  const unresolved = [];
+
+  for (const xmlRecord of xmlRecords) {
+    for (const xmlMember of xmlRecord.artifact.members) {
+      const matches = sourceMembers.get(xmlMember.memberName) ?? [];
+      if (matches.length === 0) {
+        unresolved.push(unresolvedMember("missing-csharp-source", "xml-doc", xmlRecord, xmlMember));
+        continue;
+      }
+      for (const [index, match] of matches.entries()) {
+        relations.push(createSourceRelation(xmlRecord, xmlMember, match.record, match.member, index));
+      }
+    }
+  }
+
+  for (const sourceRecord of sourceRecords) {
+    for (const sourceMember of sourceRecord.artifact.members) {
+      if (!xmlMembers.has(sourceMember.memberName)) {
+        unresolved.push(unresolvedMember("missing-xml-documentation", "csharp-source", sourceRecord, sourceMember));
+      }
+    }
+  }
+
+  return {
+    contract: DOTNETDOC_SOURCE_RELATION_CONTRACT,
+    contractVersion: DOTNETDOC_SOURCE_RELATION_CONTRACT_VERSION,
+    producer: {
+      name: "@hia-doc/dotnetdoc-runner",
+      version: DOTNETDOC_RUNNER_VERSION
+    },
+    source: {
+      kind: "dotnetdoc-source-relation",
+      relation: "xml-doc-to-csharp-source",
+      xmlDocArtifacts: xmlRecords.map((record) => sourceArtifactRef(record)),
+      csharpSourceArtifacts: sourceRecords.map((record) => sourceArtifactRef(record))
+    },
+    summary: {
+      relationCount: relations.length,
+      unresolvedCount: unresolved.length,
+      xmlMemberCount: countMembers(xmlRecords),
+      csharpSourceMemberCount: countMembers(sourceRecords)
+    },
+    privacy: {
+      sourcesContentPolicy: "none",
+      sourcePreviewPolicy: "none",
+      embedsSourcesContent: false
+    },
+    relations,
+    unresolved,
+    diagnostics: unresolved.length === 0 ? [] : [
+      createDiagnostic(
+        "DOTNETDOC_SOURCE_RELATION_UNRESOLVED_MEMBERS",
+        `DotNetDoc source relation left ${unresolved.length} member(s) unresolved.`,
+        "warning",
+        null,
+        {
+          unresolvedCount: unresolved.length
+        }
+      )
+    ]
+  };
+}
+
+function createSourceRelation(xmlRecord, xmlMember, sourceRecord, sourceMember, duplicateIndex) {
+  const duplicateSuffix = duplicateIndex === 0 ? "" : `-${duplicateIndex + 1}`;
+  return {
+    id: `dotnetdoc:source-relation:${safeArtifactId(xmlMember.memberName)}${duplicateSuffix}`,
+    relation: "documents-declaration",
+    memberName: xmlMember.memberName,
+    memberId: xmlMember.id,
+    kind: xmlMember.kind,
+    name: xmlMember.name,
+    confidence: sourceMember.source?.confidence ?? "medium",
+    hiaSymbol: {
+      id: xmlMember.id,
+      artifactPath: xmlRecord.hiaPath,
+      documentId: xmlRecord.input.hiaDocumentId ?? null
+    },
+    documentation: {
+      memberId: xmlMember.id,
+      artifactPath: xmlRecord.artifactPath,
+      path: xmlMember.source?.path ?? xmlRecord.input.path,
+      language: "xml",
+      range: xmlMember.source?.range ?? null,
+      rangeSource: xmlMember.source?.rangeSource ?? "compiler-xml-doc",
+      confidence: xmlMember.source?.confidence ?? "high"
+    },
+    declaration: {
+      memberId: sourceMember.id,
+      artifactPath: sourceRecord.artifactPath,
+      path: sourceMember.source?.path ?? sourceRecord.input.path,
+      language: sourceMember.source?.language ?? "csharp",
+      range: sourceMember.source?.range ?? null,
+      rangeSource: sourceMember.source?.rangeSource ?? "roslyn-syntax",
+      confidence: sourceMember.source?.confidence ?? "medium"
+    }
+  };
+}
+
+function groupMembersByName(records) {
+  const grouped = new Map();
+  for (const record of records) {
+    for (const member of record.artifact.members ?? []) {
+      const group = grouped.get(member.memberName) ?? [];
+      group.push({ record, member });
+      grouped.set(member.memberName, group);
+    }
+  }
+  return grouped;
+}
+
+function countMembers(records) {
+  return records.reduce((count, record) => count + (record.artifact.members?.length ?? 0), 0);
+}
+
+function sourceArtifactRef(record) {
+  return {
+    contract: record.artifact.contract,
+    contractVersion: record.artifact.contractVersion,
+    artifactPath: record.artifactPath,
+    inputPath: record.input.path
+  };
+}
+
+function unresolvedMember(reason, side, record, member) {
+  return {
+    memberName: member.memberName,
+    memberId: member.id,
+    kind: member.kind,
+    name: member.name,
+    side,
+    reason,
+    source: {
+      path: member.source?.path ?? record.input.path,
+      language: member.source?.language ?? (side === "xml-doc" ? "xml" : "csharp"),
+      range: member.source?.range ?? null,
+      rangeSource: member.source?.rangeSource ?? null,
+      confidence: member.source?.confidence ?? null
+    }
   };
 }
 

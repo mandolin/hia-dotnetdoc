@@ -120,6 +120,46 @@ describe("DotNetDoc XML documentation intake", () => {
     assert.equal(hia.symbols[0].source.definedIn.language, "csharp");
     assert.equal(hia.symbols[0].source.definedIn.position.line, 9);
   });
+
+  it("emits a source relation artifact when XML docs and C# source are processed together", async () => {
+    const outputDirectory = path.join(repositoryRoot, "temp", "out-test-source-relation");
+    await fs.rm(outputDirectory, { recursive: true, force: true });
+    const runnerResult = await runDotnetDoc({
+      workspaceRoot: repositoryRoot,
+      outputDirectory,
+      inputs: [
+        {
+          kind: "dotnet-xml-doc",
+          path: fixturePath,
+          artifactBasePath: "Portal.Components",
+          hiaDocumentId: "dotnetdoc:Portal.Components",
+          title: "Portal.Components API"
+        },
+        {
+          kind: "dotnet-csharp-source",
+          path: "fixtures/source/Portal.Components/Navigation/PortalMenu.cs",
+          artifactBasePath: "PortalMenu.source",
+          hiaDocumentId: "dotnetdoc:source:PortalMenu",
+          title: "PortalMenu Source API"
+        }
+      ],
+      options: {
+        writeResultManifest: true
+      }
+    });
+    const relation = JSON.parse(await fs.readFile(path.join(outputDirectory, "dotnetdoc.source-relation.json"), "utf8"));
+
+    assert.equal(runnerResult.status, "success");
+    assert.equal(runnerResult.artifacts.length, 5);
+    assert.ok(runnerResult.artifacts.some((artifact) => artifact.contract === "dotnetdoc-source-relation"));
+    assert.equal(relation.contract, "dotnetdoc-source-relation");
+    assert.equal(relation.summary.relationCount, 3);
+    assert.equal(relation.summary.unresolvedCount, 0);
+    assert.ok(relation.relations.some((item) => item.memberName === "M:Portal.Components.Navigation.PortalMenu.Render(System.String)"));
+    assert.ok(relation.relations.every((item) => item.documentation.artifactPath.endsWith(".dotnetdoc.json")));
+    assert.ok(relation.relations.every((item) => item.declaration.path.endsWith(".cs")));
+    assert.equal(relation.relations[0].hiaSymbol.artifactPath, "Portal.Components.hia.json");
+  });
 });
 
 async function exists(filePath) {

@@ -60,6 +60,12 @@ Current external release status:
 - npm package-level Trusted Publisher records are configured for all six packages;
 - `release:trusted-publish:check` can verify GitHub Actions publisher records for `mandolin/hia-dotnetdoc` and `npm-trusted-publish.yml` when an active npm WebAuthn/2FA session is available.
 
+Completed in W-P19.3 first slice:
+
+- `dotnetdoc-source-relation@0.1.0-draft` contract constants;
+- runner emits `dotnetdoc.source-relation.json` when XML documentation and C# source artifacts share member ids;
+- relation entries connect XML member id, HIA symbol id and C# source declaration range without embedding private source text.
+
 Remaining release follow-up:
 
 - a future patch release, for example `0.1.1`, should be used to verify end-to-end GitHub Actions Trusted Publisher provenance publishing;
@@ -72,4 +78,4 @@ Not yet implemented:
 - SHFB project bridge;
 - ASP.NET OpenAPI endpoint inventory;
 - inherited docs, exact overload member ids and semantic cref resolution;
-- npm package-level Trusted Publisher setup and real package publishing.
+- end-to-end GitHub Actions Trusted Publisher provenance patch rehearsal.

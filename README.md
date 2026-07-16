@@ -24,6 +24,7 @@ The first milestone is intentionally narrow:
 - consume compiler-generated XML documentation files and explicit C# source inputs;
 - preserve .NET member ids such as `T:`, `M:`, `P:`, `F:`, and `E:`;
 - keep XML documentation tags such as `summary`, `remarks`, `param`, `returns`, and `exception`;
+- emit `dotnetdoc-source-relation` when XML documentation and C# source inputs share member ids;
 - emit HIA-compatible document artifacts and producer result manifests without embedding private source text.
 
 The first Roslyn source extractor is syntax-only: it extracts documented/public
@@ -108,7 +109,8 @@ For a normal project, create a `dotnetdoc.config.json`:
     }
   ],
   "options": {
-    "writeResultManifest": true
+    "writeResultManifest": true,
+    "writeSourceRelationArtifact": true
   }
 }
 ```

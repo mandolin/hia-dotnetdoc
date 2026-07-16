@@ -44,7 +44,8 @@ export const DOTNETDOC_CONFIG_JSON_SCHEMA = Object.freeze({
       type: "object",
       additionalProperties: false,
       properties: {
-        writeResultManifest: { type: "boolean" }
+        writeResultManifest: { type: "boolean" },
+        writeSourceRelationArtifact: { type: "boolean" }
       }
     },
     profileIds: {

@@ -14,7 +14,7 @@ export const dotnetdocProducerDescriptor = Object.freeze({
   inputKinds: [...DOTNETDOC_INPUT_KINDS],
   outputKinds: [...DOTNETDOC_OUTPUT_KINDS],
   capabilities: {
-    sourceLinkage: false,
+    sourceLinkage: true,
     incremental: false,
     watch: false
   }

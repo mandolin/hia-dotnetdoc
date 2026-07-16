@@ -27,6 +27,20 @@ export const DOTNETDOC_CSHARP_SOURCE_EXTRACTION_CONTRACT = "dotnetdoc-csharp-sou
 export const DOTNETDOC_CSHARP_SOURCE_EXTRACTION_CONTRACT_VERSION = "0.1.0-draft";
 
 /**
+ * Contract name for relation artifacts that connect XML docs, C# declarations and HIA symbols.
+ *
+ * @lang zh-CN 连接 XML documentation、C# declaration 与 HIA symbol 的关系产物合同名称。
+ */
+export const DOTNETDOC_SOURCE_RELATION_CONTRACT = "dotnetdoc-source-relation";
+
+/**
+ * Draft contract version for DotNetDoc source relation artifacts.
+ *
+ * @lang zh-CN DotNetDoc source relation 产物的草案合同版本。
+ */
+export const DOTNETDOC_SOURCE_RELATION_CONTRACT_VERSION = "0.1.0-draft";
+
+/**
  * Draft contract name reserved for ASP.NET endpoint extraction artifacts.
  *
  * @lang zh-CN 预留给 ASP.NET endpoint 抽取产物的草案合同名称。
