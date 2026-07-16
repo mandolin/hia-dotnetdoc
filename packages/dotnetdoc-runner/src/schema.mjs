@@ -32,8 +32,9 @@ export const DOTNETDOC_CONFIG_JSON_SCHEMA = Object.freeze({
         additionalProperties: false,
         required: ["kind", "path"],
         properties: {
-          kind: { enum: ["dotnet-xml-doc", "dotnet-csharp-source"] },
+          kind: { enum: ["dotnet-xml-doc", "dotnet-csharp-source", "dotnet-aspnet-surface"] },
           path: relativePath,
+          applicationRoot: relativePath,
           artifactBasePath: relativePath,
           hiaDocumentId: { type: "string", minLength: 1 },
           title: { type: "string", minLength: 1 }

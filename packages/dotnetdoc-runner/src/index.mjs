@@ -1,10 +1,11 @@
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-import { extractDotnetSourceFiles } from "@hia-doc/dotnet-source-extractor";
+import { extractAspNetEndpoints, extractDotnetSourceFiles } from "@hia-doc/dotnet-source-extractor";
 import { extractDotnetXmlDocs } from "@hia-doc/dotnet-xml-doc-extractor";
-import { dotnetXmlDocsToHiaDocument } from "@hia-doc/dotnetdoc-adapter";
+import { dotnetAspNetEndpointsToHiaDocument, dotnetXmlDocsToHiaDocument } from "@hia-doc/dotnetdoc-adapter";
 import {
+  DOTNETDOC_ASPNET_ENDPOINT_EXTRACTION_CONTRACT,
   DOTNETDOC_CSHARP_SOURCE_EXTRACTION_CONTRACT,
   DOTNETDOC_SOURCE_RELATION_CONTRACT,
   DOTNETDOC_SOURCE_RELATION_CONTRACT_VERSION,
@@ -19,8 +20,8 @@ export {
 import { DOTNETDOC_CONFIG_SCHEMA_ID, DOTNETDOC_CONFIG_SCHEMA_VERSION } from "./schema.mjs";
 
 export const DOTNETDOC_RUNNER_VERSION = "0.1.0";
-export const DOTNETDOC_INPUT_KINDS = Object.freeze(["dotnet-xml-doc", "dotnet-csharp-source"]);
-export const DOTNETDOC_OUTPUT_KINDS = Object.freeze(["dotnetdoc-extraction", "hia-document", "dotnetdoc-source-relation"]);
+export const DOTNETDOC_INPUT_KINDS = Object.freeze(["dotnet-xml-doc", "dotnet-csharp-source", "dotnet-aspnet-surface"]);
+export const DOTNETDOC_OUTPUT_KINDS = Object.freeze(["dotnetdoc-extraction", "hia-document", "dotnetdoc-source-relation", "dotnetdoc-aspnet-endpoint-extraction"]);
 
 const RESULT_CONTRACT = "documentation-producer-result";
 const RESULT_CONTRACT_VERSION = "0.1.0-draft";
@@ -175,7 +176,7 @@ function normalizeRequest(request) {
 
 function normalizeInput(input, index) {
   assertRecord(input, `inputs[${index}] must be an object.`);
-  assertKnownKeys(input, ["kind", "path", "artifactBasePath", "hiaDocumentId", "title"], `inputs[${index}]`);
+  assertKnownKeys(input, ["kind", "path", "applicationRoot", "artifactBasePath", "hiaDocumentId", "title"], `inputs[${index}]`);
   if (!DOTNETDOC_INPUT_KINDS.includes(input.kind)) {
     throw new TypeError(`inputs[${index}].kind must be one of: ${DOTNETDOC_INPUT_KINDS.join(", ")}.`);
   }
@@ -188,6 +189,7 @@ function normalizeInput(input, index) {
   return {
     kind: input.kind,
     path: inputPath,
+    applicationRoot: input.applicationRoot ? normalizeSafeRelativePath(input.applicationRoot, `inputs[${index}].applicationRoot`) : ".",
     artifactBasePath,
     hiaDocumentId: input.hiaDocumentId,
     title: input.title
@@ -197,11 +199,18 @@ function normalizeInput(input, index) {
 async function processInput(input, request) {
   const dotnetdoc = input.kind === "dotnet-xml-doc"
     ? await processXmlDocInput(input, request)
-    : await processCSharpSourceInput(input, request);
-  const hiaDocument = dotnetXmlDocsToHiaDocument(dotnetdoc, {
-    id: input.hiaDocumentId,
-    title: input.title
-  });
+    : input.kind === "dotnet-csharp-source"
+      ? await processCSharpSourceInput(input, request)
+      : await processAspNetEndpointInput(input, request);
+  const hiaDocument = dotnetdoc.contract === DOTNETDOC_ASPNET_ENDPOINT_EXTRACTION_CONTRACT
+    ? dotnetAspNetEndpointsToHiaDocument(dotnetdoc, {
+      id: input.hiaDocumentId,
+      title: input.title
+    })
+    : dotnetXmlDocsToHiaDocument(dotnetdoc, {
+      id: input.hiaDocumentId,
+      title: input.title
+    });
 
   const dotnetdocPath = `${input.artifactBasePath}.dotnetdoc.json`;
   const hiaPath = `${input.artifactBasePath}.hia.json`;
@@ -397,6 +406,14 @@ async function processXmlDocInput(input, request) {
 async function processCSharpSourceInput(input, request) {
   return extractDotnetSourceFiles({
     workspaceRoot: request.workspaceRoot,
+    paths: [input.path]
+  });
+}
+
+async function processAspNetEndpointInput(input, request) {
+  return extractAspNetEndpoints({
+    workspaceRoot: request.workspaceRoot,
+    applicationRoot: input.applicationRoot,
     paths: [input.path]
   });
 }

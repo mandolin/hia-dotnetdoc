@@ -5,8 +5,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { extractDotnetXmlDocs, createDotnetMemberId } from "../packages/dotnet-xml-doc-extractor/src/index.mjs";
-import { extractDotnetSourceFiles } from "../packages/dotnet-source-extractor/src/index.mjs";
-import { dotnetXmlDocsToHiaDocument } from "../packages/dotnetdoc-adapter/src/index.mjs";
+import { extractAspNetEndpoints, extractDotnetSourceFiles } from "../packages/dotnet-source-extractor/src/index.mjs";
+import { dotnetAspNetEndpointsToHiaDocument, dotnetXmlDocsToHiaDocument } from "../packages/dotnetdoc-adapter/src/index.mjs";
 import { runDotnetDoc } from "../packages/dotnetdoc-runner/src/index.mjs";
 import { dotnetdocProducer } from "../packages/dotnetdoc-producer/src/index.mjs";
 
@@ -159,6 +159,62 @@ describe("DotNetDoc XML documentation intake", () => {
     assert.ok(relation.relations.every((item) => item.documentation.artifactPath.endsWith(".dotnetdoc.json")));
     assert.ok(relation.relations.every((item) => item.declaration.path.endsWith(".cs")));
     assert.equal(relation.relations[0].hiaSymbol.artifactPath, "Portal.Components.hia.json");
+  });
+
+  it("extracts ASP.NET Web Forms, controller and minimal API endpoint surfaces", async () => {
+    const artifact = await extractAspNetEndpoints({
+      workspaceRoot: path.join(repositoryRoot, "fixtures/source/Portal.Web"),
+      applicationRoot: ".",
+      paths: [
+        "Default.aspx",
+        "Admin/Users.ascx",
+        "Controllers/BooksController.cs",
+        "Program.cs"
+      ]
+    });
+    const hiaDocument = dotnetAspNetEndpointsToHiaDocument(artifact, {
+      id: "dotnetdoc:aspnet-fixture",
+      title: "ASP.NET Fixture Endpoint Surface"
+    });
+
+    assert.equal(artifact.contract, "dotnetdoc-aspnet-endpoint-extraction");
+    assert.equal(artifact.summary.endpointCount, 6);
+    assert.equal(artifact.summary.routableEndpointCount, 5);
+    assert.ok(artifact.endpoints.some((endpoint) => endpoint.kind === "aspnet-webforms-page" && endpoint.route.template === "~/Default.aspx"));
+    assert.ok(artifact.endpoints.some((endpoint) => endpoint.kind === "aspnet-webforms-control" && endpoint.routable === false));
+    assert.ok(artifact.endpoints.some((endpoint) => endpoint.kind === "aspnet-controller-action" && endpoint.route.template === "api/Books/{id}" && endpoint.httpMethods[0] === "GET"));
+    assert.ok(artifact.endpoints.some((endpoint) => endpoint.kind === "aspnet-minimal-api-endpoint" && endpoint.route.template === "/health"));
+    assert.equal(hiaDocument.symbols.length, artifact.endpoints.length);
+    assert.ok(hiaDocument.symbols.every((symbol) => symbol.kind === "aspnet-endpoint"));
+  });
+
+  it("runs ASP.NET endpoint inputs through the standalone runner", async () => {
+    const outputDirectory = path.join(repositoryRoot, "temp", "out-test-aspnet-endpoints");
+    await fs.rm(outputDirectory, { recursive: true, force: true });
+    const runnerResult = await runDotnetDoc({
+      workspaceRoot: path.join(repositoryRoot, "fixtures/source/Portal.Web"),
+      outputDirectory,
+      inputs: [
+        {
+          kind: "dotnet-aspnet-surface",
+          path: "Default.aspx",
+          artifactBasePath: "aspnet/Default",
+          hiaDocumentId: "dotnetdoc:aspnet:Default",
+          title: "Default Page Endpoint"
+        }
+      ],
+      options: {
+        writeResultManifest: true
+      }
+    });
+    const endpointArtifact = JSON.parse(await fs.readFile(path.join(outputDirectory, "aspnet/Default.dotnetdoc.json"), "utf8"));
+    const hia = JSON.parse(await fs.readFile(path.join(outputDirectory, "aspnet/Default.hia.json"), "utf8"));
+
+    assert.equal(runnerResult.status, "success");
+    assert.equal(runnerResult.artifacts.length, 2);
+    assert.ok(runnerResult.artifacts.some((artifact) => artifact.contract === "dotnetdoc-aspnet-endpoint-extraction"));
+    assert.equal(endpointArtifact.endpoints[0].handler.memberName, "Page_Load");
+    assert.equal(hia.symbols[0].metadata.dotnetdoc.aspnetEndpoint.route.template, "~/Default.aspx");
   });
 });
 

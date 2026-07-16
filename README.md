@@ -2,9 +2,10 @@
 
 `hia-dotnetdoc` is the HIA documentation line for .NET and ASP.NET projects.
 
-It starts with C# XML documentation comments and a small HIA adapter. Later
-stages are expected to add DocFX metadata, Roslyn semantic extraction, ASP.NET
-OpenAPI endpoint intake, and richer source-linkage.
+It consumes compiler XML documentation, explicit C# source files and first-pass
+ASP.NET endpoint surfaces, then converts those artifacts into HIA-compatible
+documents. Later layers are expected to deepen Roslyn semantic extraction,
+DocFX/SHFB intake, OpenAPI metadata and richer source-linkage.
 
 ## Packages
 
@@ -12,7 +13,7 @@ OpenAPI endpoint intake, and richer source-linkage.
 | --- | --- |
 | `@hia-doc/dotnetdoc-spec` | Shared constants for DotNetDoc contracts and member kinds. |
 | `@hia-doc/dotnet-xml-doc-extractor` | Parses compiler XML documentation files into `dotnetdoc-xml-doc-extraction`. |
-| `@hia-doc/dotnet-source-extractor` | Uses a Roslyn helper to parse C# source files into `dotnetdoc-csharp-source-extraction`. |
+| `@hia-doc/dotnet-source-extractor` | Parses C# source files into `dotnetdoc-csharp-source-extraction` and ASP.NET surfaces into `dotnetdoc-aspnet-endpoint-extraction`. |
 | `@hia-doc/dotnetdoc-adapter` | Converts DotNetDoc extraction artifacts to HIA document shapes. |
 | `@hia-doc/dotnetdoc-runner` | Runs XML documentation inputs from JSON config or CLI and emits producer result manifests. |
 | `@hia-doc/dotnetdoc-producer` | Exposes the runner through the HIA documentation producer contract. |
@@ -21,17 +22,21 @@ OpenAPI endpoint intake, and richer source-linkage.
 
 The first milestone is intentionally narrow:
 
-- consume compiler-generated XML documentation files and explicit C# source inputs;
+- consume compiler-generated XML documentation files, explicit C# source inputs and ASP.NET surface inputs;
 - preserve .NET member ids such as `T:`, `M:`, `P:`, `F:`, and `E:`;
 - keep XML documentation tags such as `summary`, `remarks`, `param`, `returns`, and `exception`;
 - emit `dotnetdoc-source-relation` when XML documentation and C# source inputs share member ids;
+- emit `dotnetdoc-aspnet-endpoint-extraction` for Web Forms pages/controls, controller attribute routes and Minimal API `Map{Verb}` calls;
 - emit HIA-compatible document artifacts and producer result manifests without embedding private source text.
 
 The first Roslyn source extractor is syntax-only: it extracts documented/public
 declarations, XML documentation trivia and source ranges from explicit `.cs`
-files. Full semantic compilation, `.sln`/`.csproj` discovery, inherited docs,
-DocFX, SHFB project import, ASP.NET OpenAPI, and richer source-linkage are
-planned follow-up layers.
+files. The first ASP.NET endpoint extractor is source-scan based: it records
+Web Forms file-system surfaces and common ASP.NET Core route declarations, but
+does not yet perform full project compilation, endpoint discovery through the
+runtime pipeline, route constraint expansion or OpenAPI generation. Full
+semantic compilation, `.sln`/`.csproj` discovery, inherited docs, DocFX, SHFB
+project import and richer source-linkage are planned follow-up layers.
 
 ## Development
 
@@ -106,6 +111,13 @@ For a normal project, create a `dotnetdoc.config.json`:
       "path": "src/YourType.cs",
       "artifactBasePath": "YourType.source",
       "title": "YourType Source API"
+    },
+    {
+      "kind": "dotnet-aspnet-surface",
+      "path": "src/Web/Default.aspx",
+      "applicationRoot": "src/Web",
+      "artifactBasePath": "web/Default",
+      "title": "Default Page Endpoint"
     }
   ],
   "options": {
