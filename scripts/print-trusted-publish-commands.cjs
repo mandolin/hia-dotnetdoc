@@ -20,7 +20,7 @@ function main() {
 
   for (const item of packages) {
     console.log(
-      `gh workflow run ${workflow} --repo ${repository} --ref ${ref} --field package_name="${item.name}" --field confirm_publish="${confirmPublish}"`
+      `gh workflow run ${workflow} --repo ${repository} --ref ${ref} --raw-field package_name="${item.name}" --raw-field confirm_publish="${confirmPublish}"`
     );
   }
 

@@ -57,6 +57,7 @@ Completed in W-P19.1 first slice:
 Current external release status:
 
 - npm CLI login is not available in this environment: `npm whoami --registry=https://registry.npmjs.org/` returns `E401 Unauthorized`;
+- first Trusted Publisher probe for `@hia-doc/dotnetdoc-spec@0.1.0` reached `npm publish` but failed with npm `E404` / permission-class response;
 - real publishing still depends on npm package-level Trusted Publisher setup or a restored npm auth/token path.
 
 Not yet implemented:
