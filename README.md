@@ -66,6 +66,16 @@ To print the GitHub CLI commands for the manual Trusted Publisher workflow:
 npm run release:trusted-publish:plan
 ```
 
+To configure npm Trusted Publishers through npm CLI after logging in:
+
+```bash
+npm run release:trusted-publish:configure -- --dry-run
+npm run release:trusted-publish:configure -- --otp=123456
+```
+
+The configure command uses npm 11 through `npx` because Trusted Publisher
+management is newer than the minimum npm used by many local Node installs.
+
 For a normal project, create a `dotnetdoc.config.json`:
 
 ```json

@@ -30,6 +30,7 @@ const requiredPaths = [
   "scripts/check-release-registry-status.cjs",
   "scripts/check-skeleton.cjs",
   "scripts/check-standalone.cjs",
+  "scripts/configure-trusted-publishers.cjs",
   "scripts/print-trusted-publish-commands.cjs",
   "scripts/release-packages.cjs",
   "scripts/resolve-release-package.cjs",
