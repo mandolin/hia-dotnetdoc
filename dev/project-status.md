@@ -56,10 +56,14 @@ Completed in W-P19.1 first slice:
 
 Current external release status:
 
-- npm CLI login is not available in this environment: `npm whoami --registry=https://registry.npmjs.org/` returns `E401 Unauthorized`;
-- first Trusted Publisher probe for `@hia-doc/dotnetdoc-spec@0.1.0` reached `npm publish` but failed with npm `E404` / permission-class response;
-- npm 11 `trust github` dry-run succeeds for the intended package/repository/workflow shape, but the real trust operation fails until npm login and 2FA are available;
-- real publishing still depends on npm package-level Trusted Publisher setup or a restored npm auth/token path.
+- all six DotNetDoc `0.1.0` packages are published on npm;
+- npm package-level Trusted Publisher records are configured for all six packages;
+- `release:trusted-publish:check` can verify GitHub Actions publisher records for `mandolin/hia-dotnetdoc` and `npm-trusted-publish.yml` when an active npm WebAuthn/2FA session is available.
+
+Remaining release follow-up:
+
+- a future patch release, for example `0.1.1`, should be used to verify end-to-end GitHub Actions Trusted Publisher provenance publishing;
+- the already published `0.1.0` versions cannot be republished through the workflow.
 
 Not yet implemented:
 

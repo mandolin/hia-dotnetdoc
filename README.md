@@ -76,6 +76,15 @@ npm run release:trusted-publish:configure -- --otp=123456
 The configure command uses npm 11 through `npx` because Trusted Publisher
 management is newer than the minimum npm used by many local Node installs.
 
+After configuration, verify the package-level Trusted Publisher records:
+
+```bash
+npm run release:trusted-publish:check
+```
+
+This check reads npm package trust records and may require an active npm
+WebAuthn/2FA session.
+
 For a normal project, create a `dotnetdoc.config.json`:
 
 ```json
