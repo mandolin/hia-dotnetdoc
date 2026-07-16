@@ -36,6 +36,14 @@ Completed in the 0.1.0 release-candidate slice:
 - `npm pack --dry-run --json` gate for all package contents;
 - release gate coverage for syntax, skeleton, Roslyn helper build, fixtures, standalone smoke, license audit, pack dry-run and tests.
 
+Completed in W-P18.2 first slice:
+
+- public GitHub remote created and bound: `https://github.com/mandolin/hia-dotnetdoc`;
+- CI workflow added for Node 20.20.2 / 22.x / 24.x with .NET 8;
+- manual npm Trusted Publisher workflow added for package-level provenance publishing;
+- release package resolver added for the six publishable `@hia-doc/*dotnet*` packages;
+- release gate remains green after workflow and resolver additions.
+
 Not yet implemented:
 
 - DocFX metadata bridge;
@@ -43,4 +51,4 @@ Not yet implemented:
 - SHFB project bridge;
 - ASP.NET OpenAPI endpoint inventory;
 - inherited docs, exact overload member ids and semantic cref resolution;
-- GitHub remote / npm trusted publisher setup and real package publishing.
+- npm package-level Trusted Publisher setup and real package publishing.
