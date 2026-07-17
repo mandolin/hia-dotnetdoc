@@ -12,17 +12,30 @@ const string ProducerVersion = "0.1.1";
 try
 {
     var options = CommandLineOptions.Parse(args);
-    var members = new List<MemberOutput>();
+    var sources = new List<SourceInput>();
     var diagnostics = new List<DiagnosticOutput>();
     foreach (var relativePath in options.Paths)
     {
         var absolutePath = options.ResolveWorkspacePath(relativePath);
         var sourceText = File.ReadAllText(absolutePath);
         var syntaxTree = CSharpSyntaxTree.ParseText(sourceText, path: relativePath);
-        var root = syntaxTree.GetCompilationUnitRoot();
         diagnostics.AddRange(syntaxTree.GetDiagnostics().Select(ToDiagnosticOutput));
+        sources.Add(new SourceInput(relativePath, syntaxTree));
+    }
 
-        var walker = new DocumentationWalker(syntaxTree, relativePath);
+    var compilation = CSharpCompilation.Create(
+        assemblyName: "DotNetDoc.SourceExtraction",
+        syntaxTrees: sources.Select(source => source.SyntaxTree),
+        references: TrustedPlatformReferences(),
+        options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+    diagnostics.AddRange(compilation.GetDiagnostics().Select(ToDiagnosticOutput));
+
+    var members = new List<MemberOutput>();
+    foreach (var source in sources)
+    {
+        var root = source.SyntaxTree.GetCompilationUnitRoot();
+        var semanticModel = compilation.GetSemanticModel(source.SyntaxTree, ignoreAccessibility: true);
+        var walker = new DocumentationWalker(source.SyntaxTree, source.RelativePath, semanticModel);
         walker.Visit(root);
         members.AddRange(walker.Members);
     }
@@ -71,17 +84,35 @@ static DiagnosticOutput ToDiagnosticOutput(Diagnostic diagnostic)
     };
 }
 
+static IEnumerable<MetadataReference> TrustedPlatformReferences()
+{
+    var trustedAssemblies = (string?)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES");
+    if (string.IsNullOrWhiteSpace(trustedAssemblies))
+    {
+        return new[] { MetadataReference.CreateFromFile(typeof(object).Assembly.Location) };
+    }
+
+    return trustedAssemblies
+        .Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries)
+        .Where(File.Exists)
+        .Select(assemblyPath => MetadataReference.CreateFromFile(assemblyPath));
+}
+
+sealed record SourceInput(string RelativePath, SyntaxTree SyntaxTree);
+
 sealed class DocumentationWalker : CSharpSyntaxWalker
 {
     private readonly SyntaxTree _syntaxTree;
     private readonly string _relativePath;
+    private readonly SemanticModel _semanticModel;
     private readonly Stack<string> _namespaces = new();
     private readonly Stack<string> _types = new();
 
-    public DocumentationWalker(SyntaxTree syntaxTree, string relativePath)
+    public DocumentationWalker(SyntaxTree syntaxTree, string relativePath, SemanticModel semanticModel)
     {
         _syntaxTree = syntaxTree;
         _relativePath = relativePath;
+        _semanticModel = semanticModel;
     }
 
     public List<MemberOutput> Members { get; } = new();
@@ -140,7 +171,8 @@ sealed class DocumentationWalker : CSharpSyntaxWalker
             node,
             $"M:{typeName}.{node.Identifier.ValueText}{genericSuffix}{parameters}",
             "dotnet-method",
-            node.Identifier.ValueText);
+            node.Identifier.ValueText,
+            _semanticModel.GetDeclaredSymbol(node));
         base.VisitMethodDeclaration(node);
     }
 
@@ -157,7 +189,8 @@ sealed class DocumentationWalker : CSharpSyntaxWalker
             node,
             $"M:{typeName}.#ctor{DocumentationParameterList(node.ParameterList.Parameters)}",
             "dotnet-method",
-            "#ctor");
+            "#ctor",
+            _semanticModel.GetDeclaredSymbol(node));
         base.VisitConstructorDeclaration(node);
     }
 
@@ -166,7 +199,7 @@ sealed class DocumentationWalker : CSharpSyntaxWalker
         var typeName = CurrentTypeName();
         if (typeName.Length != 0 && ShouldInclude(node, node.Modifiers))
         {
-            AddMember(node, $"P:{typeName}.{node.Identifier.ValueText}", "dotnet-property", node.Identifier.ValueText);
+            AddMember(node, $"P:{typeName}.{node.Identifier.ValueText}", "dotnet-property", node.Identifier.ValueText, _semanticModel.GetDeclaredSymbol(node));
         }
         base.VisitPropertyDeclaration(node);
     }
@@ -176,7 +209,7 @@ sealed class DocumentationWalker : CSharpSyntaxWalker
         var typeName = CurrentTypeName();
         if (typeName.Length != 0 && ShouldInclude(node, node.Modifiers))
         {
-            AddMember(node, $"P:{typeName}.Item{DocumentationParameterList(node.ParameterList.Parameters)}", "dotnet-property", "Item");
+            AddMember(node, $"P:{typeName}.Item{DocumentationParameterList(node.ParameterList.Parameters)}", "dotnet-property", "Item", _semanticModel.GetDeclaredSymbol(node));
         }
         base.VisitIndexerDeclaration(node);
     }
@@ -188,7 +221,7 @@ sealed class DocumentationWalker : CSharpSyntaxWalker
         {
             foreach (var variable in node.Declaration.Variables)
             {
-                AddMember(node, $"F:{typeName}.{variable.Identifier.ValueText}", "dotnet-field", variable.Identifier.ValueText);
+                AddMember(node, $"F:{typeName}.{variable.Identifier.ValueText}", "dotnet-field", variable.Identifier.ValueText, _semanticModel.GetDeclaredSymbol(variable));
             }
         }
         base.VisitFieldDeclaration(node);
@@ -199,7 +232,7 @@ sealed class DocumentationWalker : CSharpSyntaxWalker
         var typeName = CurrentTypeName();
         if (typeName.Length != 0 && ShouldInclude(node, node.Modifiers))
         {
-            AddMember(node, $"E:{typeName}.{node.Identifier.ValueText}", "dotnet-event", node.Identifier.ValueText);
+            AddMember(node, $"E:{typeName}.{node.Identifier.ValueText}", "dotnet-event", node.Identifier.ValueText, _semanticModel.GetDeclaredSymbol(node));
         }
         base.VisitEventDeclaration(node);
     }
@@ -211,7 +244,7 @@ sealed class DocumentationWalker : CSharpSyntaxWalker
         {
             foreach (var variable in node.Declaration.Variables)
             {
-                AddMember(node, $"E:{typeName}.{variable.Identifier.ValueText}", "dotnet-event", variable.Identifier.ValueText);
+                AddMember(node, $"E:{typeName}.{variable.Identifier.ValueText}", "dotnet-event", variable.Identifier.ValueText, _semanticModel.GetDeclaredSymbol(variable));
             }
         }
         base.VisitEventFieldDeclaration(node);
@@ -222,7 +255,7 @@ sealed class DocumentationWalker : CSharpSyntaxWalker
         var typeName = typeParameterCount > 0 ? $"{identifier}`{typeParameterCount}" : identifier;
         if (ShouldInclude(node, node.Modifiers))
         {
-            AddMember(node, $"T:{QualifiedTypeName(typeName)}", "dotnet-type", identifier);
+            AddMember(node, $"T:{QualifiedTypeName(typeName)}", "dotnet-type", identifier, _semanticModel.GetDeclaredSymbol(node));
         }
 
         _types.Push(typeName);
@@ -230,13 +263,15 @@ sealed class DocumentationWalker : CSharpSyntaxWalker
         _types.Pop();
     }
 
-    private void AddMember(SyntaxNode node, string memberName, string kind, string displayName)
+    private void AddMember(SyntaxNode node, string memberName, string kind, string displayName, ISymbol? symbol)
     {
         var documentation = DocumentationData.FromNode(node);
+        var semantic = SemanticOutput.FromSymbol(symbol);
+        var semanticMemberName = semantic?.DocumentationCommentId;
         Members.Add(new MemberOutput
         {
-            Id = CreateMemberId(memberName),
-            MemberName = memberName,
+            Id = CreateMemberId(semanticMemberName ?? memberName),
+            MemberName = semanticMemberName ?? memberName,
             Kind = kind,
             Name = displayName,
             Summary = documentation.Summary,
@@ -247,7 +282,8 @@ sealed class DocumentationWalker : CSharpSyntaxWalker
             Exceptions = documentation.Exceptions,
             See = documentation.See,
             SeeAlso = documentation.SeeAlso,
-            Source = SourceFor(node)
+            Source = SourceFor(node),
+            Semantic = semantic
         });
     }
 
@@ -597,6 +633,38 @@ sealed class MemberOutput
     public List<ReferenceOutput> See { get; init; } = new();
     public List<ReferenceOutput> SeeAlso { get; init; } = new();
     public required SourceOutput Source { get; init; }
+    public SemanticOutput? Semantic { get; init; }
+}
+
+sealed class SemanticOutput
+{
+    public required string DocumentationCommentId { get; init; }
+    public required string SymbolKind { get; init; }
+    public string? ContainingAssembly { get; init; }
+    public string? ContainingNamespace { get; init; }
+    public string? ContainingType { get; init; }
+    public required string DisplayName { get; init; }
+
+    public static SemanticOutput? FromSymbol(ISymbol? symbol)
+    {
+        var documentationCommentId = symbol?.GetDocumentationCommentId();
+        if (symbol is null || string.IsNullOrWhiteSpace(documentationCommentId))
+        {
+            return null;
+        }
+
+        return new SemanticOutput
+        {
+            DocumentationCommentId = documentationCommentId,
+            SymbolKind = symbol.Kind.ToString(),
+            ContainingAssembly = symbol.ContainingAssembly?.Name,
+            ContainingNamespace = symbol.ContainingNamespace?.IsGlobalNamespace == false
+                ? symbol.ContainingNamespace.ToDisplayString()
+                : null,
+            ContainingType = symbol.ContainingType?.ToDisplayString(),
+            DisplayName = symbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)
+        };
+    }
 }
 
 sealed class NamedDocumentationOutput

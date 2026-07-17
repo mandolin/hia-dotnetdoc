@@ -227,7 +227,8 @@ function mapMemberToSymbol(member) {
         returns: member.returns,
         exceptions: member.exceptions,
         see: member.see,
-        seeAlso: member.seeAlso
+        seeAlso: member.seeAlso,
+        semantic: member.semantic ?? null
       }
     }
   };

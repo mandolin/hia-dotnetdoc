@@ -26,10 +26,11 @@ const projects = await extractDotnetProjectDiscovery({
 });
 ```
 
-The first slice is syntax-only. It extracts documented/public declarations,
-XML documentation trivia and source ranges from explicit `.cs` files. It does
-not yet perform semantic compilation, inherited docs or full compiler member id
-normalization.
+The C# source slice builds a lightweight Roslyn compilation for explicit `.cs`
+files. It extracts documented/public declarations, XML documentation trivia,
+source ranges and semantic documentation comment ids without loading an
+MSBuild workspace. It does not yet perform inherited docs or full project-load
+semantic analysis.
 
 The project discovery slice reads `.sln` and `.csproj` files without compiling.
 It records solution/project structure, target frameworks, package references,

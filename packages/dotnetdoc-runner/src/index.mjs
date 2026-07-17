@@ -357,7 +357,8 @@ function createSourceRelation(xmlRecord, xmlMember, sourceRecord, sourceMember, 
       language: sourceMember.source?.language ?? "csharp",
       range: sourceMember.source?.range ?? null,
       rangeSource: sourceMember.source?.rangeSource ?? "roslyn-syntax",
-      confidence: sourceMember.source?.confidence ?? "medium"
+      confidence: sourceMember.source?.confidence ?? "medium",
+      semantic: sourceMember.semantic ?? null
     }
   };
 }

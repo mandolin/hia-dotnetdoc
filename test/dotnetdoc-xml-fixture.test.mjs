@@ -60,6 +60,26 @@ describe("DotNetDoc XML documentation intake", () => {
     assert.ok(artifact.members.some((member) => member.memberName === "M:Portal.Components.Navigation.PortalMenu.Render(System.String)"));
     assert.ok(artifact.members.every((member) => member.source.language === "csharp"));
     assert.ok(artifact.members.every((member) => member.source.range.start.line > 0));
+    assert.ok(artifact.members.every((member) => member.semantic?.documentationCommentId === member.memberName));
+  });
+
+  it("uses Roslyn semantic documentation ids for constructors, generics and ref/out parameters", async () => {
+    const artifact = await extractDotnetSourceFiles({
+      workspaceRoot: repositoryRoot,
+      paths: ["fixtures/source/Portal.Components/Navigation/SemanticSample.cs"]
+    });
+
+    const semanticType = artifact.members.find((member) => member.name === "SemanticSample");
+    const constructor = artifact.members.find((member) => member.name === "#ctor");
+    const tryFormat = artifact.members.find((member) => member.name === "TryFormat");
+
+    assert.equal(artifact.contract, "dotnetdoc-csharp-source-extraction");
+    assert.equal(artifact.diagnostics.length, 0);
+    assert.equal(semanticType?.memberName, "T:Portal.Components.Navigation.SemanticSample`1");
+    assert.equal(constructor?.memberName, "M:Portal.Components.Navigation.SemanticSample`1.#ctor(`0)");
+    assert.match(tryFormat?.memberName ?? "", /^M:Portal\.Components\.Navigation\.SemanticSample`1\.TryFormat\(`0@,System\.String@\)$/);
+    assert.equal(tryFormat?.semantic?.documentationCommentId, tryFormat?.memberName);
+    assert.equal(tryFormat?.semantic?.symbolKind, "Method");
   });
 
   it("runs the standalone runner and producer adapter from the same request", async () => {
