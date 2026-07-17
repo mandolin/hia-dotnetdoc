@@ -1,12 +1,13 @@
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-import { extractAspNetEndpoints, extractDotnetSourceFiles } from "@hia-doc/dotnet-source-extractor";
+import { extractAspNetEndpoints, extractDotnetProjectDiscovery, extractDotnetSourceFiles } from "@hia-doc/dotnet-source-extractor";
 import { extractDotnetXmlDocs } from "@hia-doc/dotnet-xml-doc-extractor";
-import { dotnetAspNetEndpointsToHiaDocument, dotnetXmlDocsToHiaDocument } from "@hia-doc/dotnetdoc-adapter";
+import { dotnetAspNetEndpointsToHiaDocument, dotnetProjectDiscoveryToHiaDocument, dotnetXmlDocsToHiaDocument } from "@hia-doc/dotnetdoc-adapter";
 import {
   DOTNETDOC_ASPNET_ENDPOINT_EXTRACTION_CONTRACT,
   DOTNETDOC_CSHARP_SOURCE_EXTRACTION_CONTRACT,
+  DOTNETDOC_PROJECT_DISCOVERY_CONTRACT,
   DOTNETDOC_SOURCE_RELATION_CONTRACT,
   DOTNETDOC_SOURCE_RELATION_CONTRACT_VERSION,
   DOTNETDOC_XML_DOC_EXTRACTION_CONTRACT
@@ -20,8 +21,8 @@ export {
 import { DOTNETDOC_CONFIG_SCHEMA_ID, DOTNETDOC_CONFIG_SCHEMA_VERSION } from "./schema.mjs";
 
 export const DOTNETDOC_RUNNER_VERSION = "0.1.1";
-export const DOTNETDOC_INPUT_KINDS = Object.freeze(["dotnet-xml-doc", "dotnet-csharp-source", "dotnet-aspnet-surface"]);
-export const DOTNETDOC_OUTPUT_KINDS = Object.freeze(["dotnetdoc-extraction", "hia-document", "dotnetdoc-source-relation", "dotnetdoc-aspnet-endpoint-extraction"]);
+export const DOTNETDOC_INPUT_KINDS = Object.freeze(["dotnet-xml-doc", "dotnet-csharp-source", "dotnet-aspnet-surface", "dotnet-project"]);
+export const DOTNETDOC_OUTPUT_KINDS = Object.freeze(["dotnetdoc-extraction", "hia-document", "dotnetdoc-source-relation", "dotnetdoc-aspnet-endpoint-extraction", "dotnetdoc-project-discovery"]);
 
 const RESULT_CONTRACT = "documentation-producer-result";
 const RESULT_CONTRACT_VERSION = "0.1.0-draft";
@@ -184,7 +185,7 @@ function normalizeInput(input, index) {
   const inputPath = normalizeSafeRelativePath(input.path, `inputs[${index}].path`);
   const artifactBasePath = input.artifactBasePath
     ? normalizeSafeRelativePath(input.artifactBasePath, `inputs[${index}].artifactBasePath`)
-    : stripXmlExtension(inputPath);
+    : stripKnownInputExtension(inputPath);
 
   return {
     kind: input.kind,
@@ -201,16 +202,23 @@ async function processInput(input, request) {
     ? await processXmlDocInput(input, request)
     : input.kind === "dotnet-csharp-source"
       ? await processCSharpSourceInput(input, request)
-      : await processAspNetEndpointInput(input, request);
+      : input.kind === "dotnet-aspnet-surface"
+        ? await processAspNetEndpointInput(input, request)
+        : await processProjectDiscoveryInput(input, request);
   const hiaDocument = dotnetdoc.contract === DOTNETDOC_ASPNET_ENDPOINT_EXTRACTION_CONTRACT
     ? dotnetAspNetEndpointsToHiaDocument(dotnetdoc, {
       id: input.hiaDocumentId,
       title: input.title
     })
-    : dotnetXmlDocsToHiaDocument(dotnetdoc, {
-      id: input.hiaDocumentId,
-      title: input.title
-    });
+    : dotnetdoc.contract === DOTNETDOC_PROJECT_DISCOVERY_CONTRACT
+      ? dotnetProjectDiscoveryToHiaDocument(dotnetdoc, {
+        id: input.hiaDocumentId,
+        title: input.title
+      })
+      : dotnetXmlDocsToHiaDocument(dotnetdoc, {
+        id: input.hiaDocumentId,
+        title: input.title
+      });
 
   const dotnetdocPath = `${input.artifactBasePath}.dotnetdoc.json`;
   const hiaPath = `${input.artifactBasePath}.hia.json`;
@@ -418,6 +426,13 @@ async function processAspNetEndpointInput(input, request) {
   });
 }
 
+async function processProjectDiscoveryInput(input, request) {
+  return extractDotnetProjectDiscovery({
+    workspaceRoot: request.workspaceRoot,
+    path: input.path
+  });
+}
+
 function artifact(id, kind, artifactPath, profileIds) {
   return {
     id,
@@ -456,8 +471,8 @@ function normalizeSafeRelativePath(value, label) {
   return normalized;
 }
 
-function stripXmlExtension(value) {
-  return value.replace(/\.xml$/i, "");
+function stripKnownInputExtension(value) {
+  return value.replace(/\.(?:xml|cs|csproj|sln)$/i, "");
 }
 
 function safeArtifactId(value) {

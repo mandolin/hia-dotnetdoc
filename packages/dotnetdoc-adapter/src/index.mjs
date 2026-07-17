@@ -1,5 +1,6 @@
 import {
   DOTNETDOC_ASPNET_ENDPOINT_EXTRACTION_CONTRACT,
+  DOTNETDOC_PROJECT_DISCOVERY_CONTRACT,
   isDotnetDocMemberExtractionContract
 } from "@hia-doc/dotnetdoc-spec";
 
@@ -92,6 +93,51 @@ export function dotnetAspNetEndpointsToHiaDocument(artifact, options = {}) {
 }
 
 /**
+ * Convert a .NET project discovery artifact to a HIA document shape.
+ *
+ * @param {object} artifact <lang><en>`dotnetdoc-project-discovery` artifact.</en><zh-CN>`dotnetdoc-project-discovery` 产物。</zh-CN></lang>
+ * @param {object} [options] <lang><en>Adapter options.</en><zh-CN>适配选项。</zh-CN></lang>
+ * @param {string} [options.id] <lang><en>HIA document id.</en><zh-CN>HIA document id。</zh-CN></lang>
+ * @param {string} [options.title] <lang><en>HIA document title.</en><zh-CN>HIA document 标题。</zh-CN></lang>
+ * @returns {object} <lang><en>HIA document artifact for .NET solution/project structure.</en><zh-CN>.NET solution/project 结构的 HIA document 产物。</zh-CN></lang>
+ * @throws {Error} <lang><en>When the input artifact is not a project discovery extraction.</en><zh-CN>当输入不是 project discovery 抽取产物时抛出。</zh-CN></lang>
+ * @lang zh-CN 将 .NET project discovery 产物转换为 HIA document。
+ */
+export function dotnetProjectDiscoveryToHiaDocument(artifact, options = {}) {
+  assertDotnetProjectDiscoveryArtifact(artifact);
+  const title = options.title ?? ".NET Project Structure";
+  const symbols = [
+    ...artifact.solutions.map((solution) => mapSolutionToSymbol(solution)),
+    ...artifact.projects.map((project) => mapProjectToSymbol(project))
+  ];
+
+  return {
+    schemaVersion: HIA_CORE_SCHEMA_VERSION,
+    id: options.id ?? "dotnetdoc:projects",
+    title,
+    defaultLocale: options.defaultLocale ?? "en",
+    locales: options.locales ?? ["en"],
+    nodes: [
+      {
+        id: "root",
+        kind: "root",
+        title,
+        symbolIds: symbols.map((symbol) => symbol.id)
+      }
+    ],
+    symbols,
+    diagnostics: artifact.diagnostics ?? [],
+    metadata: {
+      sourceContract: artifact.contract,
+      sourceContractVersion: artifact.contractVersion,
+      producer: artifact.producer,
+      bridgeBoundary: "dotnetdoc-adapter",
+      summary: artifact.summary ?? null
+    }
+  };
+}
+
+/**
  * Assert that a value is a DotNetDoc XML documentation extraction artifact.
  *
  * @param {object} artifact <lang><en>Candidate artifact.</en><zh-CN>候选产物。</zh-CN></lang>
@@ -122,6 +168,23 @@ export function assertDotnetAspNetEndpointArtifact(artifact) {
   }
   if (!Array.isArray(artifact.endpoints)) {
     throw new Error("DotNetDoc ASP.NET endpoint extraction must contain endpoints array.");
+  }
+}
+
+/**
+ * Assert that a value is a .NET project discovery extraction artifact.
+ *
+ * @param {object} artifact <lang><en>Candidate artifact.</en><zh-CN>候选产物。</zh-CN></lang>
+ * @returns {void} <lang><en>No return value.</en><zh-CN>无返回值。</zh-CN></lang>
+ * @throws {Error} <lang><en>When the artifact contract or project list is invalid.</en><zh-CN>当产物合同或 project 列表无效时抛出。</zh-CN></lang>
+ * @lang zh-CN 断言某个值是 .NET project discovery 抽取产物。
+ */
+export function assertDotnetProjectDiscoveryArtifact(artifact) {
+  if (!artifact || artifact.contract !== DOTNETDOC_PROJECT_DISCOVERY_CONTRACT) {
+    throw new Error("Expected a DotNetDoc project discovery artifact.");
+  }
+  if (!Array.isArray(artifact.projects) || !Array.isArray(artifact.solutions)) {
+    throw new Error("DotNetDoc project discovery must contain projects and solutions arrays.");
   }
 }
 
@@ -205,5 +268,66 @@ function mapEndpointToSymbol(endpoint) {
         aspnetEndpoint: endpoint
       }
     }
+  };
+}
+
+function mapSolutionToSymbol(solution) {
+  return {
+    id: solution.id,
+    name: solution.name,
+    kind: "dotnet-solution",
+    summary: `${solution.projectCount} project(s) in ${solution.path}`,
+    source: sourceForFile(solution.path, "sln"),
+    diagnostics: [],
+    metadata: {
+      dotnetdoc: {
+        projectDiscoverySolution: solution
+      }
+    }
+  };
+}
+
+function mapProjectToSymbol(project) {
+  const frameworkSummary = project.targetFrameworks.length > 0
+    ? ` (${project.targetFrameworks.join(", ")})`
+    : "";
+  return {
+    id: project.id,
+    name: project.name,
+    kind: "dotnet-project",
+    summary: `${project.kind} ${project.path}${frameworkSummary}`,
+    source: sourceForFile(project.path, project.source?.language ?? "xml"),
+    diagnostics: project.diagnostics ?? [],
+    metadata: {
+      dotnetdoc: {
+        projectDiscoveryProject: project
+      }
+    }
+  };
+}
+
+function sourceForFile(relativePath, language) {
+  return {
+    model: HIA_SOURCE_MODEL,
+    modelVersion: HIA_SOURCE_MODEL_VERSION,
+    mode: "link",
+    definedIn: {
+      kind: "defined-in",
+      relativePath,
+      language,
+      position: {
+        line: 1,
+        column: 1
+      },
+      range: null,
+      link: {
+        enabled: false,
+        openMode: "same-tab"
+      }
+    },
+    primaryBlock: null,
+    references: [],
+    fragments: [],
+    diagnostics: []
   };
 }

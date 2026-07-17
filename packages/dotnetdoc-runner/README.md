@@ -1,7 +1,8 @@
 # @hia-doc/dotnetdoc-runner
 
 Standalone runner and CLI for compiler-generated .NET XML documentation files,
-C# source inputs and ASP.NET endpoint surface inputs.
+C# source inputs, ASP.NET endpoint surface inputs and `.sln`/`.csproj`
+structure discovery.
 
 ```sh
 hia-dotnetdoc --config dotnetdoc.config.json

@@ -5,8 +5,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { extractDotnetXmlDocs, createDotnetMemberId } from "../packages/dotnet-xml-doc-extractor/src/index.mjs";
-import { extractAspNetEndpoints, extractDotnetSourceFiles } from "../packages/dotnet-source-extractor/src/index.mjs";
-import { dotnetAspNetEndpointsToHiaDocument, dotnetXmlDocsToHiaDocument } from "../packages/dotnetdoc-adapter/src/index.mjs";
+import { extractAspNetEndpoints, extractDotnetProjectDiscovery, extractDotnetSourceFiles } from "../packages/dotnet-source-extractor/src/index.mjs";
+import { dotnetAspNetEndpointsToHiaDocument, dotnetProjectDiscoveryToHiaDocument, dotnetXmlDocsToHiaDocument } from "../packages/dotnetdoc-adapter/src/index.mjs";
 import { runDotnetDoc } from "../packages/dotnetdoc-runner/src/index.mjs";
 import { dotnetdocProducer } from "../packages/dotnetdoc-producer/src/index.mjs";
 
@@ -215,6 +215,57 @@ describe("DotNetDoc XML documentation intake", () => {
     assert.ok(runnerResult.artifacts.some((artifact) => artifact.contract === "dotnetdoc-aspnet-endpoint-extraction"));
     assert.equal(endpointArtifact.endpoints[0].handler.memberName, "Page_Load");
     assert.equal(hia.symbols[0].metadata.dotnetdoc.aspnetEndpoint.route.template, "~/Default.aspx");
+  });
+
+  it("discovers .NET solution and project structure without compiling", async () => {
+    const artifact = await extractDotnetProjectDiscovery({
+      workspaceRoot: repositoryRoot,
+      path: "fixtures/source/Portal.sln"
+    });
+    const hiaDocument = dotnetProjectDiscoveryToHiaDocument(artifact, {
+      id: "dotnetdoc:projects:Portal",
+      title: "Portal Project Structure"
+    });
+
+    assert.equal(artifact.contract, "dotnetdoc-project-discovery");
+    assert.equal(artifact.summary.solutionCount, 1);
+    assert.equal(artifact.summary.projectCount, 1);
+    assert.equal(artifact.projects[0].path, "fixtures/source/Portal.Components/Portal.Components.csproj");
+    assert.deepEqual(artifact.projects[0].targetFrameworks, ["net8.0"]);
+    assert.equal(artifact.projects[0].packageReferences[0].include, "Microsoft.CodeAnalysis.CSharp");
+    assert.equal(artifact.projects[0].compileItems[0].include, "Navigation/PortalMenu.cs");
+    assert.equal(hiaDocument.symbols.length, 2);
+    assert.ok(hiaDocument.symbols.some((symbol) => symbol.kind === "dotnet-solution"));
+    assert.ok(hiaDocument.symbols.some((symbol) => symbol.kind === "dotnet-project"));
+  });
+
+  it("runs .NET project discovery inputs through the standalone runner", async () => {
+    const outputDirectory = path.join(repositoryRoot, "temp", "out-test-project-discovery");
+    await fs.rm(outputDirectory, { recursive: true, force: true });
+    const runnerResult = await runDotnetDoc({
+      workspaceRoot: repositoryRoot,
+      outputDirectory,
+      inputs: [
+        {
+          kind: "dotnet-project",
+          path: "fixtures/source/Portal.Components/Portal.Components.csproj",
+          artifactBasePath: "projects/Portal.Components",
+          hiaDocumentId: "dotnetdoc:project:Portal.Components",
+          title: "Portal.Components Project"
+        }
+      ],
+      options: {
+        writeResultManifest: true
+      }
+    });
+    const projectArtifact = JSON.parse(await fs.readFile(path.join(outputDirectory, "projects/Portal.Components.dotnetdoc.json"), "utf8"));
+    const hia = JSON.parse(await fs.readFile(path.join(outputDirectory, "projects/Portal.Components.hia.json"), "utf8"));
+
+    assert.equal(runnerResult.status, "success");
+    assert.equal(runnerResult.artifacts.length, 2);
+    assert.ok(runnerResult.artifacts.some((artifact) => artifact.contract === "dotnetdoc-project-discovery"));
+    assert.equal(projectArtifact.projects[0].assemblyName, "Portal.Components");
+    assert.equal(hia.symbols[0].metadata.dotnetdoc.projectDiscoveryProject.path, "fixtures/source/Portal.Components/Portal.Components.csproj");
   });
 });
 

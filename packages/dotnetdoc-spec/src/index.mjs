@@ -55,6 +55,20 @@ export const DOTNETDOC_ASPNET_ENDPOINT_EXTRACTION_CONTRACT = "dotnetdoc-aspnet-e
 export const DOTNETDOC_ASPNET_ENDPOINT_EXTRACTION_CONTRACT_VERSION = "0.1.0-draft";
 
 /**
+ * Draft contract name for .NET solution and project discovery artifacts.
+ *
+ * @lang zh-CN .NET solution 与 project 发现产物的草案合同名称。
+ */
+export const DOTNETDOC_PROJECT_DISCOVERY_CONTRACT = "dotnetdoc-project-discovery";
+
+/**
+ * Draft version for .NET solution and project discovery artifacts.
+ *
+ * @lang zh-CN .NET solution 与 project 发现产物的草案版本。
+ */
+export const DOTNETDOC_PROJECT_DISCOVERY_CONTRACT_VERSION = "0.1.0-draft";
+
+/**
  * XML documentation tags accepted by the first DotNetDoc intake layer.
  *
  * @lang zh-CN 第一层 DotNetDoc intake 接受的 XML documentation tag。

@@ -5,6 +5,7 @@ C# source and ASP.NET endpoint surface extractor for DotNetDoc.
 ```js
 import {
   extractAspNetEndpoints,
+  extractDotnetProjectDiscovery,
   extractDotnetSourceFiles
 } from "@hia-doc/dotnet-source-extractor";
 
@@ -18,12 +19,22 @@ const endpoints = await extractAspNetEndpoints({
   applicationRoot: "src/Web",
   paths: ["src/Web/Default.aspx", "src/Web/Controllers/BooksController.cs"]
 });
+
+const projects = await extractDotnetProjectDiscovery({
+  workspaceRoot: process.cwd(),
+  path: "Example.sln"
+});
 ```
 
 The first slice is syntax-only. It extracts documented/public declarations,
 XML documentation trivia and source ranges from explicit `.cs` files. It does
-not yet perform semantic compilation, `.sln` discovery, inherited docs or full
-compiler member id normalization.
+not yet perform semantic compilation, inherited docs or full compiler member id
+normalization.
+
+The project discovery slice reads `.sln` and `.csproj` files without compiling.
+It records solution/project structure, target frameworks, package references,
+project references and explicit compile items as a `dotnetdoc-project-discovery`
+artifact.
 
 The ASP.NET endpoint slice is source-scan based. It recognizes Web Forms
 `Page`/`Control` directives, controller attribute routing such as `Route` and
