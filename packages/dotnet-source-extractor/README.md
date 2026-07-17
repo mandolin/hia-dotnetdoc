@@ -39,5 +39,6 @@ artifact.
 
 The ASP.NET endpoint slice is source-scan based. It recognizes Web Forms
 `Page`/`Control` directives, controller attribute routing such as `Route` and
-`HttpGet`, and Minimal API `MapGet`/`MapPost` calls. It records route metadata
-and source ranges without embedding source text.
+`HttpGet`, and Minimal API `MapGet`/`MapPost` calls. It records route metadata,
+endpoint names, tags, source-scan authorization hints, response hints and source
+ranges without embedding source text.

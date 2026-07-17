@@ -673,7 +673,8 @@ function extractAttributeRoutingEndpoints(text, relativePath) {
       shortName: match[1].replace(/Controller$/u, ""),
       index: match.index,
       routePrefix: firstRouteTemplate(attributes) ?? "",
-      isController: /Controller$/u.test(match[1]) || attributes.some((attribute) => attribute.name === "ApiController")
+      isController: /Controller$/u.test(match[1]) || attributes.some((attribute) => attribute.name === "ApiController"),
+      attributes
     });
   }
 
@@ -689,6 +690,14 @@ function extractAttributeRoutingEndpoints(text, relativePath) {
     const controller = nearestClass(classes, match.index);
     const prefix = controller?.routePrefix ?? "";
     const template = replaceRouteTokens(joinRouteTemplates(prefix, httpRoute.template), controller, match[1]);
+    const aspnetCoreMetadata = buildAspNetCoreEndpointMetadata([
+      ...(controller?.attributes ?? []),
+      ...attributes
+    ], {
+      endpointName: httpRoute.name,
+      routePrefix: prefix,
+      routeSource: "attribute-routing"
+    });
     endpoints.push({
       id: `aspnet:controller-action:${safeArtifactId(`${controller?.name ?? "controller"}.${match[1]}.${template}`)}`,
       kind: "aspnet-controller-action",
@@ -699,7 +708,8 @@ function extractAttributeRoutingEndpoints(text, relativePath) {
         template,
         normalizedPath: normalizeHttpRoutePath(template),
         source: "attribute-routing",
-        confidence: controller?.isController ? "high" : "medium"
+        confidence: controller?.isController ? "high" : "medium",
+        name: aspnetCoreMetadata.endpointName
       },
       httpMethods: httpRoute.methods,
       routable: true,
@@ -713,7 +723,13 @@ function extractAttributeRoutingEndpoints(text, relativePath) {
       metadata: {
         aspnetCore: {
           controller: controller?.name ?? null,
-          attributes: attributes.map((attribute) => attribute.raw)
+          attributes: attributes.map((attribute) => attribute.raw),
+          classAttributes: (controller?.attributes ?? []).map((attribute) => attribute.raw),
+          routePrefix: prefix,
+          endpointName: aspnetCoreMetadata.endpointName,
+          tags: aspnetCoreMetadata.tags,
+          authorization: aspnetCoreMetadata.authorization,
+          responses: aspnetCoreMetadata.responses
         }
       }
     });
@@ -727,6 +743,8 @@ function extractMinimalApiEndpoints(text, relativePath) {
   for (const match of text.matchAll(pattern)) {
     const methodName = match[1];
     const template = match[2] ?? match[3] ?? "/";
+    const statement = statementFromIndex(text, match.index);
+    const aspnetCoreMetadata = parseMinimalApiFluentMetadata(statement);
     endpoints.push({
       id: `aspnet:minimal-api:${safeArtifactId(`${methodName}.${template}`)}`,
       kind: "aspnet-minimal-api-endpoint",
@@ -737,7 +755,8 @@ function extractMinimalApiEndpoints(text, relativePath) {
         template,
         normalizedPath: normalizeHttpRoutePath(template),
         source: "minimal-api-map",
-        confidence: "medium"
+        confidence: "medium",
+        name: aspnetCoreMetadata.endpointName
       },
       httpMethods: MINIMAL_API_METHODS[methodName] ?? [],
       routable: true,
@@ -750,7 +769,12 @@ function extractMinimalApiEndpoints(text, relativePath) {
       source: sourceForSpan(text, relativePath, "csharp", match.index, match.index + match[0].length, "minimal-api-map", "medium"),
       metadata: {
         aspnetCore: {
-          mapMethod: methodName
+          mapMethod: methodName,
+          endpointName: aspnetCoreMetadata.endpointName,
+          tags: aspnetCoreMetadata.tags,
+          authorization: aspnetCoreMetadata.authorization,
+          responses: aspnetCoreMetadata.responses,
+          fluentCalls: aspnetCoreMetadata.fluentCalls
         }
       }
     });
@@ -795,10 +819,12 @@ function attributeGroupsBefore(lines, declarationLineIndex) {
   for (const line of attributeLines) {
     for (const match of line.matchAll(/\[\s*([A-Za-z_][\w.]*)\s*(?:Attribute)?\s*(?:\(([^)]*)\))?/gu)) {
       const name = match[1].split(".").at(-1).replace(/Attribute$/u, "");
+      const argumentsInfo = parseAttributeArguments(match[2] ?? "");
       attributes.push({
         name,
         raw: match[0],
-        firstString: firstStringArgument(match[2] ?? "")
+        firstString: argumentsInfo.strings[0] ?? null,
+        arguments: argumentsInfo
       });
     }
   }
@@ -815,7 +841,8 @@ function httpRouteFromAttributes(attributes) {
     if (HTTP_ATTRIBUTE_METHODS[attribute.name]) {
       return {
         methods: HTTP_ATTRIBUTE_METHODS[attribute.name],
-        template: attribute.firstString ?? ""
+        template: attribute.firstString ?? "",
+        name: attribute.arguments.named.Name ?? null
       };
     }
   }
@@ -823,10 +850,135 @@ function httpRouteFromAttributes(attributes) {
   if (route) {
     return {
       methods: [],
-      template: route.firstString ?? ""
+      template: route.firstString ?? "",
+      name: route.arguments.named.Name ?? null
     };
   }
   return null;
+}
+
+function parseAttributeArguments(value) {
+  const text = String(value ?? "");
+  const named = {};
+  for (const match of text.matchAll(/\b([A-Za-z_]\w*)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^,\s)]+))/gu)) {
+    named[match[1]] = match[2] ?? match[3] ?? match[4] ?? "";
+  }
+  return {
+    raw: text.trim(),
+    strings: quotedStrings(text),
+    numbers: numericArguments(text),
+    statusCodes: statusCodeArguments(text),
+    named
+  };
+}
+
+function buildAspNetCoreEndpointMetadata(attributes, options) {
+  return {
+    endpointName: options.endpointName ?? null,
+    routePrefix: options.routePrefix ?? null,
+    routeSource: options.routeSource,
+    tags: tagsFromAttributes(attributes),
+    authorization: authorizationFromAttributes(attributes),
+    responses: responsesFromAttributes(attributes)
+  };
+}
+
+function parseMinimalApiFluentMetadata(statement) {
+  const requireAuthorizationCalls = [...statement.matchAll(/\.RequireAuthorization\s*\(([^)]*)\)/gu)].map((match) => parseAttributeArguments(match[1] ?? ""));
+  const allowAnonymous = /\.AllowAnonymous\s*\(/u.test(statement);
+  const producesCalls = [...statement.matchAll(/\.Produces(?:<[^>]+>)?\s*\(([^)]*)\)/gu)].map((match) => parseAttributeArguments(match[1] ?? ""));
+  const fluentCalls = [...statement.matchAll(/\.([A-Za-z_]\w*)\s*\(/gu)].map((match) => match[1]);
+  const policies = uniqueStrings(requireAuthorizationCalls.flatMap((call) => call.strings));
+
+  return {
+    endpointName: firstFluentString(statement, "WithName"),
+    tags: allFluentStrings(statement, "WithTags"),
+    authorization: {
+      required: requireAuthorizationCalls.length > 0 && !allowAnonymous,
+      allowAnonymous,
+      policies,
+      roles: [],
+      source: requireAuthorizationCalls.length > 0 || allowAnonymous ? "minimal-api-fluent" : "none",
+      confidence: requireAuthorizationCalls.length > 0 || allowAnonymous ? "medium" : "unknown"
+    },
+    responses: producesCalls.map((call) => ({
+      statusCode: firstStatusCode(call),
+      contentTypes: call.strings.filter((item) => item.includes("/")),
+      source: "minimal-api-fluent",
+      raw: call.raw
+    })),
+    fluentCalls
+  };
+}
+
+function authorizationFromAttributes(attributes) {
+  const allowAnonymous = attributes.some((attribute) => attribute.name === "AllowAnonymous");
+  const authorizeAttributes = attributes.filter((attribute) => attribute.name === "Authorize");
+  const policies = uniqueStrings(authorizeAttributes.map((attribute) => attribute.arguments.named.Policy ?? (attribute.arguments.named.Roles ? null : attribute.firstString)));
+  const roles = uniqueStrings(authorizeAttributes.flatMap((attribute) => splitCommaList(attribute.arguments.named.Roles)));
+  return {
+    required: authorizeAttributes.length > 0 && !allowAnonymous,
+    allowAnonymous,
+    policies,
+    roles,
+    source: authorizeAttributes.length > 0 || allowAnonymous ? "attributes" : "none",
+    confidence: authorizeAttributes.length > 0 || allowAnonymous ? "medium" : "unknown"
+  };
+}
+
+function tagsFromAttributes(attributes) {
+  return uniqueStrings(attributes
+    .filter((attribute) => attribute.name === "Tags" || attribute.name === "EndpointSummary")
+    .flatMap((attribute) => attribute.arguments.strings));
+}
+
+function responsesFromAttributes(attributes) {
+  return attributes
+    .filter((attribute) => attribute.name === "ProducesResponseType" || attribute.name === "Produces")
+    .map((attribute) => ({
+      statusCode: firstStatusCode(attribute.arguments),
+      contentTypes: attribute.name === "Produces" ? attribute.arguments.strings.filter((item) => item.includes("/")) : [],
+      source: "attributes",
+      raw: attribute.raw
+    }));
+}
+
+function firstFluentString(statement, methodName) {
+  const match = new RegExp(`\\.${methodName}\\s*\\(([^)]*)\\)`, "u").exec(statement);
+  return match ? quotedStrings(match[1])[0] ?? null : null;
+}
+
+function allFluentStrings(statement, methodName) {
+  return uniqueStrings([...statement.matchAll(new RegExp(`\\.${methodName}\\s*\\(([^)]*)\\)`, "gu"))]
+    .flatMap((match) => quotedStrings(match[1])));
+}
+
+function statementFromIndex(text, start) {
+  const end = text.indexOf(";", start);
+  return end === -1 ? text.slice(start) : text.slice(start, end + 1);
+}
+
+function quotedStrings(value) {
+  return [...String(value ?? "").matchAll(/"([^"]*)"|'([^']*)'/gu)].map((match) => match[1] ?? match[2] ?? "");
+}
+
+function numericArguments(value) {
+  return [...String(value ?? "").matchAll(/(?:^|[,(]\s*)(\d{3})(?=\s*[,)]|$)/gu)].map((match) => Number.parseInt(match[1], 10));
+}
+
+function statusCodeArguments(value) {
+  return [...String(value ?? "").matchAll(/\bStatusCodes\.Status(\d{3})[A-Za-z0-9_]*\b/gu)].map((match) => Number.parseInt(match[1], 10));
+}
+
+function firstStatusCode(argumentsInfo) {
+  return argumentsInfo.numbers[0] ?? argumentsInfo.statusCodes[0] ?? null;
+}
+
+function splitCommaList(value) {
+  if (!value) {
+    return [];
+  }
+  return String(value).split(",").map((item) => item.trim()).filter(Boolean);
 }
 
 function firstStringArgument(value) {
