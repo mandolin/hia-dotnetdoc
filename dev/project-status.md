@@ -1,6 +1,6 @@
 # Project Status
 
-`hia-dotnetdoc` is at local 0.1.0 release candidate status.
+`hia-dotnetdoc` is at local 0.1.2 patch release-candidate status.
 
 Completed in the first slice:
 
@@ -66,16 +66,33 @@ Completed in W-P19.3 first slice:
 - runner emits `dotnetdoc.source-relation.json` when XML documentation and C# source artifacts share member ids;
 - relation entries connect XML member id, HIA symbol id and C# source declaration range without embedding private source text.
 
+Completed in T-Lang-P1.2 first slice:
+
+- compiler XML documentation and C# source XML documentation trivia support XML-native `<lang>` / `<l>` locale markers;
+- legacy Sandcastle-style `div h_type="doc" > para[lang]` blocks are accepted as compatible input;
+- locale content is normalized into `HiaI18nModel.fields` while flat `summary`, `remarks`, `param`, `returns` and `exception` fields remain available as compatibility text;
+- Roslyn helper raw XML documentation fragments are consumed by the Node wrapper and removed before the final artifact is returned;
+- `npm run release:gate` passes with XML, C# source, adapter, runner and fixture coverage.
+
+Completed in T-Lang-P1.4 / 0.1.2 patch release-candidate slice:
+
+- HIA-ASPNETPortal read-only readiness gate is available in WorkZone;
+- target readiness evidence confirms 62 inputs, 125 artifacts and 2073 HIA symbols without modifying the target repository;
+- locale default fallback is fixed so missing or invalid default locale values resolve to `en`;
+- package versions, internal dependency pins and runtime producer constants are aligned to `0.1.2`.
+
 Remaining release follow-up:
 
-- a future patch release, for example `0.1.1`, should be used to verify end-to-end GitHub Actions Trusted Publisher provenance publishing;
-- the already published `0.1.0` versions cannot be republished through the workflow.
+- publish the `0.1.2` patch release through GitHub Actions Trusted Publisher after registry preflight and explicit release confirmation;
+- the already published `0.1.0` and `0.1.1` versions cannot be republished through the workflow.
 
 Not yet implemented:
 
 - DocFX metadata bridge;
 - Roslyn semantic extraction over `.sln` / `.csproj`;
 - SHFB project bridge;
+- external `DocLangRes` / `.dlr` / `.resx` / XLIFF / Fluent language resource bridge;
+- Visual Studio preview/edit and inline/external locale conversion workflow;
 - ASP.NET OpenAPI endpoint inventory;
 - inherited docs, exact overload member ids and semantic cref resolution;
 - end-to-end GitHub Actions Trusted Publisher provenance patch rehearsal.

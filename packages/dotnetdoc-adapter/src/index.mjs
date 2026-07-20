@@ -23,13 +23,14 @@ export function dotnetXmlDocsToHiaDocument(artifact, options = {}) {
   assertDotnetXmlDocArtifact(artifact);
   const title = options.title ?? `${artifact.assembly?.name ?? "DotNet"} API`;
   const symbols = artifact.members.map((member) => mapMemberToSymbol(member));
+  const defaultLocale = options.defaultLocale || artifact.defaultLocale || "en";
 
   return {
     schemaVersion: HIA_CORE_SCHEMA_VERSION,
     id: options.id ?? `dotnetdoc:${artifact.assembly?.name ?? artifact.source.path}`,
     title,
-    defaultLocale: options.defaultLocale ?? "en",
-    locales: options.locales ?? ["en"],
+    defaultLocale,
+    locales: collectDocumentLocales(options.locales, artifact.locales, symbols, defaultLocale),
     nodes: [
       {
         id: "root",
@@ -70,7 +71,7 @@ export function dotnetAspNetEndpointsToHiaDocument(artifact, options = {}) {
     schemaVersion: HIA_CORE_SCHEMA_VERSION,
     id: options.id ?? "dotnetdoc:aspnet:endpoints",
     title,
-    defaultLocale: options.defaultLocale ?? "en",
+    defaultLocale: options.defaultLocale || "en",
     locales: options.locales ?? ["en"],
     nodes: [
       {
@@ -115,7 +116,7 @@ export function dotnetProjectDiscoveryToHiaDocument(artifact, options = {}) {
     schemaVersion: HIA_CORE_SCHEMA_VERSION,
     id: options.id ?? "dotnetdoc:projects",
     title,
-    defaultLocale: options.defaultLocale ?? "en",
+    defaultLocale: options.defaultLocale || "en",
     locales: options.locales ?? ["en"],
     nodes: [
       {
@@ -189,7 +190,7 @@ export function assertDotnetProjectDiscoveryArtifact(artifact) {
 }
 
 function mapMemberToSymbol(member) {
-  return {
+  const symbol = {
     id: member.id,
     name: member.name,
     kind: member.kind,
@@ -232,6 +233,10 @@ function mapMemberToSymbol(member) {
       }
     }
   };
+  if (member.i18n) {
+    symbol.i18n = member.i18n;
+  }
+  return symbol;
 }
 
 function mapEndpointToSymbol(endpoint) {
@@ -331,4 +336,16 @@ function sourceForFile(relativePath, language) {
     fragments: [],
     diagnostics: []
   };
+}
+
+function collectDocumentLocales(optionLocales, artifactLocales, symbols, defaultLocale) {
+  const locales = [
+    ...(Array.isArray(optionLocales) ? optionLocales : []),
+    ...(Array.isArray(artifactLocales) ? artifactLocales : []),
+    defaultLocale
+  ];
+  for (const symbol of symbols) {
+    locales.push(...(Array.isArray(symbol.i18n?.locales) ? symbol.i18n.locales : []));
+  }
+  return [...new Set(locales.filter((locale) => typeof locale === "string" && locale.trim().length > 0))];
 }

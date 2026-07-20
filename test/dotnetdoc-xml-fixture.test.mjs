@@ -21,8 +21,16 @@ describe("DotNetDoc XML documentation intake", () => {
     assert.equal(artifact.contract, "dotnetdoc-xml-doc-extraction");
     assert.equal(artifact.assembly.name, "Portal.Components");
     assert.equal(artifact.members.length, 3);
+    assert.equal(artifact.defaultLocale, "en");
+    assert.deepEqual(artifact.locales, ["en", "zh-CN"]);
     assert.ok(artifact.members.some((member) => member.kind === "dotnet-type" && member.summary === "Represents a portal navigation menu."));
     assert.ok(artifact.members.some((member) => member.kind === "dotnet-method" && member.exceptions[0]?.cref === "T:System.ArgumentException"));
+    const menu = artifact.members.find((member) => member.name === "PortalMenu");
+    const render = artifact.members.find((member) => member.name === "Render");
+    assert.equal(menu?.i18n?.model, "hia-text-i18n");
+    assert.equal(menu?.i18n?.fields.summary.localizedText["zh-CN"], "表示一个门户导航菜单。");
+    assert.equal(menu?.i18n?.fields.remarks.localizedText["zh-CN"], "供 ASP.NET Portal 布局页面使用。");
+    assert.equal(render?.i18n?.fields["params.tenantId.summary"].localizedText["zh-CN"], "租户标识。");
   });
 
   it("creates stable member ids", () => {
@@ -41,9 +49,14 @@ describe("DotNetDoc XML documentation intake", () => {
     });
 
     assert.equal(hiaDocument.schemaVersion, "0.2.0");
+    assert.equal(hiaDocument.defaultLocale, "en");
+    assert.deepEqual(hiaDocument.locales, ["en", "zh-CN"]);
     assert.equal(hiaDocument.symbols.length, 3);
     assert.ok(hiaDocument.symbols.some((symbol) => symbol.kind === "dotnet-property" && symbol.name === "Items"));
     assert.ok(hiaDocument.symbols.every((symbol) => symbol.source.definedIn.link.enabled === false));
+    const menu = hiaDocument.symbols.find((symbol) => symbol.name === "PortalMenu");
+    assert.equal(menu?.i18n?.fields.summary.localizedText.en, "Represents a portal navigation menu.");
+    assert.equal(menu?.i18n?.fields.remarks.localizedText["zh-CN"], "供 ASP.NET Portal 布局页面使用。");
   });
 
   it("extracts C# source documentation and source ranges through Roslyn", async () => {
@@ -61,6 +74,11 @@ describe("DotNetDoc XML documentation intake", () => {
     assert.ok(artifact.members.every((member) => member.source.language === "csharp"));
     assert.ok(artifact.members.every((member) => member.source.range.start.line > 0));
     assert.ok(artifact.members.every((member) => member.semantic?.documentationCommentId === member.memberName));
+    const menu = artifact.members.find((member) => member.name === "PortalMenu");
+    const render = artifact.members.find((member) => member.name === "Render");
+    assert.equal(menu?.i18n?.fields.summary.localizedText["zh-CN"], "表示一个门户导航菜单。");
+    assert.equal(render?.i18n?.fields["params.tenantId.summary"].localizedText["zh-CN"], "用于选择可见菜单项的租户标识。");
+    assert.equal(artifact.members.some((member) => Object.hasOwn(member, "documentationXml")), false);
   });
 
   it("uses Roslyn semantic documentation ids for constructors, generics and ref/out parameters", async () => {
@@ -138,7 +156,7 @@ describe("DotNetDoc XML documentation intake", () => {
     assert.equal(runnerResult.artifacts.length, 2);
     assert.ok(runnerResult.artifacts.some((artifact) => artifact.contract === "dotnetdoc-csharp-source-extraction"));
     assert.equal(hia.symbols[0].source.definedIn.language, "csharp");
-    assert.equal(hia.symbols[0].source.definedIn.position.line, 9);
+    assert.equal(hia.symbols[0].source.definedIn.position.line, 18);
   });
 
   it("emits a source relation artifact when XML docs and C# source are processed together", async () => {

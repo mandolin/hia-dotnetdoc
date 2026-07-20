@@ -3,7 +3,7 @@ const fs = require("node:fs");
 
 const { loadReleasePackages } = require("./release-packages.cjs");
 
-const releaseVersion = "0.1.1";
+const releaseVersion = "0.1.2";
 const packageName = process.argv[2];
 const writeGithubOutput = process.argv.includes("--github-output");
 

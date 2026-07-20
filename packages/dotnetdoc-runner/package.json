@@ -1,6 +1,6 @@
 {
   "name": "@hia-doc/dotnetdoc-runner",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Standalone .NET XML documentation runner and CLI.",
   "type": "module",
   "license": "MIT",
@@ -36,9 +36,9 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@hia-doc/dotnet-source-extractor": "0.1.1",
-    "@hia-doc/dotnet-xml-doc-extractor": "0.1.1",
-    "@hia-doc/dotnetdoc-adapter": "0.1.1",
-    "@hia-doc/dotnetdoc-spec": "0.1.1"
+    "@hia-doc/dotnet-source-extractor": "0.1.2",
+    "@hia-doc/dotnet-xml-doc-extractor": "0.1.2",
+    "@hia-doc/dotnetdoc-adapter": "0.1.2",
+    "@hia-doc/dotnetdoc-spec": "0.1.2"
   }
 }

@@ -20,7 +20,7 @@ export {
 } from "./schema.mjs";
 import { DOTNETDOC_CONFIG_SCHEMA_ID, DOTNETDOC_CONFIG_SCHEMA_VERSION } from "./schema.mjs";
 
-export const DOTNETDOC_RUNNER_VERSION = "0.1.1";
+export const DOTNETDOC_RUNNER_VERSION = "0.1.2";
 export const DOTNETDOC_INPUT_KINDS = Object.freeze(["dotnet-xml-doc", "dotnet-csharp-source", "dotnet-aspnet-surface", "dotnet-project"]);
 export const DOTNETDOC_OUTPUT_KINDS = Object.freeze(["dotnetdoc-extraction", "hia-document", "dotnetdoc-source-relation", "dotnetdoc-aspnet-endpoint-extraction", "dotnetdoc-project-discovery"]);
 

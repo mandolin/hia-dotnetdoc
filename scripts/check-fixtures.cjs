@@ -13,14 +13,21 @@ function main() {
   assert.equal(dotnetdoc.contract, "dotnetdoc-xml-doc-extraction");
   assert.equal(dotnetdoc.contractVersion, "0.1.0-draft");
   assert.equal(dotnetdoc.assembly.name, "Portal.Components");
+  assert.equal(dotnetdoc.defaultLocale, "en");
+  assert.deepEqual(dotnetdoc.locales, ["en", "zh-CN"]);
   assert.equal(dotnetdoc.members.length, 3);
   assert.ok(dotnetdoc.members.some((member) => member.kind === "dotnet-type" && member.name === "PortalMenu"));
   assert.ok(dotnetdoc.members.some((member) => member.kind === "dotnet-method" && member.parameters[0]?.name === "tenantId"));
+  assert.equal(dotnetdoc.members.find((member) => member.name === "PortalMenu")?.i18n?.fields.summary.localizedText["zh-CN"], "表示一个门户导航菜单。");
+  assert.equal(dotnetdoc.members.find((member) => member.name === "Render")?.i18n?.fields["params.tenantId.summary"].localizedText["zh-CN"], "租户标识。");
 
   assert.equal(hia.schemaVersion, "0.2.0");
   assert.equal(hia.title, "Portal.Components API");
+  assert.equal(hia.defaultLocale, "en");
+  assert.deepEqual(hia.locales, ["en", "zh-CN"]);
   assert.ok(hia.symbols.some((symbol) => symbol.kind === "dotnet-type" && symbol.name === "PortalMenu"));
   assert.ok(hia.symbols.some((symbol) => symbol.metadata.dotnetdoc.returns === "HTML fragment for the tenant menu."));
+  assert.equal(hia.symbols.find((symbol) => symbol.name === "PortalMenu")?.i18n?.fields.remarks.localizedText["zh-CN"], "供 ASP.NET Portal 布局页面使用。");
   assert.equal(result.contract, "documentation-producer-result");
   assert.equal(result.status, "success");
   assert.equal(result.artifacts.length, 2);

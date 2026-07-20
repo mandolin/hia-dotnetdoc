@@ -13,11 +13,12 @@ import {
   DOTNETDOC_PROJECT_DISCOVERY_CONTRACT,
   DOTNETDOC_PROJECT_DISCOVERY_CONTRACT_VERSION
 } from "@hia-doc/dotnetdoc-spec";
+import { extractDotnetXmlDocs } from "@hia-doc/dotnet-xml-doc-extractor";
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const helperProjectPath = path.join(packageRoot, "tools", "DotNetDoc.RoslynSourceExtractor", "DotNetDoc.RoslynSourceExtractor.csproj");
 const PRODUCER_NAME = "@hia-doc/dotnet-source-extractor";
-const PRODUCER_VERSION = "0.1.1";
+const PRODUCER_VERSION = "0.1.2";
 const ASPNET_SURFACE_EXTENSIONS = new Set([".aspx", ".ascx", ".ashx", ".asmx", ".cs"]);
 const DOTNET_PROJECT_EXTENSIONS = new Set([".csproj", ".sln"]);
 const CSPROJ_XML_PARSER = new XMLParser({
@@ -62,6 +63,7 @@ export async function extractDotnetSourceFiles(request) {
   const normalized = normalizeRequest(request);
   const artifact = await runRoslynHelper(normalized);
   assertSourceArtifact(artifact);
+  hydrateSourceDocumentationI18n(artifact);
   return artifact;
 }
 
@@ -306,6 +308,55 @@ function assertSourceArtifact(artifact) {
   }
   if (!Array.isArray(artifact.members)) {
     throw new Error("DotNet source extraction artifact must contain members array.");
+  }
+}
+
+function hydrateSourceDocumentationI18n(artifact) {
+  const membersWithXml = artifact.members.filter((member) => typeof member.documentationXml === "string" && member.documentationXml.trim().length > 0);
+  if (membersWithXml.length === 0) {
+    return;
+  }
+
+  try {
+    const xmlText = `<doc><members>${membersWithXml.map((member) => `<member name="${escapeXmlAttribute(member.memberName)}">${member.documentationXml}</member>`).join("")}</members></doc>`;
+    const xmlArtifact = extractDotnetXmlDocs(xmlText, {
+      path: "csharp-source-documentation.xml",
+      defaultLocale: artifact.defaultLocale || "en"
+    });
+    const parsedMembers = new Map(xmlArtifact.members.map((member) => [member.memberName, member]));
+    for (const member of artifact.members) {
+      const parsed = parsedMembers.get(member.memberName);
+      delete member.documentationXml;
+      if (!parsed) {
+        continue;
+      }
+      member.summary = parsed.summary || member.summary;
+      member.remarks = parsed.remarks || member.remarks;
+      member.parameters = parsed.parameters.length > 0 ? parsed.parameters : member.parameters;
+      member.typeParameters = parsed.typeParameters.length > 0 ? parsed.typeParameters : member.typeParameters;
+      member.returns = parsed.returns || member.returns;
+      member.exceptions = parsed.exceptions.length > 0 ? parsed.exceptions : member.exceptions;
+      if (parsed.i18n) {
+        member.i18n = parsed.i18n;
+      }
+    }
+    artifact.defaultLocale = xmlArtifact.defaultLocale;
+    artifact.locales = uniqueStrings([...(artifact.locales ?? []), ...(xmlArtifact.locales ?? [])]);
+    artifact.diagnostics = [...(artifact.diagnostics ?? []), ...(xmlArtifact.diagnostics ?? [])];
+  } catch (error) {
+    for (const member of artifact.members) {
+      delete member.documentationXml;
+    }
+    artifact.diagnostics = [
+      ...(artifact.diagnostics ?? []),
+      diagnostic(
+        "DOTNETDOC_SOURCE_I18N_XML_PARSE_FAILED",
+        "Roslyn source XML documentation locale markers could not be parsed.",
+        "warning",
+        artifact.source?.files?.[0]?.path ?? null,
+        { cause: error instanceof Error ? error.message : String(error) }
+      )
+    ];
   }
 }
 
@@ -1085,4 +1136,12 @@ function diagnostic(code, message, severity, pathValue, metadata = {}) {
 
 function safeArtifactId(value) {
   return String(value).toLowerCase().replace(/[^a-z0-9._-]+/g, "-").replace(/^-|-$/g, "") || "input";
+}
+
+function escapeXmlAttribute(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("\"", "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
 }

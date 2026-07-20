@@ -81,7 +81,11 @@ export const DOTNETDOC_XML_DOCUMENTATION_TAGS = Object.freeze([
   "returns",
   "exception",
   "see",
-  "seealso"
+  "seealso",
+  "lang",
+  "l",
+  "div",
+  "para"
 ]);
 
 /**

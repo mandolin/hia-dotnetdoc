@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 const string Contract = "dotnetdoc-csharp-source-extraction";
 const string ContractVersion = "0.1.0-draft";
 const string ProducerName = "@hia-doc/dotnet-source-extractor";
-const string ProducerVersion = "0.1.1";
+const string ProducerVersion = "0.1.2";
 
 try
 {
@@ -282,6 +282,7 @@ sealed class DocumentationWalker : CSharpSyntaxWalker
             Exceptions = documentation.Exceptions,
             See = documentation.See,
             SeeAlso = documentation.SeeAlso,
+            DocumentationXml = documentation.Xml,
             Source = SourceFor(node),
             Semantic = semantic
         });
@@ -416,10 +417,12 @@ sealed class DocumentationData
     public List<ExceptionDocumentationOutput> Exceptions { get; set; } = new();
     public List<ReferenceOutput> See { get; set; } = new();
     public List<ReferenceOutput> SeeAlso { get; set; } = new();
+    public string Xml { get; set; } = "";
 
     public static DocumentationData FromNode(SyntaxNode node)
     {
         var data = new DocumentationData();
+        var xmlFragments = new List<string>();
         foreach (var trivia in node.GetLeadingTrivia())
         {
             if (trivia.GetStructure() is not DocumentationCommentTriviaSyntax documentation)
@@ -429,9 +432,11 @@ sealed class DocumentationData
 
             foreach (var item in documentation.Content)
             {
+                xmlFragments.Add(item.ToFullString());
                 CollectXmlNode(data, item);
             }
         }
+        data.Xml = string.Concat(xmlFragments).Trim();
         return data;
     }
 
@@ -632,6 +637,7 @@ sealed class MemberOutput
     public List<ExceptionDocumentationOutput> Exceptions { get; init; } = new();
     public List<ReferenceOutput> See { get; init; } = new();
     public List<ReferenceOutput> SeeAlso { get; init; } = new();
+    public string DocumentationXml { get; init; } = "";
     public required SourceOutput Source { get; init; }
     public SemanticOutput? Semantic { get; init; }
 }

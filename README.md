@@ -25,6 +25,7 @@ The first milestone is intentionally narrow:
 - consume compiler-generated XML documentation files, explicit C# source inputs and ASP.NET surface inputs;
 - preserve .NET member ids such as `T:`, `M:`, `P:`, `F:`, and `E:`;
 - keep XML documentation tags such as `summary`, `remarks`, `param`, `returns`, and `exception`;
+- map XML documentation `<lang>` / `<l>` and legacy `div h_type="doc" > para[lang]` locale blocks into HIA field-level `i18n`;
 - emit `dotnetdoc-source-relation` when XML documentation and C# source inputs share member ids;
 - emit `dotnetdoc-aspnet-endpoint-extraction` for Web Forms pages/controls, controller attribute routes and Minimal API `Map{Verb}` calls;
 - emit HIA-compatible document artifacts and producer result manifests without embedding private source text.
@@ -37,6 +38,26 @@ does not yet perform full project compilation, endpoint discovery through the
 runtime pipeline, route constraint expansion or OpenAPI generation. Full
 semantic compilation, `.sln`/`.csproj` discovery, inherited docs, DocFX, SHFB
 project import and richer source-linkage are planned follow-up layers.
+
+## XML Locale Markers
+
+DotNetDoc accepts structured locale markers inside ordinary C# XML
+documentation comments and compiler-generated XML documentation files:
+
+```xml
+/// <summary>
+/// <lang>
+///   <en>Represents a portal navigation menu.</en>
+///   <zh-CN>表示一个门户导航菜单。</zh-CN>
+/// </lang>
+/// </summary>
+```
+
+`<l>` is accepted as a short inline marker for field text such as `param`,
+`returns` or `exception`. Legacy Sandcastle-oriented blocks in the form
+`<div h_type="doc"><para lang="en">...</para></div>` are accepted as compatible
+input. All forms are normalized into `HiaI18nModel.fields`; plain `summary` and
+related fields remain as compatibility render caches.
 
 ## Development
 

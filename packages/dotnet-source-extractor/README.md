@@ -32,6 +32,11 @@ source ranges and semantic documentation comment ids without loading an
 MSBuild workspace. It does not yet perform inherited docs or full project-load
 semantic analysis.
 
+XML documentation `<lang>` / `<l>` markers and legacy
+`div h_type="doc" > para[lang]` blocks are normalized into each member's HIA
+field-level `i18n` model. The temporary raw XML trivia used for this normalization
+is not retained in the returned artifact.
+
 The project discovery slice reads `.sln` and `.csproj` files without compiling.
 It records solution/project structure, target frameworks, package references,
 project references and explicit compile items as a `dotnetdoc-project-discovery`

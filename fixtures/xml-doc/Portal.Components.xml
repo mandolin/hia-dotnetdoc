@@ -5,18 +5,32 @@
   </assembly>
   <members>
     <member name="T:Portal.Components.Navigation.PortalMenu">
-      <summary>Represents a portal navigation menu.</summary>
-      <remarks>Used by ASP.NET Portal layout pages.</remarks>
+      <summary>
+        <lang>
+          <en>Represents a portal navigation menu.</en>
+          <zh-CN>表示一个门户导航菜单。</zh-CN>
+        </lang>
+      </summary>
+      <remarks>
+        <div h_type="doc" path="DocLangRes" key="PortalMenu.Remarks">
+          <para lang="en">Used by ASP.NET Portal layout pages.</para>
+          <para lang="zh-CN">供 ASP.NET Portal 布局页面使用。</para>
+        </div>
+      </remarks>
     </member>
     <member name="P:Portal.Components.Navigation.PortalMenu.Items">
       <summary>Gets the menu items visible to the current user.</summary>
     </member>
     <member name="M:Portal.Components.Navigation.PortalMenu.Render(System.String)">
       <summary>Renders a menu for the selected tenant.</summary>
-      <param name="tenantId">Tenant identifier.</param>
+      <param name="tenantId">
+        <l>
+          <en>Tenant identifier.</en>
+          <zh-CN>租户标识。</zh-CN>
+        </l>
+      </param>
       <returns>HTML fragment for the tenant menu.</returns>
       <exception cref="T:System.ArgumentException">Thrown when the tenant id is empty.</exception>
     </member>
   </members>
 </doc>
-
