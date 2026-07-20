@@ -42,4 +42,4 @@
 - Add npm publish metadata and public package README/LICENSE files.
 - Add pack dry-run verification for package contents.
 
-Status: first runner/producer slice is implemented for compiler XML documentation inputs. A Roslyn syntax-only source extractor is available for explicit `.cs` files. The local `0.1.2` patch release candidate carries DotNetDoc XML-native locale marker support for both compiler XML and source XML documentation trivia, plus the T-Lang-P1.4 HIA-ASPNETPortal readiness gate. Rich semantic source-linkage, external language resources and IDE preview/edit workflows remain follow-up concerns.
+Status: first runner/producer slice is implemented for compiler XML documentation inputs. A Roslyn syntax-only source extractor is available for explicit `.cs` files. The published `0.1.2` patch carries DotNetDoc XML-native locale marker support for both compiler XML and source XML documentation trivia, plus the T-Lang-P1.4 HIA-ASPNETPortal readiness gate. Rich semantic source-linkage, external language resources and IDE preview/edit workflows remain follow-up concerns.

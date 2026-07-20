@@ -1,6 +1,6 @@
 # Project Status
 
-`hia-dotnetdoc` is at local 0.1.2 patch release-candidate status.
+`hia-dotnetdoc` has published the 0.1.2 patch release.
 
 Completed in the first slice:
 
@@ -74,17 +74,19 @@ Completed in T-Lang-P1.2 first slice:
 - Roslyn helper raw XML documentation fragments are consumed by the Node wrapper and removed before the final artifact is returned;
 - `npm run release:gate` passes with XML, C# source, adapter, runner and fixture coverage.
 
-Completed in T-Lang-P1.4 / 0.1.2 patch release-candidate slice:
+Completed in T-Lang-P1.4 / 0.1.2 patch release slice:
 
 - HIA-ASPNETPortal read-only readiness gate is available in WorkZone;
 - target readiness evidence confirms 62 inputs, 125 artifacts and 2073 HIA symbols without modifying the target repository;
 - locale default fallback is fixed so missing or invalid default locale values resolve to `en`;
 - package versions, internal dependency pins and runtime producer constants are aligned to `0.1.2`.
+- all six `0.1.2` packages were published through GitHub Actions Trusted Publisher;
+- npm registry check confirms all six `0.1.2` packages are published;
+- published consumer smoke for HIA-ASPNETPortal passed from npm registry packages.
 
 Remaining release follow-up:
 
-- publish the `0.1.2` patch release through GitHub Actions Trusted Publisher after registry preflight and explicit release confirmation;
-- the already published `0.1.0` and `0.1.1` versions cannot be republished through the workflow.
+- the already published `0.1.0`, `0.1.1` and `0.1.2` versions cannot be republished through the workflow.
 
 Not yet implemented:
 
