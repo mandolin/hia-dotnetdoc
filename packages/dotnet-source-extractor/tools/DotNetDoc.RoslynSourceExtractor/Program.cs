@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 const string Contract = "dotnetdoc-csharp-source-extraction";
 const string ContractVersion = "0.1.0-draft";
 const string ProducerName = "@hia-doc/dotnet-source-extractor";
-const string ProducerVersion = "0.1.2";
+const string ProducerVersion = "0.1.3";
 
 try
 {

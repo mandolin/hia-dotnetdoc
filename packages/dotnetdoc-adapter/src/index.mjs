@@ -1,5 +1,6 @@
 import {
   DOTNETDOC_ASPNET_ENDPOINT_EXTRACTION_CONTRACT,
+  DOTNETDOC_MARKUP_COMMENT_EXTRACTION_CONTRACT,
   DOTNETDOC_PROJECT_DISCOVERY_CONTRACT,
   isDotnetDocMemberExtractionContract
 } from "@hia-doc/dotnetdoc-spec";
@@ -94,6 +95,50 @@ export function dotnetAspNetEndpointsToHiaDocument(artifact, options = {}) {
 }
 
 /**
+ * Convert a DotNetDoc markup comment artifact to a HIA document shape.
+ *
+ * @param {object} artifact <lang><en>`dotnetdoc-markup-comment-extraction` artifact.</en><zh-CN>`dotnetdoc-markup-comment-extraction` 产物。</zh-CN></lang>
+ * @param {object} [options] <lang><en>Adapter options.</en><zh-CN>适配选项。</zh-CN></lang>
+ * @param {string} [options.id] <lang><en>HIA document id.</en><zh-CN>HIA document id。</zh-CN></lang>
+ * @param {string} [options.title] <lang><en>HIA document title.</en><zh-CN>HIA document 标题。</zh-CN></lang>
+ * @returns {object} <lang><en>HIA document artifact for ASP.NET and Razor markup comments.</en><zh-CN>ASP.NET 与 Razor 标记层注释的 HIA document 产物。</zh-CN></lang>
+ * @throws {Error} <lang><en>When the input artifact is not a DotNetDoc markup comment extraction.</en><zh-CN>当输入不是 DotNetDoc markup comment extraction 时抛出。</zh-CN></lang>
+ * @lang zh-CN 将 DotNetDoc markup comment 抽取产物转换为 HIA document。
+ */
+export function dotnetMarkupCommentsToHiaDocument(artifact, options = {}) {
+  assertDotnetMarkupCommentArtifact(artifact);
+  const title = options.title ?? "ASP.NET Markup Comments";
+  const symbols = artifact.comments.map((comment) => mapMarkupCommentToSymbol(comment));
+  const defaultLocale = options.defaultLocale || artifact.defaultLocale || "en";
+
+  return {
+    schemaVersion: HIA_CORE_SCHEMA_VERSION,
+    id: options.id ?? "dotnetdoc:markup:comments",
+    title,
+    defaultLocale,
+    locales: collectDocumentLocales(options.locales, artifact.locales, symbols, defaultLocale),
+    nodes: [
+      {
+        id: "root",
+        kind: "root",
+        title,
+        symbolIds: symbols.map((symbol) => symbol.id)
+      }
+    ],
+    symbols,
+    diagnostics: artifact.diagnostics ?? [],
+    metadata: {
+      sourceContract: artifact.contract,
+      sourceContractVersion: artifact.contractVersion,
+      producer: artifact.producer,
+      bridgeBoundary: "dotnetdoc-adapter",
+      summary: artifact.summary ?? null,
+      privacy: artifact.privacy ?? null
+    }
+  };
+}
+
+/**
  * Convert a .NET project discovery artifact to a HIA document shape.
  *
  * @param {object} artifact <lang><en>`dotnetdoc-project-discovery` artifact.</en><zh-CN>`dotnetdoc-project-discovery` 产物。</zh-CN></lang>
@@ -169,6 +214,23 @@ export function assertDotnetAspNetEndpointArtifact(artifact) {
   }
   if (!Array.isArray(artifact.endpoints)) {
     throw new Error("DotNetDoc ASP.NET endpoint extraction must contain endpoints array.");
+  }
+}
+
+/**
+ * Assert that a value is a DotNetDoc markup comment extraction artifact.
+ *
+ * @param {object} artifact <lang><en>Candidate artifact.</en><zh-CN>候选产物。</zh-CN></lang>
+ * @returns {void} <lang><en>No return value.</en><zh-CN>无返回值。</zh-CN></lang>
+ * @throws {Error} <lang><en>When the artifact contract or comment list is invalid.</en><zh-CN>当产物合同或 comment 列表无效时抛出。</zh-CN></lang>
+ * @lang zh-CN 断言某个值是 DotNetDoc markup comment extraction artifact。
+ */
+export function assertDotnetMarkupCommentArtifact(artifact) {
+  if (!artifact || artifact.contract !== DOTNETDOC_MARKUP_COMMENT_EXTRACTION_CONTRACT) {
+    throw new Error("Expected a DotNetDoc markup comment extraction artifact.");
+  }
+  if (!Array.isArray(artifact.comments)) {
+    throw new Error("DotNetDoc markup comment extraction must contain comments array.");
   }
 }
 
@@ -275,6 +337,48 @@ function mapEndpointToSymbol(endpoint) {
       }
     }
   };
+}
+
+function mapMarkupCommentToSymbol(comment) {
+  const symbol = {
+    id: comment.id,
+    name: comment.name,
+    kind: "dotnet-markup-comment",
+    summary: comment.summary,
+    source: {
+      model: HIA_SOURCE_MODEL,
+      modelVersion: HIA_SOURCE_MODEL_VERSION,
+      mode: "link",
+      definedIn: {
+        kind: "defined-in",
+        relativePath: comment.source?.path ?? "aspnet-markup",
+        language: comment.source?.language ?? comment.language ?? "aspnet-markup",
+        position: {
+          line: comment.source?.range?.start?.line ?? 1,
+          column: comment.source?.range?.start?.column ?? 1
+        },
+        range: comment.source?.range ?? null,
+        link: {
+          enabled: false,
+          openMode: "same-tab"
+        }
+      },
+      primaryBlock: null,
+      references: [],
+      fragments: [],
+      diagnostics: []
+    },
+    diagnostics: [],
+    metadata: {
+      dotnetdoc: {
+        markupComment: comment
+      }
+    }
+  };
+  if (comment.i18n) {
+    symbol.i18n = comment.i18n;
+  }
+  return symbol;
 }
 
 function mapSolutionToSymbol(solution) {

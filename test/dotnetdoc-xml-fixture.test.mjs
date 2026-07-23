@@ -5,8 +5,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { extractDotnetXmlDocs, createDotnetMemberId } from "../packages/dotnet-xml-doc-extractor/src/index.mjs";
-import { extractAspNetEndpoints, extractDotnetProjectDiscovery, extractDotnetSourceFiles } from "../packages/dotnet-source-extractor/src/index.mjs";
-import { dotnetAspNetEndpointsToHiaDocument, dotnetProjectDiscoveryToHiaDocument, dotnetXmlDocsToHiaDocument } from "../packages/dotnetdoc-adapter/src/index.mjs";
+import { extractAspNetEndpoints, extractDotnetMarkupComments, extractDotnetProjectDiscovery, extractDotnetSourceFiles } from "../packages/dotnet-source-extractor/src/index.mjs";
+import { dotnetAspNetEndpointsToHiaDocument, dotnetMarkupCommentsToHiaDocument, dotnetProjectDiscoveryToHiaDocument, dotnetXmlDocsToHiaDocument } from "../packages/dotnetdoc-adapter/src/index.mjs";
 import { runDotnetDoc } from "../packages/dotnetdoc-runner/src/index.mjs";
 import { dotnetdocProducer } from "../packages/dotnetdoc-producer/src/index.mjs";
 
@@ -270,6 +270,79 @@ describe("DotNetDoc XML documentation intake", () => {
     assert.ok(runnerResult.artifacts.some((artifact) => artifact.contract === "dotnetdoc-aspnet-endpoint-extraction"));
     assert.equal(endpointArtifact.endpoints[0].handler.memberName, "Page_Load");
     assert.equal(hia.symbols[0].metadata.dotnetdoc.aspnetEndpoint.route.template, "~/Default.aspx");
+  });
+
+  it("extracts Web Forms and Razor markup comments as documentation inputs", async () => {
+    const artifact = await extractDotnetMarkupComments({
+      workspaceRoot: path.join(repositoryRoot, "fixtures/source/Portal.Web"),
+      paths: [
+        "Default.aspx",
+        "Admin/Users.ascx",
+        "Views/Home/Index.cshtml",
+        "Components/StatusPanel.razor"
+      ]
+    });
+    const hiaDocument = dotnetMarkupCommentsToHiaDocument(artifact, {
+      id: "dotnetdoc:markup-comments-fixture",
+      title: "ASP.NET Markup Comment Fixture"
+    });
+
+    assert.equal(artifact.contract, "dotnetdoc-markup-comment-extraction");
+    assert.equal(artifact.defaultLocale, "en");
+    assert.deepEqual(artifact.locales, ["en", "zh-CN"]);
+    assert.equal(artifact.summary.commentCount, 7);
+    assert.equal(artifact.summary.webFormsServerCommentCount, 2);
+    assert.equal(artifact.summary.razorCommentCount, 2);
+    assert.equal(artifact.summary.htmlCommentCount, 3);
+    assert.equal(artifact.summary.serverHiddenCommentCount, 4);
+    assert.equal(artifact.summary.clientVisibleCommentCount, 3);
+    assert.equal(artifact.privacy.embedsSourcesContent, false);
+    assert.ok(artifact.comments.some((comment) => comment.commentKind === "webforms-server-comment" && comment.content.includes("@component PortalHomePage")));
+    assert.ok(artifact.comments.some((comment) => comment.commentKind === "razor-comment" && comment.content.includes("@component StatusPanel")));
+    assert.ok(artifact.comments.some((comment) => comment.commentKind === "html-comment" && comment.visibility === "client-visible"));
+    assert.equal(
+      artifact.comments.find((comment) => comment.content.includes("@component PortalHomePage"))?.i18n?.fields.content.localizedText["zh-CN"],
+      "门户首页 Web Forms 页面。"
+    );
+    assert.ok(artifact.comments.every((comment) => comment.source.range.start.line > 0));
+    assert.deepEqual(hiaDocument.locales, ["en", "zh-CN"]);
+    assert.equal(hiaDocument.symbols.length, artifact.comments.length);
+    assert.ok(hiaDocument.symbols.every((symbol) => symbol.kind === "dotnet-markup-comment"));
+    assert.equal(
+      hiaDocument.symbols.find((symbol) => symbol.metadata.dotnetdoc.markupComment.content.includes("@component StatusPanel"))?.i18n?.fields.content.localizedText.en,
+      "Shows the current portal health state."
+    );
+    assert.equal(hiaDocument.metadata.privacy.sourcesContentPolicy, "none");
+  });
+
+  it("runs markup comment inputs through the standalone runner", async () => {
+    const outputDirectory = path.join(repositoryRoot, "temp", "out-test-markup-comments");
+    await fs.rm(outputDirectory, { recursive: true, force: true });
+    const runnerResult = await runDotnetDoc({
+      workspaceRoot: path.join(repositoryRoot, "fixtures/source/Portal.Web"),
+      outputDirectory,
+      inputs: [
+        {
+          kind: "dotnet-markup-comments",
+          path: "Views/Home/Index.cshtml",
+          artifactBasePath: "markup/Home.Index",
+          hiaDocumentId: "dotnetdoc:markup:Home.Index",
+          title: "Home Razor Markup Comments"
+        }
+      ],
+      options: {
+        writeResultManifest: true
+      }
+    });
+    const markupArtifact = JSON.parse(await fs.readFile(path.join(outputDirectory, "markup/Home.Index.dotnetdoc.json"), "utf8"));
+    const hia = JSON.parse(await fs.readFile(path.join(outputDirectory, "markup/Home.Index.hia.json"), "utf8"));
+
+    assert.equal(runnerResult.status, "success");
+    assert.equal(runnerResult.artifacts.length, 2);
+    assert.ok(runnerResult.artifacts.some((artifact) => artifact.contract === "dotnetdoc-markup-comment-extraction"));
+    assert.equal(markupArtifact.summary.razorCommentCount, 1);
+    assert.equal(markupArtifact.summary.htmlCommentCount, 1);
+    assert.equal(hia.symbols[0].metadata.dotnetdoc.markupComment.commentKind, "razor-comment");
   });
 
   it("discovers .NET solution and project structure without compiling", async () => {

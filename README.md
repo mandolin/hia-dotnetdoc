@@ -2,10 +2,11 @@
 
 `hia-dotnetdoc` is the HIA documentation line for .NET and ASP.NET projects.
 
-It consumes compiler XML documentation, explicit C# source files and first-pass
-ASP.NET endpoint surfaces, then converts those artifacts into HIA-compatible
-documents. Later layers are expected to deepen Roslyn semantic extraction,
-DocFX/SHFB intake, OpenAPI metadata and richer source-linkage.
+It consumes compiler XML documentation, explicit C# source files, first-pass
+ASP.NET endpoint surfaces and ASP.NET/Razor markup comments, then converts
+those artifacts into HIA-compatible documents. Later layers are expected to
+deepen Roslyn semantic extraction, DocFX/SHFB intake, OpenAPI metadata and
+richer source-linkage.
 
 ## Packages
 
@@ -13,7 +14,7 @@ DocFX/SHFB intake, OpenAPI metadata and richer source-linkage.
 | --- | --- |
 | `@hia-doc/dotnetdoc-spec` | Shared constants for DotNetDoc contracts and member kinds. |
 | `@hia-doc/dotnet-xml-doc-extractor` | Parses compiler XML documentation files into `dotnetdoc-xml-doc-extraction`. |
-| `@hia-doc/dotnet-source-extractor` | Parses C# source files into `dotnetdoc-csharp-source-extraction` and ASP.NET surfaces into `dotnetdoc-aspnet-endpoint-extraction`. |
+| `@hia-doc/dotnet-source-extractor` | Parses C# source files into `dotnetdoc-csharp-source-extraction`, ASP.NET surfaces into `dotnetdoc-aspnet-endpoint-extraction`, and markup comments into `dotnetdoc-markup-comment-extraction`. |
 | `@hia-doc/dotnetdoc-adapter` | Converts DotNetDoc extraction artifacts to HIA document shapes. |
 | `@hia-doc/dotnetdoc-runner` | Runs XML documentation inputs from JSON config or CLI and emits producer result manifests. |
 | `@hia-doc/dotnetdoc-producer` | Exposes the runner through the HIA documentation producer contract. |
@@ -22,12 +23,13 @@ DocFX/SHFB intake, OpenAPI metadata and richer source-linkage.
 
 The first milestone is intentionally narrow:
 
-- consume compiler-generated XML documentation files, explicit C# source inputs and ASP.NET surface inputs;
+- consume compiler-generated XML documentation files, explicit C# source inputs, ASP.NET surface inputs and markup comment inputs;
 - preserve .NET member ids such as `T:`, `M:`, `P:`, `F:`, and `E:`;
 - keep XML documentation tags such as `summary`, `remarks`, `param`, `returns`, and `exception`;
 - map XML documentation `<lang>` / `<l>` and legacy `div h_type="doc" > para[lang]` locale blocks into HIA field-level `i18n`;
 - emit `dotnetdoc-source-relation` when XML documentation and C# source inputs share member ids;
 - emit `dotnetdoc-aspnet-endpoint-extraction` for Web Forms pages/controls, controller attribute routes and Minimal API `Map{Verb}` calls;
+- emit `dotnetdoc-markup-comment-extraction` for Web Forms `<%-- --%>`, Razor `@* *@` and HTML `<!-- -->` comments in `.aspx`, `.ascx`, `.cshtml` and `.razor` files;
 - emit HIA-compatible document artifacts and producer result manifests without embedding private source text.
 
 The first Roslyn source extractor is syntax-only: it extracts documented/public
@@ -38,6 +40,17 @@ does not yet perform full project compilation, endpoint discovery through the
 runtime pipeline, route constraint expansion or OpenAPI generation. Full
 semantic compilation, `.sln`/`.csproj` discovery, inherited docs, DocFX, SHFB
 project import and richer source-linkage are planned follow-up layers.
+
+The first markup comment extractor is also source-scan based. It treats
+server-side comments (`<%-- --%>` and `@* *@`) as documentation-only source and
+HTML comments (`<!-- -->`) as client-visible source metadata. It preserves
+comment text, syntax kind, visibility, `<lang>` / `<l>` locale markers and
+source ranges, but never embeds whole source files.
+
+标记层注释第一轮采用轻量源码扫描：Web Forms 的 `<%-- --%>` 与 Razor 的
+`@* *@` 视为服务端隐藏的文档化注释，HTML `<!-- -->` 视为客户端可见的
+标记注释。产物会保留注释正文、语法类型、可见性、`<lang>` / `<l>` 语言标记与
+位置范围，但不会嵌入完整源码。
 
 ## XML Locale Markers
 
@@ -139,6 +152,12 @@ For a normal project, create a `dotnetdoc.config.json`:
       "applicationRoot": "src/Web",
       "artifactBasePath": "web/Default",
       "title": "Default Page Endpoint"
+    },
+    {
+      "kind": "dotnet-markup-comments",
+      "path": "src/Web/Views/Home/Index.cshtml",
+      "artifactBasePath": "web/Home.Index.comments",
+      "title": "Home View Markup Comments"
     }
   ],
   "options": {

@@ -55,6 +55,20 @@ export const DOTNETDOC_ASPNET_ENDPOINT_EXTRACTION_CONTRACT = "dotnetdoc-aspnet-e
 export const DOTNETDOC_ASPNET_ENDPOINT_EXTRACTION_CONTRACT_VERSION = "0.1.0-draft";
 
 /**
+ * Contract name for ASP.NET and Razor markup comment extraction artifacts.
+ *
+ * @lang zh-CN ASP.NET 与 Razor 标记层非 XML 注释抽取产物的合同名称。
+ */
+export const DOTNETDOC_MARKUP_COMMENT_EXTRACTION_CONTRACT = "dotnetdoc-markup-comment-extraction";
+
+/**
+ * Draft contract version for ASP.NET and Razor markup comment extraction artifacts.
+ *
+ * @lang zh-CN ASP.NET 与 Razor 标记层非 XML 注释抽取产物的草案合同版本。
+ */
+export const DOTNETDOC_MARKUP_COMMENT_EXTRACTION_CONTRACT_VERSION = "0.1.0-draft";
+
+/**
  * Draft contract name for .NET solution and project discovery artifacts.
  *
  * @lang zh-CN .NET solution 与 project 发现产物的草案合同名称。
@@ -86,6 +100,17 @@ export const DOTNETDOC_XML_DOCUMENTATION_TAGS = Object.freeze([
   "l",
   "div",
   "para"
+]);
+
+/**
+ * Markup comment syntax kinds recognized by the first DotNetDoc markup intake layer.
+ *
+ * @lang zh-CN 第一层 DotNetDoc markup intake 识别的标记层注释语法类型。
+ */
+export const DOTNETDOC_MARKUP_COMMENT_KINDS = Object.freeze([
+  "webforms-server-comment",
+  "razor-comment",
+  "html-comment"
 ]);
 
 /**

@@ -1,6 +1,6 @@
 {
   "name": "@hia-doc/dotnet-source-extractor",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Parse C# source files into DotNetDoc extraction artifacts through a Roslyn helper.",
   "type": "module",
   "license": "MIT",
@@ -34,8 +34,8 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@hia-doc/dotnet-xml-doc-extractor": "0.1.2",
-    "@hia-doc/dotnetdoc-spec": "0.1.2",
+    "@hia-doc/dotnet-xml-doc-extractor": "0.1.3",
+    "@hia-doc/dotnetdoc-spec": "0.1.3",
     "fast-xml-parser": "5.3.2"
   }
 }

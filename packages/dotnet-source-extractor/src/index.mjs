@@ -10,6 +10,8 @@ import {
   DOTNETDOC_ASPNET_ENDPOINT_EXTRACTION_CONTRACT_VERSION,
   DOTNETDOC_CSHARP_SOURCE_EXTRACTION_CONTRACT,
   DOTNETDOC_CSHARP_SOURCE_EXTRACTION_CONTRACT_VERSION,
+  DOTNETDOC_MARKUP_COMMENT_EXTRACTION_CONTRACT,
+  DOTNETDOC_MARKUP_COMMENT_EXTRACTION_CONTRACT_VERSION,
   DOTNETDOC_PROJECT_DISCOVERY_CONTRACT,
   DOTNETDOC_PROJECT_DISCOVERY_CONTRACT_VERSION
 } from "@hia-doc/dotnetdoc-spec";
@@ -18,9 +20,33 @@ import { extractDotnetXmlDocs } from "@hia-doc/dotnet-xml-doc-extractor";
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const helperProjectPath = path.join(packageRoot, "tools", "DotNetDoc.RoslynSourceExtractor", "DotNetDoc.RoslynSourceExtractor.csproj");
 const PRODUCER_NAME = "@hia-doc/dotnet-source-extractor";
-const PRODUCER_VERSION = "0.1.2";
+const PRODUCER_VERSION = "0.1.3";
 const ASPNET_SURFACE_EXTENSIONS = new Set([".aspx", ".ascx", ".ashx", ".asmx", ".cs"]);
+const DOTNET_MARKUP_COMMENT_EXTENSIONS = new Set([".aspx", ".ascx", ".master", ".cshtml", ".razor"]);
 const DOTNET_PROJECT_EXTENSIONS = new Set([".csproj", ".sln"]);
+const DOTNET_MARKUP_COMMENT_PATTERNS = Object.freeze([
+  {
+    commentKind: "webforms-server-comment",
+    syntax: "<%-- --%>",
+    visibility: "server-hidden",
+    extensions: new Set([".aspx", ".ascx", ".master"]),
+    pattern: /<%--([\s\S]*?)--%>/gu
+  },
+  {
+    commentKind: "razor-comment",
+    syntax: "@* *@",
+    visibility: "server-hidden",
+    extensions: new Set([".cshtml", ".razor"]),
+    pattern: /@\*([\s\S]*?)\*@/gu
+  },
+  {
+    commentKind: "html-comment",
+    syntax: "<!-- -->",
+    visibility: "client-visible",
+    extensions: new Set([".aspx", ".ascx", ".master", ".cshtml", ".razor"]),
+    pattern: /<!--([\s\S]*?)-->/gu
+  }
+]);
 const CSPROJ_XML_PARSER = new XMLParser({
   allowBooleanAttributes: true,
   attributeNamePrefix: "",
@@ -115,6 +141,65 @@ export async function extractAspNetEndpoints(request) {
       aspNetCoreSurfaceCount: endpoints.filter((endpoint) => endpoint.framework === "aspnet-core").length
     },
     endpoints,
+    diagnostics
+  };
+}
+
+/**
+ * Extract non-XML documentation comments from ASP.NET markup and Razor files.
+ *
+ * @param {object} request <lang><en>Markup comment extraction request.</en><zh-CN>标记层注释抽取请求。</zh-CN></lang>
+ * @param {string} request.workspaceRoot <lang><en>Absolute or cwd-relative workspace root.</en><zh-CN>绝对或相对当前目录的工作区根目录。</zh-CN></lang>
+ * @param {string[]} request.paths <lang><en>Workspace-relative `.aspx`, `.ascx`, `.cshtml` or `.razor` paths.</en><zh-CN>工作区相对 `.aspx`、`.ascx`、`.cshtml` 或 `.razor` 路径。</zh-CN></lang>
+ * @returns {Promise<object>} <lang><en>`dotnetdoc-markup-comment-extraction` artifact.</en><zh-CN>`dotnetdoc-markup-comment-extraction` 产物。</zh-CN></lang>
+ * @lang zh-CN 抽取 ASP.NET 与 Razor 标记文件中的非 XML 文档化注释。
+ */
+export async function extractDotnetMarkupComments(request) {
+  const normalized = normalizeMarkupCommentRequest(request);
+  const comments = [];
+  const diagnostics = [];
+
+  for (const relativePath of normalized.paths) {
+    const text = await readFile(path.join(normalized.workspaceRoot, relativePath), "utf8");
+    const extracted = extractMarkupCommentsFromText(text, relativePath);
+    comments.push(...extracted.comments);
+    diagnostics.push(...extracted.diagnostics);
+  }
+  const locales = uniqueStrings(comments.flatMap((comment) => comment.i18n?.locales ?? []));
+
+  return {
+    contract: DOTNETDOC_MARKUP_COMMENT_EXTRACTION_CONTRACT,
+    contractVersion: DOTNETDOC_MARKUP_COMMENT_EXTRACTION_CONTRACT_VERSION,
+    producer: {
+      name: PRODUCER_NAME,
+      version: PRODUCER_VERSION,
+      engine: "markup-comment-scan",
+      engineVersion: "0.1.0"
+    },
+    source: {
+      kind: "dotnet-markup-comments",
+      files: normalized.paths.map((filePath) => ({
+        path: filePath,
+        language: languageForPath(filePath)
+      }))
+    },
+    defaultLocale: locales.includes("en") ? "en" : locales[0] ?? "en",
+    locales: locales.length > 0 ? locales : ["en"],
+    summary: {
+      inputCount: normalized.paths.length,
+      commentCount: comments.length,
+      webFormsServerCommentCount: comments.filter((comment) => comment.commentKind === "webforms-server-comment").length,
+      razorCommentCount: comments.filter((comment) => comment.commentKind === "razor-comment").length,
+      htmlCommentCount: comments.filter((comment) => comment.commentKind === "html-comment").length,
+      serverHiddenCommentCount: comments.filter((comment) => comment.visibility === "server-hidden").length,
+      clientVisibleCommentCount: comments.filter((comment) => comment.visibility === "client-visible").length
+    },
+    privacy: {
+      sourcesContentPolicy: "none",
+      sourcePreviewPolicy: "none",
+      embedsSourcesContent: false
+    },
+    comments,
     diagnostics
   };
 }
@@ -239,6 +324,20 @@ function normalizeAspNetEndpointRequest(request) {
       ? "."
       : normalizeSafeDirectoryPath(request.applicationRoot, "applicationRoot"),
     paths: request.paths.map((value, index) => normalizeAspNetSurfacePath(value, `paths[${index}]`))
+  };
+}
+
+function normalizeMarkupCommentRequest(request) {
+  if (!request || typeof request !== "object" || Array.isArray(request)) {
+    throw new TypeError("DotNet markup comment extraction request must be an object.");
+  }
+  const workspaceRoot = path.resolve(String(request.workspaceRoot ?? process.cwd()));
+  if (!Array.isArray(request.paths) || request.paths.length === 0) {
+    throw new TypeError("DotNet markup comment extraction request must contain at least one path.");
+  }
+  return {
+    workspaceRoot,
+    paths: request.paths.map((value, index) => normalizeMarkupCommentPath(value, `paths[${index}]`))
   };
 }
 
@@ -586,6 +685,20 @@ function normalizeAspNetSurfacePath(value, label) {
   return normalized;
 }
 
+function normalizeMarkupCommentPath(value, label) {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new TypeError(`${label} must be a non-empty relative path.`);
+  }
+  const normalized = value.replaceAll("\\", "/").replace(/^\.\//, "");
+  if (!normalized || normalized.startsWith("/") || /^[a-zA-Z]:\//.test(normalized) || normalized.split("/").includes("..")) {
+    throw new TypeError(`${label} must be a safe relative path.`);
+  }
+  if (!DOTNET_MARKUP_COMMENT_EXTENSIONS.has(path.extname(normalized).toLowerCase())) {
+    throw new TypeError(`${label} must reference an ASP.NET markup or Razor file.`);
+  }
+  return normalized;
+}
+
 async function extractWebFormsSurface(text, relativePath, request) {
   const directive = parseWebFormsDirective(text);
   if (!directive) {
@@ -643,6 +756,134 @@ async function extractWebFormsSurface(text, relativePath, request) {
     ],
     diagnostics: []
   };
+}
+
+function extractMarkupCommentsFromText(text, relativePath) {
+  const extension = path.extname(relativePath).toLowerCase();
+  const candidates = [];
+  for (const patternInfo of DOTNET_MARKUP_COMMENT_PATTERNS) {
+    if (!patternInfo.extensions.has(extension)) {
+      continue;
+    }
+    for (const match of text.matchAll(patternInfo.pattern)) {
+      const start = match.index;
+      const end = match.index + match[0].length;
+      candidates.push({
+        ...patternInfo,
+        start,
+        end,
+        raw: match[0],
+        content: normalizeMarkupCommentContent(match[1])
+      });
+    }
+  }
+
+  const accepted = filterOverlappingMarkupComments(candidates);
+  const comments = accepted.map((item, index) => {
+    const i18n = parseMarkupCommentI18n(item.content);
+    return {
+      id: `dotnetdoc:markup-comment:${safeArtifactId(relativePath)}:${index + 1}`,
+      kind: "dotnet-markup-comment",
+      name: markupCommentName(item, relativePath, index),
+      commentKind: item.commentKind,
+      syntax: item.syntax,
+      visibility: item.visibility,
+      language: languageForPath(relativePath),
+      summary: i18n?.fields.content.localizedText.en ?? i18n?.fields.content.localizedText["zh-CN"] ?? firstNonEmptyLine(item.content) ?? `${item.commentKind} in ${relativePath}`,
+      content: item.content,
+      source: sourceForSpan(text, relativePath, languageForPath(relativePath), item.start, item.end, item.commentKind, "medium"),
+      ...(i18n ? { i18n } : {})
+    };
+  });
+
+  return {
+    comments,
+    diagnostics: []
+  };
+}
+
+function filterOverlappingMarkupComments(candidates) {
+  const priority = {
+    "webforms-server-comment": 1,
+    "razor-comment": 1,
+    "html-comment": 2
+  };
+  const accepted = [];
+  for (const candidate of candidates.sort((left, right) => left.start - right.start || priority[left.commentKind] - priority[right.commentKind])) {
+    if (accepted.some((item) => rangesOverlap(candidate, item))) {
+      continue;
+    }
+    accepted.push(candidate);
+  }
+  return accepted.sort((left, right) => left.start - right.start);
+}
+
+function rangesOverlap(left, right) {
+  return left.start < right.end && right.start < left.end;
+}
+
+function normalizeMarkupCommentContent(value) {
+  const lines = String(value ?? "").replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
+  while (lines.length > 0 && lines[0].trim().length === 0) {
+    lines.shift();
+  }
+  while (lines.length > 0 && lines.at(-1).trim().length === 0) {
+    lines.pop();
+  }
+  const indent = Math.min(...lines.filter((line) => line.trim().length > 0).map((line) => line.match(/^\s*/u)?.[0].length ?? 0));
+  return lines.map((line) => line.slice(Number.isFinite(indent) ? indent : 0).trimEnd()).join("\n").trim();
+}
+
+function firstNonEmptyLine(value) {
+  return String(value ?? "").split(/\r?\n/u).map((line) => line.trim()).find((line) => line.length > 0) ?? null;
+}
+
+function markupCommentName(comment, relativePath, index) {
+  return `${path.basename(relativePath)} ${comment.commentKind} ${index + 1}`;
+}
+
+function parseMarkupCommentI18n(content) {
+  const localizedText = {};
+  const langBlock = /<lang\b[^>]*>([\s\S]*?)<\/lang>/iu.exec(content);
+  if (langBlock) {
+    for (const match of langBlock[1].matchAll(/<([A-Za-z][\w.-]*)\b[^>]*>([\s\S]*?)<\/\1>/gu)) {
+      localizedText[match[1]] = decodeMarkupText(match[2]);
+    }
+  }
+  for (const match of content.matchAll(/<l\b([^>]*)>([\s\S]*?)<\/l>/giu)) {
+    const attributes = parseAttributes(match[1]);
+    const locale = attributes.lang ?? attributes.locale ?? attributes["xml:lang"] ?? null;
+    if (locale) {
+      localizedText[locale] = decodeMarkupText(match[2]);
+    }
+  }
+  const locales = Object.keys(localizedText).filter((locale) => localizedText[locale].trim().length > 0);
+  if (locales.length === 0) {
+    return null;
+  }
+  const defaultLocale = locales.includes("en") ? "en" : locales[0];
+  return {
+    model: "hia-text-i18n",
+    defaultLocale,
+    locales,
+    fields: {
+      content: {
+        defaultLocale,
+        localizedText
+      }
+    }
+  };
+}
+
+function decodeMarkupText(value) {
+  return String(value ?? "")
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/gu, "$1")
+    .replace(/&lt;/gu, "<")
+    .replace(/&gt;/gu, ">")
+    .replace(/&amp;/gu, "&")
+    .replace(/&quot;/gu, "\"")
+    .replace(/&apos;/gu, "'")
+    .trim();
 }
 
 function extractCSharpAspNetEndpoints(text, relativePath) {
@@ -1105,6 +1346,18 @@ function languageForPath(relativePath) {
   const extension = path.extname(relativePath).toLowerCase();
   if (extension === ".cs") {
     return "csharp";
+  }
+  if (extension === ".aspx") {
+    return "aspx";
+  }
+  if (extension === ".ascx") {
+    return "ascx";
+  }
+  if (extension === ".master") {
+    return "aspnet-master";
+  }
+  if (extension === ".cshtml" || extension === ".razor") {
+    return "razor";
   }
   return "aspnet-markup";
 }

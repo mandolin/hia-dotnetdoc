@@ -1,6 +1,6 @@
 {
   "name": "@hia-doc/dotnetdoc-spec",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Shared DotNetDoc contract constants and member kind registry.",
   "type": "module",
   "license": "MIT",
