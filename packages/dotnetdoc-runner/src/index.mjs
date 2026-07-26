@@ -1,4 +1,4 @@
-import { readFile, mkdir, writeFile } from "node:fs/promises";
+import { readFile, mkdir, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import { extractAspNetEndpoints, extractDotnetMarkupComments, extractDotnetProjectDiscovery, extractDotnetSourceFiles } from "@hia-doc/dotnet-source-extractor";
@@ -21,7 +21,7 @@ export {
 } from "./schema.mjs";
 import { DOTNETDOC_CONFIG_SCHEMA_ID, DOTNETDOC_CONFIG_SCHEMA_VERSION } from "./schema.mjs";
 
-export const DOTNETDOC_RUNNER_VERSION = "0.1.3";
+export const DOTNETDOC_RUNNER_VERSION = "0.1.4";
 export const DOTNETDOC_INPUT_KINDS = Object.freeze(["dotnet-xml-doc", "dotnet-csharp-source", "dotnet-aspnet-surface", "dotnet-markup-comments", "dotnet-project"]);
 export const DOTNETDOC_OUTPUT_KINDS = Object.freeze(["dotnetdoc-extraction", "hia-document", "dotnetdoc-source-relation", "dotnetdoc-aspnet-endpoint-extraction", "dotnetdoc-markup-comment-extraction", "dotnetdoc-project-discovery"]);
 
@@ -40,7 +40,11 @@ const SAFE_ID_PATTERN = /^[a-z0-9][a-z0-9._-]*$/;
  * @lang zh-CN 执行 .NET XML documentation 构建。
  */
 export async function runDotnetDoc(request, context = {}) {
-  const normalized = normalizeRequest(request);
+  const normalizedRequest = normalizeRequest(request);
+  const normalized = {
+    ...normalizedRequest,
+    inputs: await expandInputs(normalizedRequest)
+  };
   await mkdir(normalized.outputDirectory, { recursive: true });
 
   const artifacts = [];
@@ -178,19 +182,35 @@ function normalizeRequest(request) {
 
 function normalizeInput(input, index) {
   assertRecord(input, `inputs[${index}] must be an object.`);
-  assertKnownKeys(input, ["kind", "path", "applicationRoot", "artifactBasePath", "hiaDocumentId", "title"], `inputs[${index}]`);
+  assertKnownKeys(input, ["kind", "path", "paths", "glob", "globs", "excludeGlobs", "globPatterns", "excludeGlobPatterns", "applicationRoot", "artifactBasePath", "hiaDocumentId", "title"], `inputs[${index}]`);
   if (!DOTNETDOC_INPUT_KINDS.includes(input.kind)) {
     throw new TypeError(`inputs[${index}].kind must be one of: ${DOTNETDOC_INPUT_KINDS.join(", ")}.`);
   }
 
-  const inputPath = normalizeSafeRelativePath(input.path, `inputs[${index}].path`);
+  const explicitPaths = normalizeInputPathList(input, index);
+  const globPatterns = uniqueStrings([
+    ...normalizeInputGlobList(input, index, "glob", "globs"),
+    ...normalizeInternalGlobList(input.globPatterns, index, "globPatterns")
+  ]);
+  const excludeGlobPatterns = uniqueStrings([
+    ...normalizeInputGlobList(input, index, null, "excludeGlobs"),
+    ...normalizeInternalGlobList(input.excludeGlobPatterns, index, "excludeGlobPatterns")
+  ]);
+  if (explicitPaths.length === 0 && globPatterns.length === 0) {
+    throw new TypeError(`inputs[${index}] must define path, paths, glob or globs.`);
+  }
+
+  const inputPath = explicitPaths[0] ?? `${input.kind}-group`;
   const artifactBasePath = input.artifactBasePath
     ? normalizeSafeRelativePath(input.artifactBasePath, `inputs[${index}].artifactBasePath`)
-    : stripKnownInputExtension(inputPath);
+    : (explicitPaths[0] ? stripKnownInputExtension(explicitPaths[0]) : `${input.kind}-group`);
 
   return {
     kind: input.kind,
     path: inputPath,
+    paths: explicitPaths,
+    globPatterns,
+    excludeGlobPatterns,
     applicationRoot: input.applicationRoot ? normalizeSafeRelativePath(input.applicationRoot, `inputs[${index}].applicationRoot`) : ".",
     artifactBasePath,
     hiaDocumentId: input.hiaDocumentId,
@@ -423,7 +443,7 @@ async function processXmlDocInput(input, request) {
 async function processCSharpSourceInput(input, request) {
   return extractDotnetSourceFiles({
     workspaceRoot: request.workspaceRoot,
-    paths: [input.path]
+    paths: input.paths
   });
 }
 
@@ -431,21 +451,21 @@ async function processAspNetEndpointInput(input, request) {
   return extractAspNetEndpoints({
     workspaceRoot: request.workspaceRoot,
     applicationRoot: input.applicationRoot,
-    paths: [input.path]
+    paths: input.paths
   });
 }
 
 async function processMarkupCommentInput(input, request) {
   return extractDotnetMarkupComments({
     workspaceRoot: request.workspaceRoot,
-    paths: [input.path]
+    paths: input.paths
   });
 }
 
 async function processProjectDiscoveryInput(input, request) {
   return extractDotnetProjectDiscovery({
     workspaceRoot: request.workspaceRoot,
-    path: input.path
+    paths: input.paths
   });
 }
 
@@ -476,6 +496,118 @@ function normalizeConfigDirectory(value, label) {
   return normalizeSafeRelativePath(value, label);
 }
 
+async function expandInputs(request) {
+  const expandedInputs = [];
+  for (const input of request.inputs) {
+    const expandedPaths = await expandInputPaths(request.workspaceRoot, input);
+    expandedInputs.push({
+      ...input,
+      path: expandedPaths[0],
+      paths: expandedPaths,
+      globPatterns: undefined,
+      excludeGlobPatterns: undefined
+    });
+  }
+  return expandedInputs;
+}
+
+async function expandInputPaths(workspaceRoot, input) {
+  const matchedPaths = input.globPatterns.length === 0
+    ? []
+    : await expandGlobPatterns(workspaceRoot, input.globPatterns, input.excludeGlobPatterns);
+  const paths = uniqueStrings([...input.paths, ...matchedPaths]);
+  if (paths.length === 0) {
+    throw new TypeError(`Input ${input.kind} did not resolve any paths.`);
+  }
+  if (input.kind === "dotnet-xml-doc" && paths.length !== 1) {
+    throw new TypeError("dotnet-xml-doc inputs currently require exactly one XML documentation path.");
+  }
+  return paths;
+}
+
+async function expandGlobPatterns(workspaceRoot, patterns, excludePatterns) {
+  const includeRegexes = expandBracePatterns(patterns).map(globPatternToRegExp);
+  const excludeRegexes = expandBracePatterns(excludePatterns).map(globPatternToRegExp);
+  const matched = new Set();
+  for (const pattern of patterns) {
+    const searchRoot = globSearchRoot(pattern);
+    const files = await listWorkspaceFiles(workspaceRoot, searchRoot);
+    for (const filePath of files) {
+      if (includeRegexes.some((regex) => regex.test(filePath)) && !excludeRegexes.some((regex) => regex.test(filePath))) {
+        matched.add(filePath);
+      }
+    }
+  }
+  return [...matched].sort((left, right) => left.localeCompare(right));
+}
+
+async function listWorkspaceFiles(workspaceRoot, relativeDirectory) {
+  const root = path.join(workspaceRoot, relativeDirectory);
+  const result = [];
+
+  async function visit(absoluteDirectory, relativeDirectoryPath) {
+    let entries;
+    try {
+      entries = await readdir(absoluteDirectory, { withFileTypes: true });
+    } catch (error) {
+      if (error?.code === "ENOENT") {
+        return;
+      }
+      throw error;
+    }
+    for (const entry of entries) {
+      const relativePath = relativeDirectoryPath === "." ? entry.name : `${relativeDirectoryPath}/${entry.name}`;
+      const absolutePath = path.join(absoluteDirectory, entry.name);
+      if (entry.isDirectory()) {
+        await visit(absolutePath, relativePath);
+      } else if (entry.isFile()) {
+        result.push(relativePath.replaceAll("\\", "/"));
+      }
+    }
+  }
+
+  await visit(root, relativeDirectory);
+  return result;
+}
+
+function normalizeInputPathList(input, index) {
+  const paths = [];
+  if (input.path !== undefined) {
+    paths.push(normalizeSafeRelativePath(input.path, `inputs[${index}].path`));
+  }
+  if (input.paths !== undefined) {
+    if (!Array.isArray(input.paths) || input.paths.length === 0) {
+      throw new TypeError(`inputs[${index}].paths must be a non-empty array.`);
+    }
+    paths.push(...input.paths.map((value, pathIndex) => normalizeSafeRelativePath(value, `inputs[${index}].paths[${pathIndex}]`)));
+  }
+  return uniqueStrings(paths);
+}
+
+function normalizeInputGlobList(input, index, singularKey, pluralKey) {
+  const patterns = [];
+  if (singularKey && input[singularKey] !== undefined) {
+    patterns.push(normalizeSafeGlobPattern(input[singularKey], `inputs[${index}].${singularKey}`));
+  }
+  if (input[pluralKey] !== undefined) {
+    if (!Array.isArray(input[pluralKey]) || input[pluralKey].length === 0) {
+      throw new TypeError(`inputs[${index}].${pluralKey} must be a non-empty array.`);
+    }
+    patterns.push(...input[pluralKey].map((value, patternIndex) => normalizeSafeGlobPattern(value, `inputs[${index}].${pluralKey}[${patternIndex}]`)));
+  }
+  return uniqueStrings(patterns);
+}
+
+function normalizeInternalGlobList(values, index, key) {
+  if (values === undefined) {
+    return [];
+  }
+  if (!Array.isArray(values)) {
+    throw new TypeError(`inputs[${index}].${key} must be an array.`);
+  }
+  return values.map((value, patternIndex) => normalizeSafeGlobPattern(value, `inputs[${index}].${key}[${patternIndex}]`));
+}
+
 function normalizeSafeRelativePath(value, label) {
   if (typeof value !== "string" || value.trim().length === 0) {
     throw new TypeError(`${label} must be a non-empty relative path.`);
@@ -485,6 +617,76 @@ function normalizeSafeRelativePath(value, label) {
     throw new TypeError(`${label} must be a safe relative path.`);
   }
   return normalized;
+}
+
+function normalizeSafeGlobPattern(value, label) {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new TypeError(`${label} must be a non-empty relative glob pattern.`);
+  }
+  const normalized = value.replaceAll("\\", "/").replace(/^\.\//, "");
+  if (!normalized || normalized.startsWith("/") || /^[a-zA-Z]:\//.test(normalized) || normalized.split("/").includes("..")) {
+    throw new TypeError(`${label} must be a safe relative glob pattern.`);
+  }
+  return normalized;
+}
+
+function uniqueStrings(values) {
+  return [...new Set(values)];
+}
+
+function expandBracePatterns(patterns) {
+  return patterns.flatMap(expandBracePattern);
+}
+
+function expandBracePattern(pattern) {
+  const match = /\{([^{}]+)\}/.exec(pattern);
+  if (!match) {
+    return [pattern];
+  }
+  const before = pattern.slice(0, match.index);
+  const after = pattern.slice(match.index + match[0].length);
+  return match[1].split(",").flatMap((part) => expandBracePattern(`${before}${part.trim()}${after}`));
+}
+
+function globSearchRoot(pattern) {
+  const segments = pattern.split("/");
+  const staticSegments = [];
+  for (const segment of segments) {
+    if (/[*{}]/.test(segment)) {
+      break;
+    }
+    staticSegments.push(segment);
+  }
+  return staticSegments.length === 0 ? "." : staticSegments.join("/");
+}
+
+function globPatternToRegExp(pattern) {
+  let source = "^";
+  for (let index = 0; index < pattern.length;) {
+    const char = pattern[index];
+    if (char === "*") {
+      if (pattern[index + 1] === "*") {
+        if (pattern[index + 2] === "/") {
+          source += "(?:.*/)?";
+          index += 3;
+        } else {
+          source += ".*";
+          index += 2;
+        }
+      } else {
+        source += "[^/]*";
+        index += 1;
+      }
+      continue;
+    }
+    source += escapeRegExp(char);
+    index += 1;
+  }
+  return new RegExp(`${source}$`);
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[\\^$.*+?()[\]{}|]/g, "\\$&");
 }
 
 function stripKnownInputExtension(value) {

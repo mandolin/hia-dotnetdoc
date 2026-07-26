@@ -272,6 +272,42 @@ describe("DotNetDoc XML documentation intake", () => {
     assert.equal(hia.symbols[0].metadata.dotnetdoc.aspnetEndpoint.route.template, "~/Default.aspx");
   });
 
+  it("runs ASP.NET endpoint inputs with multiple workspace-relative paths", async () => {
+    const outputDirectory = path.join(repositoryRoot, "temp", "out-test-aspnet-endpoint-paths");
+    await fs.rm(outputDirectory, { recursive: true, force: true });
+    const runnerResult = await runDotnetDoc({
+      workspaceRoot: path.join(repositoryRoot, "fixtures/source/Portal.Web"),
+      outputDirectory,
+      inputs: [
+        {
+          kind: "dotnet-aspnet-surface",
+          paths: [
+            "Default.aspx",
+            "Admin/Users.ascx",
+            "Controllers/BooksController.cs",
+            "Program.cs"
+          ],
+          artifactBasePath: "aspnet/Portal.Web",
+          hiaDocumentId: "dotnetdoc:aspnet:Portal.Web",
+          title: "Portal Web ASP.NET Surface"
+        }
+      ],
+      options: {
+        writeResultManifest: true
+      }
+    });
+    const endpointArtifact = JSON.parse(await fs.readFile(path.join(outputDirectory, "aspnet/Portal.Web.dotnetdoc.json"), "utf8"));
+    const resultManifest = JSON.parse(await fs.readFile(path.join(outputDirectory, "dotnetdoc.producer-result.json"), "utf8"));
+
+    assert.equal(runnerResult.status, "success");
+    assert.equal(endpointArtifact.source.files.length, 4);
+    assert.ok(endpointArtifact.endpoints.some((endpoint) => endpoint.kind === "aspnet-webforms-page"));
+    assert.ok(endpointArtifact.endpoints.some((endpoint) => endpoint.kind === "aspnet-webforms-control"));
+    assert.ok(endpointArtifact.endpoints.some((endpoint) => endpoint.kind === "aspnet-controller-action"));
+    assert.ok(endpointArtifact.endpoints.some((endpoint) => endpoint.kind === "aspnet-minimal-api-endpoint"));
+    assert.ok(resultManifest.artifacts.some((artifact) => artifact.path === "aspnet/Portal.Web.hia.json"));
+  });
+
   it("extracts Web Forms and Razor markup comments as documentation inputs", async () => {
     const artifact = await extractDotnetMarkupComments({
       workspaceRoot: path.join(repositoryRoot, "fixtures/source/Portal.Web"),
@@ -343,6 +379,35 @@ describe("DotNetDoc XML documentation intake", () => {
     assert.equal(markupArtifact.summary.razorCommentCount, 1);
     assert.equal(markupArtifact.summary.htmlCommentCount, 1);
     assert.equal(hia.symbols[0].metadata.dotnetdoc.markupComment.commentKind, "razor-comment");
+  });
+
+  it("runs markup comment inputs with glob patterns through the standalone runner", async () => {
+    const outputDirectory = path.join(repositoryRoot, "temp", "out-test-markup-comment-globs");
+    await fs.rm(outputDirectory, { recursive: true, force: true });
+    const runnerResult = await runDotnetDoc({
+      workspaceRoot: path.join(repositoryRoot, "fixtures/source/Portal.Web"),
+      outputDirectory,
+      inputs: [
+        {
+          kind: "dotnet-markup-comments",
+          globs: ["**/*.{aspx,ascx,master,cshtml,razor}"],
+          artifactBasePath: "markup/Portal.Web",
+          hiaDocumentId: "dotnetdoc:markup:Portal.Web",
+          title: "Portal Web Markup Comments"
+        }
+      ],
+      options: {
+        writeResultManifest: true
+      }
+    });
+    const markupArtifact = JSON.parse(await fs.readFile(path.join(outputDirectory, "markup/Portal.Web.dotnetdoc.json"), "utf8"));
+    const hia = JSON.parse(await fs.readFile(path.join(outputDirectory, "markup/Portal.Web.hia.json"), "utf8"));
+
+    assert.equal(runnerResult.status, "success");
+    assert.equal(markupArtifact.summary.inputCount, 4);
+    assert.equal(markupArtifact.summary.commentCount, 7);
+    assert.equal(hia.symbols.length, 7);
+    assert.ok(runnerResult.artifacts.some((artifact) => artifact.path === "markup/Portal.Web.dotnetdoc.json"));
   });
 
   it("discovers .NET solution and project structure without compiling", async () => {

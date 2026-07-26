@@ -22,3 +22,20 @@ files.
 
 `dotnet-markup-comments` input 会为 `.aspx`、`.ascx`、`.cshtml`、`.razor`
 文件输出 `dotnetdoc-markup-comment-extraction` 与对应 HIA document。
+
+Config inputs support the original single `path`, explicit `paths`, and
+workspace-relative `glob` / `globs` patterns. Glob expansion is performed inside
+the workspace and never accepts absolute paths or `..` traversal.
+
+配置输入支持原有单个 `path`、显式 `paths`，以及工作区相对的 `glob` /
+`globs`。glob 展开只在工作区内执行，不接受绝对路径或 `..` 路径穿越。
+
+```json
+{
+  "kind": "dotnet-markup-comments",
+  "globs": ["src/Web/**/*.{aspx,ascx,master,cshtml,razor}"],
+  "excludeGlobs": ["src/Web/**/bin/**", "src/Web/**/obj/**"],
+  "artifactBasePath": "web/markup-comments",
+  "title": "Web Markup Comments"
+}
+```

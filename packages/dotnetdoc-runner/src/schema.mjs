@@ -12,6 +12,12 @@ const relativePath = {
   }
 };
 
+const relativePathArray = {
+  type: "array",
+  minItems: 1,
+  items: relativePath
+};
+
 export const DOTNETDOC_CONFIG_JSON_SCHEMA = Object.freeze({
   $schema: "https://json-schema.org/draft/2020-12/schema",
   $id: DOTNETDOC_CONFIG_SCHEMA_ID,
@@ -30,10 +36,20 @@ export const DOTNETDOC_CONFIG_JSON_SCHEMA = Object.freeze({
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["kind", "path"],
+        required: ["kind"],
+        anyOf: [
+          { required: ["path"] },
+          { required: ["paths"] },
+          { required: ["glob"] },
+          { required: ["globs"] }
+        ],
         properties: {
           kind: { enum: ["dotnet-xml-doc", "dotnet-csharp-source", "dotnet-aspnet-surface", "dotnet-markup-comments", "dotnet-project"] },
           path: relativePath,
+          paths: relativePathArray,
+          glob: relativePath,
+          globs: relativePathArray,
+          excludeGlobs: relativePathArray,
           applicationRoot: relativePath,
           artifactBasePath: relativePath,
           hiaDocumentId: { type: "string", minLength: 1 },

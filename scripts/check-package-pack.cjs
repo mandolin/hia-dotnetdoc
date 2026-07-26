@@ -4,7 +4,7 @@ const path = require("node:path");
 const { spawnSync } = require("node:child_process");
 
 const root = path.resolve(__dirname, "..");
-const releaseVersion = "0.1.3";
+const releaseVersion = "0.1.4";
 const repositoryUrl = "git+https://github.com/mandolin/hia-dotnetdoc.git";
 const npmCliPath = path.join(path.dirname(process.execPath), "node_modules", "npm", "bin", "npm-cli.js");
 
