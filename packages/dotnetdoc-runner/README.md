@@ -30,6 +30,22 @@ the workspace and never accepts absolute paths or `..` traversal.
 配置输入支持原有单个 `path`、显式 `paths`，以及工作区相对的 `glob` /
 `globs`。glob 展开只在工作区内执行，不接受绝对路径或 `..` 路径穿越。
 
+For `dotnet-csharp-source`, config inputs can also provide `projectPath` to let
+the runner resolve `.cs` files from a `.csproj` before invoking the lightweight
+Roslyn source extractor.
+
+对 `dotnet-csharp-source`，配置也可以提供 `projectPath`，由 runner 先从
+`.csproj` 推导源码文件集合，再调用轻量 Roslyn source extractor。
+
+```json
+{
+  "kind": "dotnet-csharp-source",
+  "projectPath": "src/Portal.Components/Portal.Components.csproj",
+  "artifactBasePath": "source/Portal.Components",
+  "title": "Portal Components Source API"
+}
+```
+
 ```json
 {
   "kind": "dotnet-markup-comments",

@@ -19,6 +19,11 @@ const artifact = await extractDotnetSourceFiles({
   paths: ["src/Example.cs"]
 });
 
+const projectSource = await extractDotnetSourceFiles({
+  workspaceRoot: process.cwd(),
+  projectPath: "src/Example/Example.csproj"
+});
+
 const endpoints = await extractAspNetEndpoints({
   workspaceRoot: process.cwd(),
   applicationRoot: "src/Web",
@@ -37,10 +42,15 @@ const projects = await extractDotnetProjectDiscovery({
 ```
 
 The C# source slice builds a lightweight Roslyn compilation for explicit `.cs`
-files. It extracts documented/public declarations, XML documentation trivia,
-source ranges and semantic documentation comment ids without loading an
-MSBuild workspace. It does not yet perform inherited docs or full project-load
-semantic analysis.
+files or for source files resolved from a `.csproj` `projectPath`. It extracts
+documented/public declarations, XML documentation trivia, source ranges and
+semantic documentation comment ids without loading an MSBuild workspace. It does
+not yet perform inherited docs, package restore or full project-load semantic
+analysis.
+
+C# 源码抽取既支持显式 `.cs` 文件，也支持通过 `.csproj` `projectPath`
+解析项目源码集合。当前实现不会加载完整 MSBuild workspace，也不会执行 package
+restore；它适合作为目标项目文档化的轻量 source probe，后续再扩展完整项目语义。
 
 XML documentation `<lang>` / `<l>` markers and legacy
 `div h_type="doc" > para[lang]` blocks are normalized into each member's HIA

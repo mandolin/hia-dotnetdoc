@@ -81,6 +81,23 @@ describe("DotNetDoc XML documentation intake", () => {
     assert.equal(artifact.members.some((member) => Object.hasOwn(member, "documentationXml")), false);
   });
 
+  it("extracts C# source files from a project path without a full MSBuild workspace", async () => {
+    const artifact = await extractDotnetSourceFiles({
+      workspaceRoot: repositoryRoot,
+      projectPath: "fixtures/source/Portal.Components/Portal.Components.csproj"
+    });
+
+    assert.equal(artifact.contract, "dotnetdoc-csharp-source-extraction");
+    assert.equal(artifact.source.projectPath, "fixtures/source/Portal.Components/Portal.Components.csproj");
+    assert.equal(artifact.source.projectContext.kind, "csproj-explicit-compile-items");
+    assert.equal(artifact.source.projectContext.sourcePathCount, 1);
+    assert.equal(artifact.source.projectContext.assemblyName, "Portal.Components");
+    assert.equal(artifact.source.files.length, 1);
+    assert.equal(artifact.source.files[0].path, "fixtures/source/Portal.Components/Navigation/PortalMenu.cs");
+    assert.ok(artifact.members.some((member) => member.memberName === "T:Portal.Components.Navigation.PortalMenu"));
+    assert.equal(artifact.members.some((member) => member.memberName === "T:Portal.Components.Navigation.SemanticSample`1"), false);
+  });
+
   it("uses Roslyn semantic documentation ids for constructors, generics and ref/out parameters", async () => {
     const artifact = await extractDotnetSourceFiles({
       workspaceRoot: repositoryRoot,
@@ -157,6 +174,36 @@ describe("DotNetDoc XML documentation intake", () => {
     assert.ok(runnerResult.artifacts.some((artifact) => artifact.contract === "dotnetdoc-csharp-source-extraction"));
     assert.equal(hia.symbols[0].source.definedIn.language, "csharp");
     assert.equal(hia.symbols[0].source.definedIn.position.line, 18);
+  });
+
+  it("runs source projectPath inputs through the standalone runner", async () => {
+    const outputDirectory = path.join(repositoryRoot, "temp", "out-test-source-project-runner");
+    await fs.rm(outputDirectory, { recursive: true, force: true });
+    const runnerResult = await runDotnetDoc({
+      workspaceRoot: repositoryRoot,
+      outputDirectory,
+      inputs: [
+        {
+          kind: "dotnet-csharp-source",
+          projectPath: "fixtures/source/Portal.Components/Portal.Components.csproj",
+          artifactBasePath: "Portal.Components.source-project",
+          hiaDocumentId: "dotnetdoc:source:Portal.Components",
+          title: "Portal.Components Source API"
+        }
+      ],
+      options: {
+        writeResultManifest: true
+      }
+    });
+    const sourceArtifact = JSON.parse(await fs.readFile(path.join(outputDirectory, "Portal.Components.source-project.dotnetdoc.json"), "utf8"));
+    const hia = JSON.parse(await fs.readFile(path.join(outputDirectory, "Portal.Components.source-project.hia.json"), "utf8"));
+
+    assert.equal(runnerResult.status, "success");
+    assert.equal(runnerResult.artifacts.length, 2);
+    assert.equal(sourceArtifact.source.projectPath, "fixtures/source/Portal.Components/Portal.Components.csproj");
+    assert.equal(sourceArtifact.source.projectContext.sourcePathCount, 1);
+    assert.ok(sourceArtifact.members.some((member) => member.memberName === "P:Portal.Components.Navigation.PortalMenu.Items"));
+    assert.equal(hia.symbols[0].source.definedIn.language, "csharp");
   });
 
   it("emits a source relation artifact when XML docs and C# source are processed together", async () => {

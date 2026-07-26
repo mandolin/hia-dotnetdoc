@@ -40,6 +40,7 @@ export const DOTNETDOC_CONFIG_JSON_SCHEMA = Object.freeze({
         anyOf: [
           { required: ["path"] },
           { required: ["paths"] },
+          { required: ["projectPath"] },
           { required: ["glob"] },
           { required: ["globs"] }
         ],
@@ -47,6 +48,7 @@ export const DOTNETDOC_CONFIG_JSON_SCHEMA = Object.freeze({
           kind: { enum: ["dotnet-xml-doc", "dotnet-csharp-source", "dotnet-aspnet-surface", "dotnet-markup-comments", "dotnet-project"] },
           path: relativePath,
           paths: relativePathArray,
+          projectPath: relativePath,
           glob: relativePath,
           globs: relativePathArray,
           excludeGlobs: relativePathArray,

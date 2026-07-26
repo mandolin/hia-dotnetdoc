@@ -21,7 +21,7 @@ export {
 } from "./schema.mjs";
 import { DOTNETDOC_CONFIG_SCHEMA_ID, DOTNETDOC_CONFIG_SCHEMA_VERSION } from "./schema.mjs";
 
-export const DOTNETDOC_RUNNER_VERSION = "0.1.4";
+export const DOTNETDOC_RUNNER_VERSION = "0.1.5";
 export const DOTNETDOC_INPUT_KINDS = Object.freeze(["dotnet-xml-doc", "dotnet-csharp-source", "dotnet-aspnet-surface", "dotnet-markup-comments", "dotnet-project"]);
 export const DOTNETDOC_OUTPUT_KINDS = Object.freeze(["dotnetdoc-extraction", "hia-document", "dotnetdoc-source-relation", "dotnetdoc-aspnet-endpoint-extraction", "dotnetdoc-markup-comment-extraction", "dotnetdoc-project-discovery"]);
 
@@ -182,12 +182,15 @@ function normalizeRequest(request) {
 
 function normalizeInput(input, index) {
   assertRecord(input, `inputs[${index}] must be an object.`);
-  assertKnownKeys(input, ["kind", "path", "paths", "glob", "globs", "excludeGlobs", "globPatterns", "excludeGlobPatterns", "applicationRoot", "artifactBasePath", "hiaDocumentId", "title"], `inputs[${index}]`);
+  assertKnownKeys(input, ["kind", "path", "paths", "projectPath", "glob", "globs", "excludeGlobs", "globPatterns", "excludeGlobPatterns", "applicationRoot", "artifactBasePath", "hiaDocumentId", "title"], `inputs[${index}]`);
   if (!DOTNETDOC_INPUT_KINDS.includes(input.kind)) {
     throw new TypeError(`inputs[${index}].kind must be one of: ${DOTNETDOC_INPUT_KINDS.join(", ")}.`);
   }
 
   const explicitPaths = normalizeInputPathList(input, index);
+  const projectPath = input.projectPath == null
+    ? null
+    : normalizeSafeProjectPath(input.projectPath, `inputs[${index}].projectPath`);
   const globPatterns = uniqueStrings([
     ...normalizeInputGlobList(input, index, "glob", "globs"),
     ...normalizeInternalGlobList(input.globPatterns, index, "globPatterns")
@@ -196,19 +199,20 @@ function normalizeInput(input, index) {
     ...normalizeInputGlobList(input, index, null, "excludeGlobs"),
     ...normalizeInternalGlobList(input.excludeGlobPatterns, index, "excludeGlobPatterns")
   ]);
-  if (explicitPaths.length === 0 && globPatterns.length === 0) {
-    throw new TypeError(`inputs[${index}] must define path, paths, glob or globs.`);
+  if (explicitPaths.length === 0 && globPatterns.length === 0 && !projectPath) {
+    throw new TypeError(`inputs[${index}] must define path, paths, projectPath, glob or globs.`);
   }
 
-  const inputPath = explicitPaths[0] ?? `${input.kind}-group`;
+  const inputPath = explicitPaths[0] ?? projectPath ?? `${input.kind}-group`;
   const artifactBasePath = input.artifactBasePath
     ? normalizeSafeRelativePath(input.artifactBasePath, `inputs[${index}].artifactBasePath`)
-    : (explicitPaths[0] ? stripKnownInputExtension(explicitPaths[0]) : `${input.kind}-group`);
+    : (explicitPaths[0] ? stripKnownInputExtension(explicitPaths[0]) : projectPath ? stripKnownInputExtension(projectPath) : `${input.kind}-group`);
 
   return {
     kind: input.kind,
     path: inputPath,
     paths: explicitPaths,
+    projectPath,
     globPatterns,
     excludeGlobPatterns,
     applicationRoot: input.applicationRoot ? normalizeSafeRelativePath(input.applicationRoot, `inputs[${index}].applicationRoot`) : ".",
@@ -441,10 +445,14 @@ async function processXmlDocInput(input, request) {
 }
 
 async function processCSharpSourceInput(input, request) {
-  return extractDotnetSourceFiles({
+  const sourceRequest = {
     workspaceRoot: request.workspaceRoot,
     paths: input.paths
-  });
+  };
+  if (input.projectPath) {
+    sourceRequest.projectPath = input.projectPath;
+  }
+  return extractDotnetSourceFiles(sourceRequest);
 }
 
 async function processAspNetEndpointInput(input, request) {
@@ -502,7 +510,7 @@ async function expandInputs(request) {
     const expandedPaths = await expandInputPaths(request.workspaceRoot, input);
     expandedInputs.push({
       ...input,
-      path: expandedPaths[0],
+      path: expandedPaths[0] ?? input.path,
       paths: expandedPaths,
       globPatterns: undefined,
       excludeGlobPatterns: undefined
@@ -516,6 +524,9 @@ async function expandInputPaths(workspaceRoot, input) {
     ? []
     : await expandGlobPatterns(workspaceRoot, input.globPatterns, input.excludeGlobPatterns);
   const paths = uniqueStrings([...input.paths, ...matchedPaths]);
+  if (paths.length === 0 && input.projectPath) {
+    return [];
+  }
   if (paths.length === 0) {
     throw new TypeError(`Input ${input.kind} did not resolve any paths.`);
   }
@@ -626,6 +637,14 @@ function normalizeSafeGlobPattern(value, label) {
   const normalized = value.replaceAll("\\", "/").replace(/^\.\//, "");
   if (!normalized || normalized.startsWith("/") || /^[a-zA-Z]:\//.test(normalized) || normalized.split("/").includes("..")) {
     throw new TypeError(`${label} must be a safe relative glob pattern.`);
+  }
+  return normalized;
+}
+
+function normalizeSafeProjectPath(value, label) {
+  const normalized = normalizeSafeRelativePath(value, label);
+  if (path.extname(normalized).toLowerCase() !== ".csproj") {
+    throw new TypeError(`${label} must reference a .csproj file.`);
   }
   return normalized;
 }

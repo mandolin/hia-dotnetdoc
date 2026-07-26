@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -20,7 +20,7 @@ import { extractDotnetXmlDocs } from "@hia-doc/dotnet-xml-doc-extractor";
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const helperProjectPath = path.join(packageRoot, "tools", "DotNetDoc.RoslynSourceExtractor", "DotNetDoc.RoslynSourceExtractor.csproj");
 const PRODUCER_NAME = "@hia-doc/dotnet-source-extractor";
-const PRODUCER_VERSION = "0.1.4";
+const PRODUCER_VERSION = "0.1.5";
 const ASPNET_SURFACE_EXTENSIONS = new Set([".aspx", ".ascx", ".ashx", ".asmx", ".cs"]);
 const DOTNET_MARKUP_COMMENT_EXTENSIONS = new Set([".aspx", ".ascx", ".master", ".cshtml", ".razor"]);
 const DOTNET_PROJECT_EXTENSIONS = new Set([".csproj", ".sln"]);
@@ -87,8 +87,33 @@ const MINIMAL_API_METHODS = Object.freeze({
  */
 export async function extractDotnetSourceFiles(request) {
   const normalized = normalizeRequest(request);
-  const artifact = await runRoslynHelper(normalized);
+  const projectContext = normalized.projectPath
+    ? await loadProjectSourceContext(normalized.workspaceRoot, normalized.projectPath)
+    : null;
+  const sourcePaths = uniqueStrings([...(normalized.paths ?? []), ...(projectContext?.paths ?? [])]);
+  if (sourcePaths.length === 0) {
+    throw new TypeError("DotNet source extraction request must resolve at least one C# source path.");
+  }
+
+  const artifact = await runRoslynHelper({
+    ...normalized,
+    paths: sourcePaths
+  });
   assertSourceArtifact(artifact);
+  if (projectContext) {
+    artifact.source = {
+      ...artifact.source,
+      projectPath: projectContext.project.path,
+      projectContext: {
+        kind: projectContext.kind,
+        sourcePathCount: projectContext.paths.length,
+        assemblyName: projectContext.project.assemblyName,
+        rootNamespace: projectContext.project.rootNamespace,
+        targetFrameworks: projectContext.project.targetFrameworks
+      }
+    };
+    artifact.diagnostics = [...(artifact.diagnostics ?? []), ...(projectContext.project.diagnostics ?? [])];
+  }
   hydrateSourceDocumentationI18n(artifact);
   return artifact;
 }
@@ -301,13 +326,85 @@ function normalizeRequest(request) {
     throw new TypeError("DotNet source extraction request must be an object.");
   }
   const workspaceRoot = path.resolve(String(request.workspaceRoot ?? process.cwd()));
-  if (!Array.isArray(request.paths) || request.paths.length === 0) {
-    throw new TypeError("DotNet source extraction request must contain at least one path.");
+  const rawPaths = request.paths ?? [];
+  if (!Array.isArray(rawPaths)) {
+    throw new TypeError("DotNet source extraction paths must be an array when provided.");
+  }
+  const projectPath = request.projectPath == null
+    ? null
+    : normalizeDotnetProjectPath(request.projectPath, "projectPath");
+  if (projectPath && !projectPath.endsWith(".csproj")) {
+    throw new TypeError("projectPath must reference a .csproj file.");
+  }
+  if (rawPaths.length === 0 && !projectPath) {
+    throw new TypeError("DotNet source extraction request must contain at least one path or projectPath.");
   }
   return {
     workspaceRoot,
-    paths: request.paths.map((value, index) => normalizeSafeRelativePath(value, `paths[${index}]`))
+    paths: rawPaths.map((value, index) => normalizeSafeRelativePath(value, `paths[${index}]`)),
+    projectPath
   };
+}
+
+async function loadProjectSourceContext(workspaceRoot, projectPath) {
+  const projectText = await readFile(path.join(workspaceRoot, projectPath), "utf8");
+  const project = parseProjectFile(projectText, projectPath, {});
+  const compileIncludes = project.compileItems
+    .map((item) => item.include)
+    .filter((include) => typeof include === "string" && include.trim().length > 0)
+    .map((include) => normalizePathFromBase(projectPath, include, "project compile item"))
+    .filter((include) => include.endsWith(".cs"));
+  const compileRemoves = new Set(project.compileItems
+    .map((item) => item.remove)
+    .filter((remove) => typeof remove === "string" && remove.trim().length > 0)
+    .map((remove) => normalizePathFromBase(projectPath, remove, "project compile remove")));
+
+  const paths = compileIncludes.length > 0
+    ? compileIncludes
+    : project.usesSdkDefaultCompileItems
+      ? await listProjectDefaultSourceFiles(workspaceRoot, projectPath, compileRemoves)
+      : [];
+
+  return {
+    kind: compileIncludes.length > 0 ? "csproj-explicit-compile-items" : "csproj-sdk-default-compile-items",
+    project,
+    paths: uniqueStrings(paths.filter((sourcePath) => !compileRemoves.has(sourcePath)))
+  };
+}
+
+async function listProjectDefaultSourceFiles(workspaceRoot, projectPath, compileRemoves) {
+  const projectDirectory = path.posix.dirname(projectPath);
+  const rootDirectory = path.join(workspaceRoot, projectDirectory);
+  const sourcePaths = [];
+
+  async function visit(absoluteDirectory, relativeDirectory) {
+    let entries;
+    try {
+      entries = await readdir(absoluteDirectory, { withFileTypes: true });
+    } catch (error) {
+      if (error?.code === "ENOENT") {
+        return;
+      }
+      throw error;
+    }
+
+    for (const entry of entries) {
+      if (entry.isDirectory() && (entry.name === "bin" || entry.name === "obj")) {
+        continue;
+      }
+      const relativePath = relativeDirectory === "." ? entry.name : `${relativeDirectory}/${entry.name}`;
+      const workspaceRelativePath = projectDirectory === "." ? relativePath : `${projectDirectory}/${relativePath}`;
+      const absolutePath = path.join(absoluteDirectory, entry.name);
+      if (entry.isDirectory()) {
+        await visit(absolutePath, relativePath);
+      } else if (entry.isFile() && entry.name.endsWith(".cs") && !compileRemoves.has(workspaceRelativePath)) {
+        sourcePaths.push(workspaceRelativePath);
+      }
+    }
+  }
+
+  await visit(rootDirectory, ".");
+  return sourcePaths.sort(compareStableText);
 }
 
 function normalizeAspNetEndpointRequest(request) {
@@ -1371,6 +1468,10 @@ function asArray(value) {
 
 function uniqueStrings(values) {
   return [...new Set(values.filter((value) => typeof value === "string" && value.trim().length > 0))];
+}
+
+function compareStableText(left, right) {
+  return left.localeCompare(right);
 }
 
 function isScalar(value) {
