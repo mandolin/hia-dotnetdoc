@@ -21,14 +21,19 @@ export {
 } from "./schema.mjs";
 import { DOTNETDOC_CONFIG_SCHEMA_ID, DOTNETDOC_CONFIG_SCHEMA_VERSION } from "./schema.mjs";
 
-export const DOTNETDOC_RUNNER_VERSION = "0.1.5";
+export const DOTNETDOC_RUNNER_VERSION = "0.1.6";
 export const DOTNETDOC_INPUT_KINDS = Object.freeze(["dotnet-xml-doc", "dotnet-csharp-source", "dotnet-aspnet-surface", "dotnet-markup-comments", "dotnet-project"]);
 export const DOTNETDOC_OUTPUT_KINDS = Object.freeze(["dotnetdoc-extraction", "hia-document", "dotnetdoc-source-relation", "dotnetdoc-aspnet-endpoint-extraction", "dotnetdoc-markup-comment-extraction", "dotnetdoc-project-discovery"]);
+export const DOTNETDOC_BUILD_WARNING_CLASSIFICATION_CONTRACT = "dotnetdoc-build-warning-classification";
+export const DOTNETDOC_BUILD_WARNING_CLASSIFICATION_CONTRACT_VERSION = "0.1.0-draft";
 
 const RESULT_CONTRACT = "documentation-producer-result";
 const RESULT_CONTRACT_VERSION = "0.1.0-draft";
 const PRODUCER_ID = "dotnetdoc";
 const SAFE_ID_PATTERN = /^[a-z0-9][a-z0-9._-]*$/;
+const DESIGNER_CODE_PATTERN = /(?:^|[\\/])[^\\/]+\.designer\.(?:cs|vb)$/iu;
+const GENERATED_CODE_PATTERN = /(?:^|[\\/])(?:obj|bin|generated|generatedcode)(?:[\\/]|$)|\.(?:g|g\.i|generated)\.(?:cs|vb)$/iu;
+const COMPILER_DIAGNOSTIC_PATTERN = /^(?<path>.+?)\((?<line>\d+),(?<column>\d+)\):\s*(?<severity>warning|error)\s+(?<code>[A-Z]+\d+):\s*(?<message>.+)$/iu;
 
 /**
  * 执行一次 .NET XML documentation 文档构建，并返回 documentation producer result。
@@ -120,6 +125,40 @@ export async function runDotnetDoc(request, context = {}) {
   });
 
   return result;
+}
+
+/**
+ * 将 .NET build / MSBuild 文本诊断分类为 manual、designer 或 generated 边界。
+ * Classifies .NET build / MSBuild textual diagnostics into manual, designer or generated boundaries.
+ *
+ * @param {Array<string|object>} diagnostics <lang><en>Compiler diagnostic lines or normalized diagnostic objects.</en><zh-CN>编译器诊断文本行或规范化诊断对象。</zh-CN></lang>
+ * @returns {object} <lang><en>Warning classification artifact that contains no source body.</en><zh-CN>不含源码正文的 warning 分类产物。</zh-CN></lang>
+ * @lang zh-CN 对 .NET build warning 进行 generated/designer 边界分类。
+ */
+export function classifyDotnetBuildDiagnostics(diagnostics) {
+  if (!Array.isArray(diagnostics)) {
+    throw new TypeError("DotNet build diagnostics must be an array.");
+  }
+
+  const classifiedDiagnostics = diagnostics.map((item, index) => classifyBuildDiagnostic(item, index));
+  const summary = summarizeBuildWarningClassifications(classifiedDiagnostics);
+
+  return {
+    contract: DOTNETDOC_BUILD_WARNING_CLASSIFICATION_CONTRACT,
+    contractVersion: DOTNETDOC_BUILD_WARNING_CLASSIFICATION_CONTRACT_VERSION,
+    producer: {
+      name: "@hia-doc/dotnetdoc-runner",
+      version: DOTNETDOC_RUNNER_VERSION
+    },
+    policy: {
+      name: "dotnetdoc-generated-designer-warning-policy",
+      version: "0.1.0-draft",
+      defaultDocumentationGate: "do-not-block-on-generated-or-designer-cs1591",
+      sourcesContentPolicy: "none"
+    },
+    summary,
+    diagnostics: classifiedDiagnostics
+  };
 }
 
 /**
@@ -438,6 +477,130 @@ function unresolvedMember(reason, side, record, member) {
   };
 }
 
+function classifyBuildDiagnostic(value, index) {
+  const normalized = normalizeBuildDiagnostic(value, index);
+  const boundary = classifyDiagnosticSourceBoundary(normalized.path);
+  const isMissingXmlDocWarning = normalized.code === "CS1591";
+  const generatedLike = boundary.kind === "designer-code" || boundary.kind === "generated-code";
+  const gateSeverity = isMissingXmlDocWarning && generatedLike ? "info" : normalized.severity;
+
+  return {
+    ...normalized,
+    boundary,
+    gate: {
+      severity: gateSeverity,
+      defaultAction: isMissingXmlDocWarning && generatedLike
+        ? "exclude-from-documentation-warning-gate"
+        : "keep-in-documentation-warning-gate",
+      blocksDefaultDocumentation: isMissingXmlDocWarning && generatedLike ? false : normalized.severity === "error",
+      rationale: generatedLike
+        ? "Generated or designer code is documented through the source template or generated artifact boundary."
+        : "Manual source diagnostics remain visible for target-owner documentation governance."
+    }
+  };
+}
+
+function normalizeBuildDiagnostic(value, index) {
+  if (typeof value === "string") {
+    const match = COMPILER_DIAGNOSTIC_PATTERN.exec(value.trim());
+    if (!match?.groups) {
+      return {
+        id: `dotnet-build-diagnostic:${index + 1}`,
+        path: null,
+        range: null,
+        severity: "warning",
+        code: "DOTNET_BUILD_DIAGNOSTIC_UNPARSED",
+        message: value,
+        raw: value
+      };
+    }
+    return {
+      id: `dotnet-build-diagnostic:${index + 1}`,
+      path: normalizeDiagnosticPath(match.groups.path),
+      range: {
+        start: {
+          line: Number(match.groups.line),
+          column: Number(match.groups.column)
+        }
+      },
+      severity: match.groups.severity.toLowerCase(),
+      code: match.groups.code.toUpperCase(),
+      message: match.groups.message,
+      raw: value
+    };
+  }
+  assertRecord(value, `diagnostics[${index}] must be a string or object.`);
+  return {
+    id: typeof value.id === "string" ? value.id : `dotnet-build-diagnostic:${index + 1}`,
+    path: value.path ? normalizeDiagnosticPath(String(value.path)) : null,
+    range: value.range ?? null,
+    severity: value.severity === "error" ? "error" : "warning",
+    code: typeof value.code === "string" ? value.code.toUpperCase() : "DOTNET_BUILD_DIAGNOSTIC",
+    message: typeof value.message === "string" ? value.message : "",
+    raw: typeof value.raw === "string" ? value.raw : null
+  };
+}
+
+function classifyDiagnosticSourceBoundary(sourcePath) {
+  if (!sourcePath) {
+    return {
+      kind: "unknown-source",
+      confidence: "low",
+      reason: "diagnostic-path-missing"
+    };
+  }
+  if (DESIGNER_CODE_PATTERN.test(sourcePath)) {
+    return {
+      kind: "designer-code",
+      confidence: "high",
+      reason: "designer-file-name"
+    };
+  }
+  if (GENERATED_CODE_PATTERN.test(sourcePath)) {
+    return {
+      kind: "generated-code",
+      confidence: "high",
+      reason: "generated-path-or-file-name"
+    };
+  }
+  return {
+    kind: "manual-source",
+    confidence: "medium",
+    reason: "no-generated-pattern"
+  };
+}
+
+function summarizeBuildWarningClassifications(classifiedDiagnostics) {
+  const countsByBoundary = {};
+  const countsByCode = {};
+  let generatedOrDesignerCount = 0;
+  let manualSourceCount = 0;
+  let defaultBlockingCount = 0;
+
+  for (const diagnostic of classifiedDiagnostics) {
+    countsByBoundary[diagnostic.boundary.kind] = (countsByBoundary[diagnostic.boundary.kind] ?? 0) + 1;
+    countsByCode[diagnostic.code] = (countsByCode[diagnostic.code] ?? 0) + 1;
+    if (diagnostic.boundary.kind === "designer-code" || diagnostic.boundary.kind === "generated-code") {
+      generatedOrDesignerCount += 1;
+    }
+    if (diagnostic.boundary.kind === "manual-source") {
+      manualSourceCount += 1;
+    }
+    if (diagnostic.gate.blocksDefaultDocumentation) {
+      defaultBlockingCount += 1;
+    }
+  }
+
+  return {
+    diagnosticCount: classifiedDiagnostics.length,
+    generatedOrDesignerCount,
+    manualSourceCount,
+    defaultBlockingCount,
+    countsByBoundary,
+    countsByCode
+  };
+}
+
 async function processXmlDocInput(input, request) {
   const xmlPath = path.join(request.workspaceRoot, input.path);
   const xmlText = await readFile(xmlPath, "utf8");
@@ -639,6 +802,10 @@ function normalizeSafeGlobPattern(value, label) {
     throw new TypeError(`${label} must be a safe relative glob pattern.`);
   }
   return normalized;
+}
+
+function normalizeDiagnosticPath(value) {
+  return value.replaceAll("\\", "/");
 }
 
 function normalizeSafeProjectPath(value, label) {

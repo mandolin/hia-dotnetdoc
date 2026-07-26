@@ -16,6 +16,14 @@ This package emits DotNetDoc extraction artifacts, HIA document artifacts,
 optional source relation artifacts, ASP.NET endpoint extraction artifacts and a
 documentation producer result manifest without embedding private source text.
 
+It also exposes `classifyDotnetBuildDiagnostics()` for target scripts that need
+to turn compiler XML documentation warnings such as `CS1591` into a
+generated/designer/manual-source evidence summary.
+
+它也导出 `classifyDotnetBuildDiagnostics()`，供目标项目脚本把 `CS1591` 等
+编译器 XML documentation warning 分类为 generated / designer / manual source
+边界 evidence。
+
 `dotnet-markup-comments` inputs emit `dotnetdoc-markup-comment-extraction` and
 matching HIA document artifacts for `.aspx`, `.ascx`, `.cshtml` and `.razor`
 files.

@@ -20,7 +20,7 @@ import { extractDotnetXmlDocs } from "@hia-doc/dotnet-xml-doc-extractor";
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const helperProjectPath = path.join(packageRoot, "tools", "DotNetDoc.RoslynSourceExtractor", "DotNetDoc.RoslynSourceExtractor.csproj");
 const PRODUCER_NAME = "@hia-doc/dotnet-source-extractor";
-const PRODUCER_VERSION = "0.1.5";
+const PRODUCER_VERSION = "0.1.6";
 const ASPNET_SURFACE_EXTENSIONS = new Set([".aspx", ".ascx", ".ashx", ".asmx", ".cs"]);
 const DOTNET_MARKUP_COMMENT_EXTENSIONS = new Set([".aspx", ".ascx", ".master", ".cshtml", ".razor"]);
 const DOTNET_PROJECT_EXTENSIONS = new Set([".csproj", ".sln"]);

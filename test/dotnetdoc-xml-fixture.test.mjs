@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import { extractDotnetXmlDocs, createDotnetMemberId } from "../packages/dotnet-xml-doc-extractor/src/index.mjs";
 import { extractAspNetEndpoints, extractDotnetMarkupComments, extractDotnetProjectDiscovery, extractDotnetSourceFiles } from "../packages/dotnet-source-extractor/src/index.mjs";
 import { dotnetAspNetEndpointsToHiaDocument, dotnetMarkupCommentsToHiaDocument, dotnetProjectDiscoveryToHiaDocument, dotnetXmlDocsToHiaDocument } from "../packages/dotnetdoc-adapter/src/index.mjs";
-import { runDotnetDoc } from "../packages/dotnetdoc-runner/src/index.mjs";
+import { classifyDotnetBuildDiagnostics, runDotnetDoc } from "../packages/dotnetdoc-runner/src/index.mjs";
 import { dotnetdocProducer } from "../packages/dotnetdoc-producer/src/index.mjs";
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -506,6 +506,24 @@ describe("DotNetDoc XML documentation intake", () => {
     assert.ok(runnerResult.artifacts.some((artifact) => artifact.contract === "dotnetdoc-project-discovery"));
     assert.equal(projectArtifact.projects[0].assemblyName, "Portal.Components");
     assert.equal(hia.symbols[0].metadata.dotnetdoc.projectDiscoveryProject.path, "fixtures/source/Portal.Components/Portal.Components.csproj");
+  });
+
+  it("classifies generated and designer CS1591 warnings without blocking default documentation", () => {
+    const artifact = classifyDotnetBuildDiagnostics([
+      "src/Portal/Default.aspx.designer.cs(12,18): warning CS1591: Missing XML comment for publicly visible type or member 'Default'",
+      "src/Portal/ManualController.cs(21,14): warning CS1591: Missing XML comment for publicly visible type or member 'ManualController'",
+      "src/Portal/obj/Debug/net8.0/Razor/Home.g.cs(4,10): warning CS1591: Missing XML comment for publicly visible type or member 'Home'"
+    ]);
+
+    assert.equal(artifact.contract, "dotnetdoc-build-warning-classification");
+    assert.equal(artifact.summary.diagnosticCount, 3);
+    assert.equal(artifact.summary.generatedOrDesignerCount, 2);
+    assert.equal(artifact.summary.manualSourceCount, 1);
+    assert.equal(artifact.summary.defaultBlockingCount, 0);
+    assert.equal(artifact.diagnostics[0].boundary.kind, "designer-code");
+    assert.equal(artifact.diagnostics[0].gate.defaultAction, "exclude-from-documentation-warning-gate");
+    assert.equal(artifact.diagnostics[1].boundary.kind, "manual-source");
+    assert.equal(artifact.diagnostics[1].gate.defaultAction, "keep-in-documentation-warning-gate");
   });
 });
 
