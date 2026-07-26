@@ -6,6 +6,8 @@ import {
 } from "@hia-doc/dotnetdoc-spec";
 
 const HIA_CORE_SCHEMA_VERSION = "0.2.0";
+const HIA_TEXT_I18N_MODEL = "hia-text-i18n";
+const HIA_TEXT_I18N_MODEL_VERSION = "0.2.0";
 const HIA_SOURCE_MODEL = "hia-source";
 const HIA_SOURCE_MODEL_VERSION = "0.2.0";
 
@@ -256,7 +258,7 @@ function mapMemberToSymbol(member) {
     id: member.id,
     name: member.name,
     kind: member.kind,
-    summary: member.summary,
+    summary: normalizeSummary(member.summary, member.remarks, member.name),
     source: {
       model: HIA_SOURCE_MODEL,
       modelVersion: HIA_SOURCE_MODEL_VERSION,
@@ -269,7 +271,7 @@ function mapMemberToSymbol(member) {
           line: member.source?.range?.start?.line ?? 1,
           column: member.source?.range?.start?.column ?? 1
         },
-        range: member.source?.range ?? null,
+        ...(member.source?.range ? { range: member.source.range } : {}),
         link: {
           enabled: false,
           openMode: "same-tab"
@@ -296,7 +298,7 @@ function mapMemberToSymbol(member) {
     }
   };
   if (member.i18n) {
-    symbol.i18n = member.i18n;
+    symbol.i18n = normalizeI18nModel(member.i18n);
   }
   return symbol;
 }
@@ -319,7 +321,7 @@ function mapEndpointToSymbol(endpoint) {
           line: endpoint.source?.range?.start?.line ?? 1,
           column: endpoint.source?.range?.start?.column ?? 1
         },
-        range: endpoint.source?.range ?? null,
+        ...(endpoint.source?.range ? { range: endpoint.source.range } : {}),
         link: {
           enabled: false,
           openMode: "same-tab"
@@ -344,7 +346,7 @@ function mapMarkupCommentToSymbol(comment) {
     id: comment.id,
     name: comment.name,
     kind: "dotnet-markup-comment",
-    summary: comment.summary,
+    summary: normalizeSummary(comment.summary, comment.content, comment.name),
     source: {
       model: HIA_SOURCE_MODEL,
       modelVersion: HIA_SOURCE_MODEL_VERSION,
@@ -357,7 +359,7 @@ function mapMarkupCommentToSymbol(comment) {
           line: comment.source?.range?.start?.line ?? 1,
           column: comment.source?.range?.start?.column ?? 1
         },
-        range: comment.source?.range ?? null,
+        ...(comment.source?.range ? { range: comment.source.range } : {}),
         link: {
           enabled: false,
           openMode: "same-tab"
@@ -376,7 +378,7 @@ function mapMarkupCommentToSymbol(comment) {
     }
   };
   if (comment.i18n) {
-    symbol.i18n = comment.i18n;
+    symbol.i18n = normalizeI18nModel(comment.i18n);
   }
   return symbol;
 }
@@ -429,7 +431,6 @@ function sourceForFile(relativePath, language) {
         line: 1,
         column: 1
       },
-      range: null,
       link: {
         enabled: false,
         openMode: "same-tab"
@@ -452,4 +453,49 @@ function collectDocumentLocales(optionLocales, artifactLocales, symbols, default
     locales.push(...(Array.isArray(symbol.i18n?.locales) ? symbol.i18n.locales : []));
   }
   return [...new Set(locales.filter((locale) => typeof locale === "string" && locale.trim().length > 0))];
+}
+
+function normalizeSummary(...candidates) {
+  for (const candidate of candidates) {
+    const text = typeof candidate === "string" ? candidate.trim() : "";
+    if (text.length > 0) {
+      return text;
+    }
+  }
+  return "DotNetDoc symbol";
+}
+
+function normalizeI18nModel(model) {
+  if (!model || typeof model !== "object") {
+    return model;
+  }
+  const defaultLocale = typeof model.defaultLocale === "string" && model.defaultLocale.trim()
+    ? model.defaultLocale
+    : "en";
+  const fields = {};
+  for (const [fieldPath, field] of Object.entries(model.fields ?? {})) {
+    if (!field || typeof field !== "object") {
+      continue;
+    }
+    fields[fieldPath] = {
+      fieldPath,
+      kind: field.kind ?? "plain-text",
+      defaultLocale: field.defaultLocale ?? defaultLocale,
+      ...(typeof field.defaultText === "string" ? { defaultText: field.defaultText } : {}),
+      localizedText: field.localizedText ?? {},
+      ...(field.source ? { source: field.source } : {}),
+      ...(Array.isArray(field.blocks) ? { blocks: field.blocks } : {}),
+      ...(Array.isArray(field.segments) ? { segments: field.segments } : {}),
+      ...(field.resolutions ? { resolutions: field.resolutions } : {})
+    };
+  }
+  return {
+    enabled: model.enabled ?? true,
+    model: model.model ?? HIA_TEXT_I18N_MODEL,
+    modelVersion: model.modelVersion ?? HIA_TEXT_I18N_MODEL_VERSION,
+    defaultLocale,
+    locales: Array.isArray(model.locales) ? model.locales : [defaultLocale],
+    fields,
+    ...(Array.isArray(model.resources) ? { resources: model.resources } : {})
+  };
 }

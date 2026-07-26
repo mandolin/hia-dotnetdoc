@@ -395,6 +395,12 @@ describe("DotNetDoc XML documentation intake", () => {
       hiaDocument.symbols.find((symbol) => symbol.metadata.dotnetdoc.markupComment.content.includes("@component StatusPanel"))?.i18n?.fields.content.localizedText.en,
       "Shows the current portal health state."
     );
+    const localizedSymbol = hiaDocument.symbols.find((symbol) => symbol.i18n);
+    assert.equal(localizedSymbol?.i18n.enabled, true);
+    assert.equal(localizedSymbol?.i18n.modelVersion, "0.2.0");
+    assert.equal(localizedSymbol?.i18n.fields.content.fieldPath, "content");
+    assert.equal(localizedSymbol?.i18n.fields.content.kind, "plain-text");
+    assert.equal(Object.hasOwn(localizedSymbol?.source.definedIn ?? {}, "range"), true);
     assert.equal(hiaDocument.metadata.privacy.sourcesContentPolicy, "none");
   });
 
@@ -454,6 +460,7 @@ describe("DotNetDoc XML documentation intake", () => {
     assert.equal(markupArtifact.summary.inputCount, 4);
     assert.equal(markupArtifact.summary.commentCount, 7);
     assert.equal(hia.symbols.length, 7);
+    assert.equal(hia.symbols.every((symbol) => Object.hasOwn(symbol.source.definedIn, "range")), true);
     assert.ok(runnerResult.artifacts.some((artifact) => artifact.path === "markup/Portal.Web.dotnetdoc.json"));
   });
 

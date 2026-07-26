@@ -1,6 +1,6 @@
 {
   "name": "@hia-doc/dotnetdoc-producer",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Documentation producer adapter for DotNetDoc.",
   "type": "module",
   "license": "MIT",
@@ -31,6 +31,6 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@hia-doc/dotnetdoc-runner": "0.1.6"
+    "@hia-doc/dotnetdoc-runner": "0.1.7"
   }
 }
