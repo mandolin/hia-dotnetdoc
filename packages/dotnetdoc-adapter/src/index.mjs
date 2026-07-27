@@ -25,7 +25,8 @@ const HIA_SOURCE_MODEL_VERSION = "0.2.0";
 export function dotnetXmlDocsToHiaDocument(artifact, options = {}) {
   assertDotnetXmlDocArtifact(artifact);
   const title = options.title ?? `${artifact.assembly?.name ?? "DotNet"} API`;
-  const symbols = artifact.members.map((member) => mapMemberToSymbol(member));
+  const semanticContext = createXmlMemberSemanticContext(artifact);
+  const symbols = artifact.members.map((member) => mapMemberToSymbol(member, semanticContext));
   const defaultLocale = options.defaultLocale || artifact.defaultLocale || "en";
 
   return {
@@ -253,7 +254,7 @@ export function assertDotnetProjectDiscoveryArtifact(artifact) {
   }
 }
 
-function mapMemberToSymbol(member) {
+function mapMemberToSymbol(member, semanticContext) {
   const symbol = {
     id: member.id,
     name: member.name,
@@ -293,7 +294,7 @@ function mapMemberToSymbol(member) {
         exceptions: member.exceptions,
         see: member.see,
         seeAlso: member.seeAlso,
-        semantic: member.semantic ?? null
+        semantic: createXmlMemberSemantic(member, semanticContext)
       }
     }
   };
@@ -301,6 +302,76 @@ function mapMemberToSymbol(member) {
     symbol.i18n = normalizeI18nModel(member.i18n);
   }
   return symbol;
+}
+
+/**
+ * Build the shared semantic context used while adapting compiler XML members.
+ *
+ * @param {object} artifact <lang><en>DotNetDoc XML extraction artifact.</en><zh-CN>DotNetDoc XML 抽取产物。</zh-CN></lang>
+ * @returns {{assemblyName: string | null, typeDocumentationIds: string[]}} <lang><en>Assembly and known type documentation ids.</en><zh-CN>程序集与已知类型 documentation id。</zh-CN></lang>
+ * @lang zh-CN 为 compiler XML 成员建立共享语义上下文，使没有 source-probe 的条目也能进入程序集/命名空间/类型层级。
+ */
+function createXmlMemberSemanticContext(artifact) {
+  return {
+    assemblyName: typeof artifact.assembly?.name === "string" && artifact.assembly.name
+      ? artifact.assembly.name
+      : null,
+    typeDocumentationIds: artifact.members
+      .filter((member) => member.kind === "dotnet-type" && typeof member.memberName === "string")
+      .map((member) => member.memberName)
+      .sort((left, right) => right.length - left.length)
+  };
+}
+
+/**
+ * Normalize compiler XML metadata into the same semantic envelope emitted by the Roslyn source extractor.
+ *
+ * @param {object} member <lang><en>Extracted compiler XML member.</en><zh-CN>抽取后的 compiler XML 成员。</zh-CN></lang>
+ * @param {{assemblyName: string | null, typeDocumentationIds: string[]}} context <lang><en>Shared semantic context.</en><zh-CN>共享语义上下文。</zh-CN></lang>
+ * @returns {object} <lang><en>Renderer-neutral semantic metadata.</en><zh-CN>供 renderer 消费的中立语义元数据。</zh-CN></lang>
+ * @lang zh-CN 补齐 assembly、documentation id 与类型归属；Roslyn 已给出的精确语义始终优先。
+ */
+function createXmlMemberSemantic(member, context) {
+  const documentationCommentId = member.semantic?.documentationCommentId ?? member.memberName;
+  const typeDocumentationId = resolveContainingTypeDocumentationId(member, context.typeDocumentationIds);
+  const typeName = typeDocumentationId?.replace(/^T:/u, "") ?? null;
+  const namespaceName = typeName?.includes(".")
+    ? typeName.slice(0, typeName.lastIndexOf("."))
+    : null;
+  const derived = {
+    documentationCommentId,
+    symbolKind: member.semantic?.symbolKind ?? member.kind,
+    containingAssembly: context.assemblyName,
+    containingNamespace: namespaceName,
+    containingType: member.kind === "dotnet-type" ? null : typeName,
+    parentDocumentationCommentId: member.kind === "dotnet-type" ? null : typeDocumentationId,
+    baseTypeIds: [],
+    interfaceIds: [],
+    displayName: member.name
+  };
+
+  return {
+    ...derived,
+    ...(member.semantic ?? {})
+  };
+}
+
+function resolveContainingTypeDocumentationId(member, typeDocumentationIds) {
+  if (member.kind === "dotnet-type") {
+    return member.memberName;
+  }
+
+  const memberBody = String(member.memberName ?? "").replace(/^[A-Z]:/u, "").replace(/\(.+$/u, "");
+  const knownType = typeDocumentationIds.find((typeId) => {
+    const typeBody = typeId.replace(/^T:/u, "");
+    return memberBody.startsWith(`${typeBody}.`);
+  });
+  if (knownType) {
+    return knownType;
+  }
+
+  const separatorIndex = memberBody.lastIndexOf(".");
+  return separatorIndex > 0 ? `T:${memberBody.slice(0, separatorIndex)}` : null;
 }
 
 function mapEndpointToSymbol(endpoint) {

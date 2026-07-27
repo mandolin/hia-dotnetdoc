@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<doc>
+  <assembly>
+    <name>Relation.EdgeCases</name>
+  </assembly>
+  <members>
+    <member name="M:Relation.EdgeCases.RelationEdgeCases.Handle(Legacy.Web.LegacyRequest)">
+      <summary>Handles one legacy request.</summary>
+    </member>
+    <member name="M:Relation.EdgeCases.RelationEdgeCases.Handle(Legacy.Web.LegacyRequest,System.String)">
+      <summary>Handles one legacy request and candidate.</summary>
+    </member>
+    <member name="F:Relation.EdgeCases.RelationMode.Primary">
+      <summary>Primary mode.</summary>
+    </member>
+    <member name="M:Relation.EdgeCases.ConversionValue.op_Implicit(Relation.EdgeCases.ConversionValue)~System.String">
+      <summary>Converts the fixture value to text.</summary>
+    </member>
+  </members>
+</doc>

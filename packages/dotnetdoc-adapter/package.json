@@ -1,6 +1,6 @@
 {
   "name": "@hia-doc/dotnetdoc-adapter",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Adapt DotNetDoc extraction artifacts to HIA document shapes.",
   "type": "module",
   "license": "MIT",
@@ -31,6 +31,6 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@hia-doc/dotnetdoc-spec": "0.1.7"
+    "@hia-doc/dotnetdoc-spec": "0.1.8"
   }
 }

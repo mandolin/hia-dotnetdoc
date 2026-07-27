@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -7,7 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 const string Contract = "dotnetdoc-csharp-source-extraction";
 const string ContractVersion = "0.1.0-draft";
 const string ProducerName = "@hia-doc/dotnet-source-extractor";
-const string ProducerVersion = "0.1.7";
+const string ProducerVersion = "0.1.8";
 
 try
 {
@@ -24,7 +25,7 @@ try
     }
 
     var compilation = CSharpCompilation.Create(
-        assemblyName: "DotNetDoc.SourceExtraction",
+        assemblyName: options.AssemblyName,
         syntaxTrees: sources.Select(source => source.SyntaxTree),
         references: TrustedPlatformReferences(),
         options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
@@ -58,7 +59,7 @@ try
         },
         assembly = new
         {
-            name = (string?)null
+            name = options.AssemblyName
         },
         members,
         diagnostics
@@ -79,8 +80,11 @@ static DiagnosticOutput ToDiagnosticOutput(Diagnostic diagnostic)
     {
         Code = diagnostic.Id,
         Message = diagnostic.GetMessage(),
-        Severity = diagnostic.Severity.ToString().ToLowerInvariant(),
-        Source = null
+        Severity = diagnostic.Severity == DiagnosticSeverity.Error
+            ? "error"
+            : diagnostic.Severity == DiagnosticSeverity.Warning
+                ? "warning"
+                : "info"
     };
 }
 
@@ -156,6 +160,22 @@ sealed class DocumentationWalker : CSharpSyntaxWalker
         VisitTypeDeclaration(node, node.Identifier.ValueText, 0, () => base.VisitEnumDeclaration(node));
     }
 
+    public override void VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node)
+    {
+        var typeName = CurrentTypeName();
+        var symbol = _semanticModel.GetDeclaredSymbol(node);
+        if (typeName.Length != 0 && (HasDocumentation(node) || IsExternallyVisibleSymbol(symbol)))
+        {
+            AddMember(
+                node,
+                $"F:{typeName}.{node.Identifier.ValueText}",
+                "dotnet-field",
+                node.Identifier.ValueText,
+                symbol);
+        }
+        base.VisitEnumMemberDeclaration(node);
+    }
+
     public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
     {
         var typeName = CurrentTypeName();
@@ -192,6 +212,46 @@ sealed class DocumentationWalker : CSharpSyntaxWalker
             "#ctor",
             _semanticModel.GetDeclaredSymbol(node));
         base.VisitConstructorDeclaration(node);
+    }
+
+    public override void VisitOperatorDeclaration(OperatorDeclarationSyntax node)
+    {
+        var typeName = CurrentTypeName();
+        if (typeName.Length == 0 || !ShouldInclude(node, node.Modifiers))
+        {
+            base.VisitOperatorDeclaration(node);
+            return;
+        }
+
+        var operatorName = OperatorMetadataName(node.OperatorToken);
+        AddMember(
+            node,
+            $"M:{typeName}.{operatorName}{DocumentationParameterList(node.ParameterList.Parameters)}",
+            "dotnet-method",
+            operatorName,
+            _semanticModel.GetDeclaredSymbol(node));
+        base.VisitOperatorDeclaration(node);
+    }
+
+    public override void VisitConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax node)
+    {
+        var typeName = CurrentTypeName();
+        if (typeName.Length == 0 || !ShouldInclude(node, node.Modifiers))
+        {
+            base.VisitConversionOperatorDeclaration(node);
+            return;
+        }
+
+        var operatorName = node.ImplicitOrExplicitKeyword.IsKind(SyntaxKind.ImplicitKeyword)
+            ? "op_Implicit"
+            : "op_Explicit";
+        AddMember(
+            node,
+            $"M:{typeName}.{operatorName}{DocumentationParameterList(node.ParameterList.Parameters)}~{DocumentationTypeName(node.Type)}",
+            "dotnet-method",
+            operatorName,
+            _semanticModel.GetDeclaredSymbol(node));
+        base.VisitConversionOperatorDeclaration(node);
     }
 
     public override void VisitPropertyDeclaration(PropertyDeclarationSyntax node)
@@ -345,6 +405,45 @@ sealed class DocumentationWalker : CSharpSyntaxWalker
         return token.IsKind(SyntaxKind.PublicKeyword)
             || token.IsKind(SyntaxKind.ProtectedKeyword)
             || token.IsKind(SyntaxKind.InternalKeyword);
+    }
+
+    private static bool IsExternallyVisibleSymbol(ISymbol? symbol)
+    {
+        return symbol?.DeclaredAccessibility is Accessibility.Public
+            or Accessibility.Protected
+            or Accessibility.Internal
+            or Accessibility.ProtectedOrInternal
+            or Accessibility.ProtectedAndInternal;
+    }
+
+    private static string OperatorMetadataName(SyntaxToken token)
+    {
+        return token.Kind() switch
+        {
+            SyntaxKind.PlusToken => "op_Addition",
+            SyntaxKind.MinusToken => "op_Subtraction",
+            SyntaxKind.AsteriskToken => "op_Multiply",
+            SyntaxKind.SlashToken => "op_Division",
+            SyntaxKind.PercentToken => "op_Modulus",
+            SyntaxKind.AmpersandToken => "op_BitwiseAnd",
+            SyntaxKind.BarToken => "op_BitwiseOr",
+            SyntaxKind.CaretToken => "op_ExclusiveOr",
+            SyntaxKind.LessThanLessThanToken => "op_LeftShift",
+            SyntaxKind.GreaterThanGreaterThanToken => "op_RightShift",
+            SyntaxKind.EqualsEqualsToken => "op_Equality",
+            SyntaxKind.ExclamationEqualsToken => "op_Inequality",
+            SyntaxKind.GreaterThanToken => "op_GreaterThan",
+            SyntaxKind.LessThanToken => "op_LessThan",
+            SyntaxKind.GreaterThanEqualsToken => "op_GreaterThanOrEqual",
+            SyntaxKind.LessThanEqualsToken => "op_LessThanOrEqual",
+            SyntaxKind.ExclamationToken => "op_LogicalNot",
+            SyntaxKind.TildeToken => "op_OnesComplement",
+            SyntaxKind.PlusPlusToken => "op_Increment",
+            SyntaxKind.MinusMinusToken => "op_Decrement",
+            SyntaxKind.TrueKeyword => "op_True",
+            SyntaxKind.FalseKeyword => "op_False",
+            _ => $"operator_{token.ValueText}"
+        };
     }
 
     private static string DocumentationParameterList(SeparatedSyntaxList<ParameterSyntax> parameters)
@@ -552,11 +651,13 @@ sealed class DocumentationData
 sealed class CommandLineOptions
 {
     public required string WorkspaceRoot { get; init; }
+    public required string AssemblyName { get; init; }
     public required IReadOnlyList<string> Paths { get; init; }
 
     public static CommandLineOptions Parse(string[] args)
     {
         var workspaceRoot = Directory.GetCurrentDirectory();
+        var assemblyName = "DotNetDoc.SourceExtraction";
         var paths = new List<string>();
         for (var index = 0; index < args.Length; index += 1)
         {
@@ -569,6 +670,17 @@ sealed class CommandLineOptions
                     throw new ArgumentException("--workspace-root requires a value.");
                 }
                 workspaceRoot = Path.GetFullPath(args[index]);
+                continue;
+            }
+
+            if (arg == "--assembly-name")
+            {
+                index += 1;
+                if (index >= args.Length || string.IsNullOrWhiteSpace(args[index]))
+                {
+                    throw new ArgumentException("--assembly-name requires a non-empty value.");
+                }
+                assemblyName = args[index].Trim();
                 continue;
             }
 
@@ -588,6 +700,7 @@ sealed class CommandLineOptions
         return new CommandLineOptions
         {
             WorkspaceRoot = Path.GetFullPath(workspaceRoot),
+            AssemblyName = assemblyName,
             Paths = paths
         };
     }
@@ -649,6 +762,9 @@ sealed class SemanticOutput
     public string? ContainingAssembly { get; init; }
     public string? ContainingNamespace { get; init; }
     public string? ContainingType { get; init; }
+    public string? ParentDocumentationCommentId { get; init; }
+    public List<string> BaseTypeIds { get; init; } = new();
+    public List<string> InterfaceIds { get; init; } = new();
     public required string DisplayName { get; init; }
 
     public static SemanticOutput? FromSymbol(ISymbol? symbol)
@@ -659,6 +775,21 @@ sealed class SemanticOutput
             return null;
         }
 
+        var namedType = symbol as INamedTypeSymbol;
+        var baseTypeIds = new List<string>();
+        for (var baseType = namedType?.BaseType; baseType is not null; baseType = baseType.BaseType)
+        {
+            baseTypeIds.Add(baseType.GetDocumentationCommentId()
+                ?? baseType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+        }
+
+        var interfaceIds = namedType?.AllInterfaces
+            .Select(item => item.GetDocumentationCommentId()
+                ?? item.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat))
+            .Distinct(StringComparer.Ordinal)
+            .ToList()
+            ?? new List<string>();
+
         return new SemanticOutput
         {
             DocumentationCommentId = documentationCommentId,
@@ -668,6 +799,9 @@ sealed class SemanticOutput
                 ? symbol.ContainingNamespace.ToDisplayString()
                 : null,
             ContainingType = symbol.ContainingType?.ToDisplayString(),
+            ParentDocumentationCommentId = symbol.ContainingType?.GetDocumentationCommentId(),
+            BaseTypeIds = baseTypeIds,
+            InterfaceIds = interfaceIds,
             DisplayName = symbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)
         };
     }
@@ -718,6 +852,7 @@ sealed class DiagnosticOutput
     public required string Code { get; init; }
     public required string Message { get; init; }
     public required string Severity { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public SourceOutput? Source { get; init; }
 }
 

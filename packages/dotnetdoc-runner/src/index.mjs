@@ -21,7 +21,7 @@ export {
 } from "./schema.mjs";
 import { DOTNETDOC_CONFIG_SCHEMA_ID, DOTNETDOC_CONFIG_SCHEMA_VERSION } from "./schema.mjs";
 
-export const DOTNETDOC_RUNNER_VERSION = "0.1.7";
+export const DOTNETDOC_RUNNER_VERSION = "0.1.8";
 export const DOTNETDOC_INPUT_KINDS = Object.freeze(["dotnet-xml-doc", "dotnet-csharp-source", "dotnet-aspnet-surface", "dotnet-markup-comments", "dotnet-project"]);
 export const DOTNETDOC_OUTPUT_KINDS = Object.freeze(["dotnetdoc-extraction", "hia-document", "dotnetdoc-source-relation", "dotnetdoc-aspnet-endpoint-extraction", "dotnetdoc-markup-comment-extraction", "dotnetdoc-project-discovery"]);
 export const DOTNETDOC_BUILD_WARNING_CLASSIFICATION_CONTRACT = "dotnetdoc-build-warning-classification";
@@ -305,7 +305,8 @@ async function processInput(input, request) {
       },
       artifact(`${safeArtifactId(input.artifactBasePath)}-hia-document`, "hia-document", hiaPath, request.profileIds)
     ],
-    diagnostics: [...(dotnetdoc.diagnostics ?? []), ...(hiaDocument.diagnostics ?? [])],
+    diagnostics: [...(dotnetdoc.diagnostics ?? []), ...(hiaDocument.diagnostics ?? [])]
+      .map(normalizeRunnerDiagnostic),
     extractionRecord: {
       input,
       artifactPath: dotnetdocPath,
@@ -332,26 +333,60 @@ function buildSourceRelationArtifact(extractionRecords, request) {
   }
 
   const sourceMembers = groupMembersByName(sourceRecords);
+  const sourceMembersByFallbackIdentity = groupMembersByFallbackIdentity(sourceRecords);
+  const sourceMembersBySignatureIdentity = groupMembersBySignatureIdentity(sourceRecords);
   const xmlMembers = groupMembersByName(xmlRecords);
   const relations = [];
   const unresolved = [];
+  const matchedSourceMembers = new Set();
+  let fallbackRelationCount = 0;
+  let signatureFallbackRelationCount = 0;
 
   for (const xmlRecord of xmlRecords) {
     for (const xmlMember of xmlRecord.artifact.members) {
-      const matches = sourceMembers.get(xmlMember.memberName) ?? [];
+      let matches = sourceMembers.get(xmlMember.memberName) ?? [];
+      let matchMode = "documentation-id";
+      if (matches.length === 0) {
+        const fallbackKey = createMemberFallbackIdentity(xmlMember);
+        const fallbackCandidates = fallbackKey
+          ? sourceMembersByFallbackIdentity.get(fallbackKey) ?? []
+          : [];
+        const fallbackMatches = fallbackCandidates
+          .filter((match) => !matchedSourceMembers.has(createMemberRecordIdentity(match)));
+        if (fallbackCandidates.length === 1 && fallbackMatches.length === 1) {
+          matches = fallbackMatches;
+          matchMode = "unique-member-fallback";
+          fallbackRelationCount += 1;
+        }
+      }
+      if (matches.length === 0) {
+        const signatureKey = createMemberSignatureIdentity(xmlMember);
+        const signatureMatches = signatureKey
+          ? (sourceMembersBySignatureIdentity.get(signatureKey) ?? [])
+            .filter((match) => !matchedSourceMembers.has(createMemberRecordIdentity(match)))
+          : [];
+        if (signatureMatches.length === 1) {
+          matches = signatureMatches;
+          matchMode = "normalized-signature-fallback";
+          fallbackRelationCount += 1;
+          signatureFallbackRelationCount += 1;
+        }
+      }
       if (matches.length === 0) {
         unresolved.push(unresolvedMember("missing-csharp-source", "xml-doc", xmlRecord, xmlMember));
         continue;
       }
       for (const [index, match] of matches.entries()) {
-        relations.push(createSourceRelation(xmlRecord, xmlMember, match.record, match.member, index));
+        relations.push(createSourceRelation(xmlRecord, xmlMember, match.record, match.member, index, matchMode));
+        matchedSourceMembers.add(createMemberRecordIdentity(match));
       }
     }
   }
 
   for (const sourceRecord of sourceRecords) {
     for (const sourceMember of sourceRecord.artifact.members) {
-      if (!xmlMembers.has(sourceMember.memberName)) {
+      const sourceMatch = { record: sourceRecord, member: sourceMember };
+      if (!xmlMembers.has(sourceMember.memberName) && !matchedSourceMembers.has(createMemberRecordIdentity(sourceMatch))) {
         unresolved.push(unresolvedMember("missing-xml-documentation", "csharp-source", sourceRecord, sourceMember));
       }
     }
@@ -372,6 +407,8 @@ function buildSourceRelationArtifact(extractionRecords, request) {
     },
     summary: {
       relationCount: relations.length,
+      fallbackRelationCount,
+      signatureFallbackRelationCount,
       unresolvedCount: unresolved.length,
       xmlMemberCount: countMembers(xmlRecords),
       csharpSourceMemberCount: countMembers(sourceRecords)
@@ -397,8 +434,11 @@ function buildSourceRelationArtifact(extractionRecords, request) {
   };
 }
 
-function createSourceRelation(xmlRecord, xmlMember, sourceRecord, sourceMember, duplicateIndex) {
+function createSourceRelation(xmlRecord, xmlMember, sourceRecord, sourceMember, duplicateIndex, matchMode = "documentation-id") {
   const duplicateSuffix = duplicateIndex === 0 ? "" : `-${duplicateIndex + 1}`;
+  const relationConfidence = matchMode === "documentation-id"
+    ? sourceMember.source?.confidence ?? "medium"
+    : "low";
   return {
     id: `dotnetdoc:source-relation:${safeArtifactId(xmlMember.memberName)}${duplicateSuffix}`,
     relation: "documents-declaration",
@@ -406,7 +446,11 @@ function createSourceRelation(xmlRecord, xmlMember, sourceRecord, sourceMember, 
     memberId: xmlMember.id,
     kind: xmlMember.kind,
     name: xmlMember.name,
-    confidence: sourceMember.source?.confidence ?? "medium",
+    confidence: relationConfidence,
+    match: {
+      mode: matchMode,
+      exactDocumentationId: matchMode === "documentation-id"
+    },
     hiaSymbol: {
       id: xmlMember.id,
       artifactPath: xmlRecord.hiaPath,
@@ -428,7 +472,7 @@ function createSourceRelation(xmlRecord, xmlMember, sourceRecord, sourceMember, 
       language: sourceMember.source?.language ?? "csharp",
       range: sourceMember.source?.range ?? null,
       rangeSource: sourceMember.source?.rangeSource ?? "roslyn-syntax",
-      confidence: sourceMember.source?.confidence ?? "medium",
+      confidence: relationConfidence,
       semantic: sourceMember.semantic ?? null
     }
   };
@@ -444,6 +488,135 @@ function groupMembersByName(records) {
     }
   }
   return grouped;
+}
+
+function groupMembersByFallbackIdentity(records) {
+  const grouped = new Map();
+  for (const record of records) {
+    for (const member of record.artifact.members ?? []) {
+      const identity = createMemberFallbackIdentity(member);
+      if (!identity) {
+        continue;
+      }
+      const group = grouped.get(identity) ?? [];
+      group.push({ record, member });
+      grouped.set(identity, group);
+    }
+  }
+  return grouped;
+}
+
+function groupMembersBySignatureIdentity(records) {
+  const grouped = new Map();
+  for (const record of records) {
+    for (const member of record.artifact.members ?? []) {
+      const identity = createMemberSignatureIdentity(member);
+      if (!identity) {
+        continue;
+      }
+      const group = grouped.get(identity) ?? [];
+      group.push({ record, member });
+      grouped.set(identity, group);
+    }
+  }
+  return grouped;
+}
+
+/**
+ * Build a conservative relation key that ignores parameter type spelling only.
+ *
+ * @param {object} member <lang><en>XML or C# extraction member.</en><zh-CN>XML 或 C# 抽取成员。</zh-CN></lang>
+ * @returns {string|null} <lang><en>Containing-type/member identity, or null when unavailable.</en><zh-CN>包含类型/成员标识；无法确定时返回 null。</zh-CN></lang>
+ * @lang zh-CN 仅在精确 documentation id 失败后用于唯一候选匹配；重载歧义不会自动关联。
+ */
+function createMemberFallbackIdentity(member) {
+  const body = String(member.memberName ?? "").replace(/^[A-Z]:/u, "").replace(/\(.+$/u, "");
+  const separatorIndex = body.lastIndexOf(".");
+  if (!body || (member.kind !== "dotnet-type" && separatorIndex <= 0)) {
+    return null;
+  }
+  const containingType = member.kind === "dotnet-type" ? body : body.slice(0, separatorIndex);
+  const memberName = member.kind === "dotnet-type" ? body : body.slice(separatorIndex + 1);
+  return `${member.kind}|${containingType}|${memberName}`;
+}
+
+/**
+ * Build a signature key that tolerates unavailable legacy framework namespaces.
+ *
+ * @param {object} member <lang><en>XML or C# extraction member.</en><zh-CN>XML 或 C# 抽取成员。</zh-CN></lang>
+ * @returns {string|null} <lang><en>Normalized overload identity, or null for members without a parameter list.</en><zh-CN>规范化重载标识；没有参数列表时返回 null。</zh-CN></lang>
+ * @lang zh-CN 仅移除参数类型和转换返回类型的命名空间，仍保留容器、成员名、参数顺序、泛型结构与返回类型，避免把不同重载误关联。
+ */
+function createMemberSignatureIdentity(member) {
+  const memberName = String(member.memberName ?? "");
+  const openIndex = memberName.indexOf("(");
+  if (member.kind !== "dotnet-method" || openIndex < 0) {
+    return null;
+  }
+  const closeIndex = findClosingDelimiter(memberName, openIndex, "(", ")");
+  if (closeIndex < 0) {
+    return null;
+  }
+  const callable = memberName.slice(0, openIndex);
+  const parameters = splitDocumentationTypes(memberName.slice(openIndex + 1, closeIndex))
+    .map(normalizeDocumentationTypeForSignature);
+  const returnType = memberName[closeIndex + 1] === "~"
+    ? normalizeDocumentationTypeForSignature(memberName.slice(closeIndex + 2))
+    : "";
+  return `${member.kind}|${callable}|${parameters.join(",")}|${returnType}`;
+}
+
+function findClosingDelimiter(value, openIndex, openToken, closeToken) {
+  let depth = 0;
+  for (let index = openIndex; index < value.length; index += 1) {
+    if (value[index] === openToken) {
+      depth += 1;
+    } else if (value[index] === closeToken) {
+      depth -= 1;
+      if (depth === 0) {
+        return index;
+      }
+    }
+  }
+  return -1;
+}
+
+function splitDocumentationTypes(value) {
+  if (value.length === 0) {
+    return [];
+  }
+  const items = [];
+  let start = 0;
+  let depth = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    const token = value[index];
+    if (token === "{" || token === "[" || token === "(") {
+      depth += 1;
+    } else if (token === "}" || token === "]" || token === ")") {
+      depth -= 1;
+    } else if (token === "," && depth === 0) {
+      items.push(value.slice(start, index));
+      start = index + 1;
+    }
+  }
+  items.push(value.slice(start));
+  return items;
+}
+
+function normalizeDocumentationTypeForSignature(value) {
+  return value
+    .trim()
+    .replace(/[A-Za-z_][A-Za-z0-9_.`]*/gu, (token) => token.split(".").at(-1));
+}
+
+function createMemberRecordIdentity(match) {
+  return [
+    match.record.artifactPath,
+    match.member.id,
+    match.member.memberName,
+    match.member.source?.path,
+    match.member.source?.range?.start?.line
+  ].join("|");
 }
 
 function countMembers(records) {
@@ -750,8 +923,8 @@ function normalizeInputPathList(input, index) {
     paths.push(normalizeSafeRelativePath(input.path, `inputs[${index}].path`));
   }
   if (input.paths !== undefined) {
-    if (!Array.isArray(input.paths) || input.paths.length === 0) {
-      throw new TypeError(`inputs[${index}].paths must be a non-empty array.`);
+    if (!Array.isArray(input.paths)) {
+      throw new TypeError(`inputs[${index}].paths must be an array.`);
     }
     paths.push(...input.paths.map((value, pathIndex) => normalizeSafeRelativePath(value, `inputs[${index}].paths[${pathIndex}]`)));
   }
@@ -903,7 +1076,37 @@ function createDiagnostic(code, message, severity, pathValue, metadata = {}) {
     code,
     message,
     severity,
-    source: pathValue ? { path: pathValue } : null,
+    ...(pathValue ? { source: { path: pathValue } } : {}),
     metadata
+  };
+}
+
+/**
+ * 规范化领域 extractor 诊断，使 partial producer result 可直接进入统一文档聚合。
+ * Normalizes domain extractor diagnostics so partial producer results can enter unified aggregation directly.
+ *
+ * @param {unknown} value <lang><en>Extractor or adapter diagnostic.</en><zh-CN>Extractor 或 adapter 诊断。</zh-CN></lang>
+ * @returns {object} <lang><en>Producer-contract diagnostic without null source values.</en><zh-CN>不含空 source 的 producer contract 诊断。</zh-CN></lang>
+ * @lang zh-CN 将 Roslyn hidden 诊断降为 info，并省略 null source。
+ */
+function normalizeRunnerDiagnostic(value) {
+  const diagnostic = value && typeof value === "object" && !Array.isArray(value)
+    ? value
+    : {
+        code: "DOTNETDOC_DIAGNOSTIC",
+        message: String(value ?? ""),
+        severity: "warning"
+      };
+  const severity = diagnostic.severity === "error" || diagnostic.severity === "warning"
+    ? diagnostic.severity
+    : "info";
+  const source = diagnostic.source && typeof diagnostic.source === "object" && !Array.isArray(diagnostic.source)
+    ? diagnostic.source
+    : undefined;
+
+  return {
+    ...diagnostic,
+    severity,
+    ...(source ? { source } : {})
   };
 }

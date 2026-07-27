@@ -55,8 +55,14 @@ describe("DotNetDoc XML documentation intake", () => {
     assert.ok(hiaDocument.symbols.some((symbol) => symbol.kind === "dotnet-property" && symbol.name === "Items"));
     assert.ok(hiaDocument.symbols.every((symbol) => symbol.source.definedIn.link.enabled === false));
     const menu = hiaDocument.symbols.find((symbol) => symbol.name === "PortalMenu");
+    const render = hiaDocument.symbols.find((symbol) => symbol.name === "Render");
     assert.equal(menu?.i18n?.fields.summary.localizedText.en, "Represents a portal navigation menu.");
     assert.equal(menu?.i18n?.fields.remarks.localizedText["zh-CN"], "供 ASP.NET Portal 布局页面使用。");
+    assert.equal(menu?.metadata.dotnetdoc.semantic.containingAssembly, "Portal.Components");
+    assert.equal(menu?.metadata.dotnetdoc.semantic.documentationCommentId, "T:Portal.Components.Navigation.PortalMenu");
+    assert.equal(menu?.metadata.dotnetdoc.semantic.containingNamespace, "Portal.Components.Navigation");
+    assert.equal(render?.metadata.dotnetdoc.semantic.containingType, "Portal.Components.Navigation.PortalMenu");
+    assert.equal(render?.metadata.dotnetdoc.semantic.parentDocumentationCommentId, "T:Portal.Components.Navigation.PortalMenu");
   });
 
   it("extracts C# source documentation and source ranges through Roslyn", async () => {
@@ -69,6 +75,11 @@ describe("DotNetDoc XML documentation intake", () => {
     assert.equal(artifact.source.files[0].path, "fixtures/source/Portal.Components/Navigation/PortalMenu.cs");
     assert.equal(artifact.members.length, 3);
     assert.ok(artifact.members.some((member) => member.memberName === "T:Portal.Components.Navigation.PortalMenu"));
+    const semanticMenu = artifact.members.find((member) => member.memberName === "T:Portal.Components.Navigation.PortalMenu");
+    assert.equal(semanticMenu?.semantic?.containingNamespace, "Portal.Components.Navigation");
+    assert.ok(semanticMenu?.semantic?.baseTypeIds.includes("T:System.Object"));
+    assert.ok(artifact.diagnostics.every((diagnostic) => ["error", "warning", "info"].includes(diagnostic.severity)));
+    assert.ok(artifact.diagnostics.every((diagnostic) => !Object.hasOwn(diagnostic, "source")));
     assert.ok(artifact.members.some((member) => member.memberName === "P:Portal.Components.Navigation.PortalMenu.Items"));
     assert.ok(artifact.members.some((member) => member.memberName === "M:Portal.Components.Navigation.PortalMenu.Render(System.String)"));
     assert.ok(artifact.members.every((member) => member.source.language === "csharp"));
@@ -92,9 +103,14 @@ describe("DotNetDoc XML documentation intake", () => {
     assert.equal(artifact.source.projectContext.kind, "csproj-explicit-compile-items");
     assert.equal(artifact.source.projectContext.sourcePathCount, 1);
     assert.equal(artifact.source.projectContext.assemblyName, "Portal.Components");
+    assert.equal(artifact.assembly.name, "Portal.Components");
     assert.equal(artifact.source.files.length, 1);
     assert.equal(artifact.source.files[0].path, "fixtures/source/Portal.Components/Navigation/PortalMenu.cs");
     assert.ok(artifact.members.some((member) => member.memberName === "T:Portal.Components.Navigation.PortalMenu"));
+    assert.equal(
+      artifact.members.find((member) => member.memberName === "T:Portal.Components.Navigation.PortalMenu")?.semantic?.containingAssembly,
+      "Portal.Components"
+    );
     assert.equal(artifact.members.some((member) => member.memberName === "T:Portal.Components.Navigation.SemanticSample`1"), false);
   });
 
@@ -185,6 +201,7 @@ describe("DotNetDoc XML documentation intake", () => {
       inputs: [
         {
           kind: "dotnet-csharp-source",
+          paths: [],
           projectPath: "fixtures/source/Portal.Components/Portal.Components.csproj",
           artifactBasePath: "Portal.Components.source-project",
           hiaDocumentId: "dotnetdoc:source:Portal.Components",
@@ -244,6 +261,91 @@ describe("DotNetDoc XML documentation intake", () => {
     assert.ok(relation.relations.every((item) => item.documentation.artifactPath.endsWith(".dotnetdoc.json")));
     assert.ok(relation.relations.every((item) => item.declaration.path.endsWith(".cs")));
     assert.equal(relation.relations[0].hiaSymbol.artifactPath, "Portal.Components.hia.json");
+    const typeRelation = relation.relations.find((item) => item.memberName === "T:Portal.Components.Navigation.PortalMenu");
+    assert.equal(typeRelation.declaration.semantic.containingNamespace, "Portal.Components.Navigation");
+    assert.ok(typeRelation.declaration.semantic.baseTypeIds.includes("T:System.Object"));
+  });
+
+  it("uses a conservative unique-member fallback when parameter type ids differ", async () => {
+    const outputDirectory = path.join(repositoryRoot, "temp", "out-test-source-relation-fallback");
+    await fs.rm(outputDirectory, { recursive: true, force: true });
+    const runnerResult = await runDotnetDoc({
+      workspaceRoot: repositoryRoot,
+      outputDirectory,
+      inputs: [
+        {
+          kind: "dotnet-xml-doc",
+          path: "fixtures/xml-doc/Legacy.Signature.xml",
+          artifactBasePath: "Legacy.Signature",
+          hiaDocumentId: "dotnetdoc:Legacy.Signature",
+          title: "Legacy Signature API"
+        },
+        {
+          kind: "dotnet-csharp-source",
+          path: "fixtures/source/Legacy.Signature/LegacyPage.cs",
+          artifactBasePath: "Legacy.Signature.source",
+          hiaDocumentId: "dotnetdoc:source:Legacy.Signature",
+          title: "Legacy Signature Source API"
+        }
+      ],
+      options: {
+        writeResultManifest: true
+      }
+    });
+    const relation = JSON.parse(await fs.readFile(path.join(outputDirectory, "dotnetdoc.source-relation.json"), "utf8"));
+    const fallback = relation.relations.find((item) => item.memberName.includes("LegacyPage.Handle"));
+
+    assert.equal(runnerResult.status, "success");
+    assert.equal(relation.summary.fallbackRelationCount, 1);
+    assert.equal(fallback?.match.mode, "unique-member-fallback");
+    assert.equal(fallback?.match.exactDocumentationId, false);
+    assert.equal(fallback?.confidence, "low");
+    assert.equal(fallback?.declaration.path, "fixtures/source/Legacy.Signature/LegacyPage.cs");
+  });
+
+  it("matches legacy overloaded signatures and extracts enum fields and conversion operators", async () => {
+    const outputDirectory = path.join(repositoryRoot, "temp", "out-test-source-relation-edge-cases");
+    await fs.rm(outputDirectory, { recursive: true, force: true });
+    const runnerResult = await runDotnetDoc({
+      workspaceRoot: repositoryRoot,
+      outputDirectory,
+      inputs: [
+        {
+          kind: "dotnet-xml-doc",
+          path: "fixtures/xml-doc/Relation.EdgeCases.xml",
+          artifactBasePath: "Relation.EdgeCases",
+          hiaDocumentId: "dotnetdoc:Relation.EdgeCases",
+          title: "Relation Edge Cases API"
+        },
+        {
+          kind: "dotnet-csharp-source",
+          path: "fixtures/source/Relation.EdgeCases/RelationEdgeCases.cs",
+          artifactBasePath: "Relation.EdgeCases.source",
+          hiaDocumentId: "dotnetdoc:source:Relation.EdgeCases",
+          title: "Relation Edge Cases Source API"
+        }
+      ],
+      options: {
+        writeResultManifest: true
+      }
+    });
+    const relation = JSON.parse(await fs.readFile(path.join(outputDirectory, "dotnetdoc.source-relation.json"), "utf8"));
+    const source = JSON.parse(await fs.readFile(path.join(outputDirectory, "Relation.EdgeCases.source.dotnetdoc.json"), "utf8"));
+    const overloadedRelations = relation.relations.filter((item) => item.name === "Handle");
+    const enumRelation = relation.relations.find((item) => item.memberName === "F:Relation.EdgeCases.RelationMode.Primary");
+    const conversionRelation = relation.relations.find((item) => item.memberName.includes("ConversionValue.op_Implicit"));
+
+    assert.equal(runnerResult.status, "success");
+    assert.equal(relation.summary.signatureFallbackRelationCount, 2);
+    assert.equal(overloadedRelations.length, 2);
+    assert.ok(overloadedRelations.every((item) => item.match.mode === "normalized-signature-fallback"));
+    assert.ok(overloadedRelations.every((item) => item.confidence === "low"));
+    assert.equal(enumRelation?.match.mode, "documentation-id");
+    assert.equal(enumRelation?.declaration.semantic.symbolKind, "Field");
+    assert.equal(conversionRelation?.match.mode, "documentation-id");
+    assert.equal(conversionRelation?.declaration.semantic.symbolKind, "Method");
+    assert.ok(source.members.some((member) => member.memberName === "F:Relation.EdgeCases.RelationMode.Primary"));
+    assert.ok(source.members.some((member) => member.memberName.includes("ConversionValue.op_Implicit")));
   });
 
   it("extracts ASP.NET Web Forms, controller and minimal API endpoint surfaces", async () => {
@@ -443,6 +545,7 @@ describe("DotNetDoc XML documentation intake", () => {
       inputs: [
         {
           kind: "dotnet-markup-comments",
+          paths: [],
           globs: ["**/*.{aspx,ascx,master,cshtml,razor}"],
           artifactBasePath: "markup/Portal.Web",
           hiaDocumentId: "dotnetdoc:markup:Portal.Web",

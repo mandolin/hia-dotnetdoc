@@ -20,7 +20,7 @@ import { extractDotnetXmlDocs } from "@hia-doc/dotnet-xml-doc-extractor";
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const helperProjectPath = path.join(packageRoot, "tools", "DotNetDoc.RoslynSourceExtractor", "DotNetDoc.RoslynSourceExtractor.csproj");
 const PRODUCER_NAME = "@hia-doc/dotnet-source-extractor";
-const PRODUCER_VERSION = "0.1.7";
+const PRODUCER_VERSION = "0.1.8";
 const ASPNET_SURFACE_EXTENSIONS = new Set([".aspx", ".ascx", ".ashx", ".asmx", ".cs"]);
 const DOTNET_MARKUP_COMMENT_EXTENSIONS = new Set([".aspx", ".ascx", ".master", ".cshtml", ".razor"]);
 const DOTNET_PROJECT_EXTENSIONS = new Set([".csproj", ".sln"]);
@@ -97,7 +97,8 @@ export async function extractDotnetSourceFiles(request) {
 
   const artifact = await runRoslynHelper({
     ...normalized,
-    paths: sourcePaths
+    paths: sourcePaths,
+    assemblyName: projectContext?.project.assemblyName ?? projectContext?.project.name ?? null
   });
   assertSourceArtifact(artifact);
   if (projectContext) {
@@ -464,6 +465,7 @@ function runRoslynHelper(request) {
       "--",
       "--workspace-root",
       request.workspaceRoot,
+      ...(request.assemblyName ? ["--assembly-name", request.assemblyName] : []),
       ...request.paths
     ], {
       cwd: packageRoot,

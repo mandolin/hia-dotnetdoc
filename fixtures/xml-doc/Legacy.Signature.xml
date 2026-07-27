@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<doc>
+  <assembly>
+    <name>Legacy.Signature</name>
+  </assembly>
+  <members>
+    <member name="M:Legacy.Signature.LegacyPage.Handle(External.Web.LegacyButton)">
+      <summary>Handles a legacy button action.</summary>
+    </member>
+  </members>
+</doc>

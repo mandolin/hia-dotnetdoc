@@ -55,7 +55,7 @@ export function extractDotnetXmlDocs(xmlText, options = {}) {
     contractVersion: DOTNETDOC_XML_DOC_EXTRACTION_CONTRACT_VERSION,
     producer: {
       name: "@hia-doc/dotnet-xml-doc-extractor",
-      version: "0.1.7"
+      version: "0.1.8"
     },
     source: {
       kind: "dotnet-xml-doc",
