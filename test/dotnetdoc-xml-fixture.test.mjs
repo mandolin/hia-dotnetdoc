@@ -102,6 +102,11 @@ describe("DotNetDoc XML documentation intake", () => {
     assert.equal(artifact.source.projectPath, "fixtures/source/Portal.Components/Portal.Components.csproj");
     assert.equal(artifact.source.projectContext.kind, "csproj-explicit-compile-items");
     assert.equal(artifact.source.projectContext.sourcePathCount, 1);
+    assert.deepEqual(artifact.source.projectContext.projectIdentity, {
+      id: "dotnet-project:fixtures-source-portal.components-portal.components.csproj",
+      path: "fixtures/source/Portal.Components/Portal.Components.csproj",
+      policy: "project-relative-owner-resolved"
+    });
     assert.equal(artifact.source.projectContext.assemblyName, "Portal.Components");
     assert.equal(artifact.assembly.name, "Portal.Components");
     assert.equal(artifact.source.files.length, 1);
@@ -239,7 +244,8 @@ describe("DotNetDoc XML documentation intake", () => {
         },
         {
           kind: "dotnet-csharp-source",
-          path: "fixtures/source/Portal.Components/Navigation/PortalMenu.cs",
+          paths: [],
+          projectPath: "fixtures/source/Portal.Components/Portal.Components.csproj",
           artifactBasePath: "PortalMenu.source",
           hiaDocumentId: "dotnetdoc:source:PortalMenu",
           title: "PortalMenu Source API"
@@ -257,7 +263,15 @@ describe("DotNetDoc XML documentation intake", () => {
     assert.equal(relation.contract, "dotnetdoc-source-relation");
     assert.equal(relation.summary.relationCount, 3);
     assert.equal(relation.summary.unresolvedCount, 0);
+    assert.equal(relation.identityPolicy.policy, "project-relative-owner-resolved");
+    assert.equal(relation.identityPolicy.absolutePathInIdentity, false);
+    assert.equal(relation.privacy.sourcesContentPolicy, "none");
+    assert.equal(relation.privacy.embedsSourcesContent, false);
     assert.ok(relation.relations.some((item) => item.memberName === "M:Portal.Components.Navigation.PortalMenu.Render(System.String)"));
+    assert.ok(relation.relations.every((item) => item.resolution === "resolved"));
+    assert.ok(relation.relations.every((item) => item.confidence === "medium"));
+    assert.ok(relation.relations.every((item) => item.provenance.activity === "xml-doc-to-csharp-source"));
+    assert.ok(relation.relations.every((item) => item.projectIdentity.path === "fixtures/source/Portal.Components/Portal.Components.csproj"));
     assert.ok(relation.relations.every((item) => item.documentation.artifactPath.endsWith(".dotnetdoc.json")));
     assert.ok(relation.relations.every((item) => item.declaration.path.endsWith(".cs")));
     assert.equal(relation.relations[0].hiaSymbol.artifactPath, "Portal.Components.hia.json");
@@ -580,7 +594,20 @@ describe("DotNetDoc XML documentation intake", () => {
     assert.equal(artifact.contract, "dotnetdoc-project-discovery");
     assert.equal(artifact.summary.solutionCount, 1);
     assert.equal(artifact.summary.projectCount, 1);
+    assert.equal(artifact.identityPolicy.policy, "project-relative-owner-resolved");
+    assert.equal(artifact.identityPolicy.absolutePathInIdentity, false);
+    assert.equal(artifact.privacy.sourcesContentPolicy, "none");
+    assert.equal(artifact.privacy.embedsSourcesContent, false);
     assert.equal(artifact.projects[0].path, "fixtures/source/Portal.Components/Portal.Components.csproj");
+    assert.deepEqual(artifact.projects[0].identity, {
+      id: "dotnet-project:fixtures-source-portal.components-portal.components.csproj",
+      path: "fixtures/source/Portal.Components/Portal.Components.csproj",
+      policy: "project-relative-owner-resolved"
+    });
+    assert.equal(artifact.projects[0].resolution, "resolved");
+    assert.equal(artifact.projects[0].confidence, "medium");
+    assert.equal(artifact.projects[0].provenance.activity, "project-file-scan");
+    assert.equal(JSON.stringify(artifact).includes(repositoryRoot), false);
     assert.deepEqual(artifact.projects[0].targetFrameworks, ["net8.0"]);
     assert.equal(artifact.projects[0].packageReferences[0].include, "Microsoft.CodeAnalysis.CSharp");
     assert.equal(artifact.projects[0].compileItems[0].include, "Navigation/PortalMenu.cs");

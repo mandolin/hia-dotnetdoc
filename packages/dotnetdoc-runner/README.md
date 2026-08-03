@@ -45,6 +45,11 @@ Roslyn source extractor.
 对 `dotnet-csharp-source`，配置也可以提供 `projectPath`，由 runner 先从
 `.csproj` 推导源码文件集合，再调用轻量 Roslyn source extractor。
 
+当同一请求同时包含 XML documentation 与带 `projectPath` 的 C# source 时，
+`dotnetdoc-source-relation` 会携带同一 project-relative identity，并把
+resolution、confidence、provenance 分开输出。relation 仍是 metadata-only：
+`sourcesContentPolicy: none`，不嵌入源码正文，也不授予 source reader 能力。
+
 ```json
 {
   "kind": "dotnet-csharp-source",

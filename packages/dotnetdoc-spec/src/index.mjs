@@ -83,6 +83,20 @@ export const DOTNETDOC_PROJECT_DISCOVERY_CONTRACT = "dotnetdoc-project-discovery
 export const DOTNETDOC_PROJECT_DISCOVERY_CONTRACT_VERSION = "0.1.0-draft";
 
 /**
+ * Stable identity policy shared by DotNetDoc project discovery and source relations.
+ *
+ * @lang zh-CN DotNetDoc project discovery 与 source relation 共享的稳定 identity policy；identity 只使用工作区相对 project path。
+ */
+export const DOTNETDOC_PROJECT_IDENTITY_POLICY = "project-relative-owner-resolved";
+
+/**
+ * Source-content privacy policy for metadata-only DotNetDoc discovery and relation artifacts.
+ *
+ * @lang zh-CN metadata-only DotNetDoc discovery 与 relation 产物的源码内容隐私策略；产物不得嵌入 source body。
+ */
+export const DOTNETDOC_SOURCES_CONTENT_POLICY = "none";
+
+/**
  * XML documentation tags accepted by the first DotNetDoc intake layer.
  *
  * @lang zh-CN 第一层 DotNetDoc intake 接受的 XML documentation tag。

@@ -62,6 +62,11 @@ It records solution/project structure, target frameworks, package references,
 project references and explicit compile items as a `dotnetdoc-project-discovery`
 artifact.
 
+项目发现产物使用 `project-relative-owner-resolved` identity policy。每个 project
+都包含由安全的工作区相对 `.csproj` path 生成的稳定 identity，并独立记录
+resolution、confidence 与 provenance；产物不会保留 workspace absolute path 或
+source body，`sourcesContentPolicy` 固定为 `none`。
+
 The ASP.NET endpoint slice is source-scan based. It recognizes Web Forms
 `Page`/`Control` directives, controller attribute routing such as `Route` and
 `HttpGet`, and Minimal API `MapGet`/`MapPost` calls. It records route metadata,

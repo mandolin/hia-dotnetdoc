@@ -9,6 +9,8 @@ import {
   DOTNETDOC_CSHARP_SOURCE_EXTRACTION_CONTRACT,
   DOTNETDOC_MARKUP_COMMENT_EXTRACTION_CONTRACT,
   DOTNETDOC_PROJECT_DISCOVERY_CONTRACT,
+  DOTNETDOC_PROJECT_IDENTITY_POLICY,
+  DOTNETDOC_SOURCES_CONTENT_POLICY,
   DOTNETDOC_SOURCE_RELATION_CONTRACT,
   DOTNETDOC_SOURCE_RELATION_CONTRACT_VERSION,
   DOTNETDOC_XML_DOC_EXTRACTION_CONTRACT
@@ -405,6 +407,14 @@ function buildSourceRelationArtifact(extractionRecords, request) {
       xmlDocArtifacts: xmlRecords.map((record) => sourceArtifactRef(record)),
       csharpSourceArtifacts: sourceRecords.map((record) => sourceArtifactRef(record))
     },
+    identityPolicy: {
+      policy: DOTNETDOC_PROJECT_IDENTITY_POLICY,
+      scope: "workspace",
+      pathKind: "project-relative",
+      absolutePathInIdentity: false,
+      displayLabelInIdentity: false,
+      localeInIdentity: false
+    },
     summary: {
       relationCount: relations.length,
       fallbackRelationCount,
@@ -414,7 +424,7 @@ function buildSourceRelationArtifact(extractionRecords, request) {
       csharpSourceMemberCount: countMembers(sourceRecords)
     },
     privacy: {
-      sourcesContentPolicy: "none",
+      sourcesContentPolicy: DOTNETDOC_SOURCES_CONTENT_POLICY,
       sourcePreviewPolicy: "none",
       embedsSourcesContent: false
     },
@@ -446,7 +456,17 @@ function createSourceRelation(xmlRecord, xmlMember, sourceRecord, sourceMember, 
     memberId: xmlMember.id,
     kind: xmlMember.kind,
     name: xmlMember.name,
+    resolution: "resolved",
     confidence: relationConfidence,
+    provenance: {
+      producer: "@hia-doc/dotnetdoc-runner",
+      activity: "xml-doc-to-csharp-source",
+      contract: DOTNETDOC_SOURCE_RELATION_CONTRACT,
+      contractVersion: DOTNETDOC_SOURCE_RELATION_CONTRACT_VERSION
+    },
+    ...(sourceRecord.artifact.source?.projectContext?.projectIdentity
+      ? { projectIdentity: sourceRecord.artifact.source.projectContext.projectIdentity }
+      : {}),
     match: {
       mode: matchMode,
       exactDocumentationId: matchMode === "documentation-id"
@@ -628,7 +648,10 @@ function sourceArtifactRef(record) {
     contract: record.artifact.contract,
     contractVersion: record.artifact.contractVersion,
     artifactPath: record.artifactPath,
-    inputPath: record.input.path
+    inputPath: record.input.path,
+    ...(record.artifact.source?.projectContext?.projectIdentity
+      ? { projectIdentity: record.artifact.source.projectContext.projectIdentity }
+      : {})
   };
 }
 
@@ -640,6 +663,14 @@ function unresolvedMember(reason, side, record, member) {
     name: member.name,
     side,
     reason,
+    resolution: "unresolved",
+    confidence: member.source?.confidence ?? "low",
+    provenance: {
+      producer: "@hia-doc/dotnetdoc-runner",
+      activity: "xml-doc-to-csharp-source",
+      contract: DOTNETDOC_SOURCE_RELATION_CONTRACT,
+      contractVersion: DOTNETDOC_SOURCE_RELATION_CONTRACT_VERSION
+    },
     source: {
       path: member.source?.path ?? record.input.path,
       language: member.source?.language ?? (side === "xml-doc" ? "xml" : "csharp"),

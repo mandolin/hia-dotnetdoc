@@ -13,7 +13,9 @@ import {
   DOTNETDOC_MARKUP_COMMENT_EXTRACTION_CONTRACT,
   DOTNETDOC_MARKUP_COMMENT_EXTRACTION_CONTRACT_VERSION,
   DOTNETDOC_PROJECT_DISCOVERY_CONTRACT,
-  DOTNETDOC_PROJECT_DISCOVERY_CONTRACT_VERSION
+  DOTNETDOC_PROJECT_DISCOVERY_CONTRACT_VERSION,
+  DOTNETDOC_PROJECT_IDENTITY_POLICY,
+  DOTNETDOC_SOURCES_CONTENT_POLICY
 } from "@hia-doc/dotnetdoc-spec";
 import { extractDotnetXmlDocs } from "@hia-doc/dotnet-xml-doc-extractor";
 
@@ -108,6 +110,7 @@ export async function extractDotnetSourceFiles(request) {
       projectContext: {
         kind: projectContext.kind,
         sourcePathCount: projectContext.paths.length,
+        projectIdentity: projectContext.project.identity,
         assemblyName: projectContext.project.assemblyName,
         rootNamespace: projectContext.project.rootNamespace,
         targetFrameworks: projectContext.project.targetFrameworks
@@ -304,6 +307,19 @@ export async function extractDotnetProjectDiscovery(request) {
         path: filePath,
         language: path.extname(filePath).toLowerCase() === ".sln" ? "sln" : "xml"
       }))
+    },
+    identityPolicy: {
+      policy: DOTNETDOC_PROJECT_IDENTITY_POLICY,
+      scope: "workspace",
+      pathKind: "project-relative",
+      absolutePathInIdentity: false,
+      displayLabelInIdentity: false,
+      localeInIdentity: false
+    },
+    privacy: {
+      sourcesContentPolicy: DOTNETDOC_SOURCES_CONTENT_POLICY,
+      sourcePreviewPolicy: "none",
+      embedsSourcesContent: false
     },
     summary: {
       inputCount: normalized.paths.length,
@@ -625,9 +641,23 @@ function parseProjectFile(text, relativePath, context) {
   const rootNamespaces = uniqueStrings(propertyGroups.map((group) => group.properties.RootNamespace));
   const assemblyNames = uniqueStrings(propertyGroups.map((group) => group.properties.AssemblyName));
 
+  const projectId = `dotnet-project:${safeArtifactId(relativePath)}`;
   return {
-    id: `dotnet-project:${safeArtifactId(relativePath)}`,
+    id: projectId,
     path: relativePath,
+    identity: {
+      id: projectId,
+      path: relativePath,
+      policy: DOTNETDOC_PROJECT_IDENTITY_POLICY
+    },
+    resolution: "resolved",
+    confidence: "medium",
+    provenance: {
+      producer: PRODUCER_NAME,
+      activity: "project-file-scan",
+      contract: DOTNETDOC_PROJECT_DISCOVERY_CONTRACT,
+      contractVersion: DOTNETDOC_PROJECT_DISCOVERY_CONTRACT_VERSION
+    },
     name: assemblyNames[0] ?? path.basename(relativePath, path.extname(relativePath)),
     fileName: path.basename(relativePath),
     kind: "csharp-project",

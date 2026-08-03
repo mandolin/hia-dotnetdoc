@@ -19,6 +19,11 @@ embedding source text.
 ASP.NET/Razor 标记层注释、项目结构发现，以及连接 XML member id、C# 声明范围与
 HIA symbol id 的 source relation 产物。
 
+Project discovery 与 source relation 共享 `project-relative-owner-resolved`
+identity policy；稳定 project ID 只从工作区相对 `.csproj` path 生成。两个
+metadata-only 产物都采用 `sourcesContentPolicy: none`，并分别表达 resolution、
+confidence 与 provenance。
+
 ## Install
 
 ```sh
