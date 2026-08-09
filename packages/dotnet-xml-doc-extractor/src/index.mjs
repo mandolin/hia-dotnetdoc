@@ -20,6 +20,14 @@ const XML_PARSER = new XMLParser({
 const HIA_TEXT_I18N_MODEL = "hia-text-i18n";
 const HIA_TEXT_I18N_MODEL_VERSION = "0.2.0";
 const DEFAULT_LOCALE = "en";
+/**
+ * @lang zh-CN XML documentation 抽取器的公开 producer identity；名称和包版本与 wire contract identity 相互独立。
+ * @lang en Public producer identity for XML documentation extraction; its name and package version remain independent from the wire-contract identity.
+ */
+const PRODUCER_IDENTITY = Object.freeze({
+  name: "@hia-doc/dotnet-xml-doc-extractor",
+  version: "0.1.9"
+});
 const XML_ATTRIBUTE_KEYS = new Set(["name", "cref", "href", "lang", "h_type", "h-type", "path", "key", "#text"]);
 const LOCALE_TAG_PATTERN = /^[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{2,8})*$/u;
 
@@ -53,10 +61,7 @@ export function extractDotnetXmlDocs(xmlText, options = {}) {
   return {
     contract: DOTNETDOC_XML_DOC_EXTRACTION_CONTRACT,
     contractVersion: DOTNETDOC_XML_DOC_EXTRACTION_CONTRACT_VERSION,
-    producer: {
-      name: "@hia-doc/dotnet-xml-doc-extractor",
-      version: "0.1.8"
-    },
+    producer: PRODUCER_IDENTITY,
     source: {
       kind: "dotnet-xml-doc",
       path: sourcePath

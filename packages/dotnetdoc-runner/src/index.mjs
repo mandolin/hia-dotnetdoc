@@ -23,7 +23,11 @@ export {
 } from "./schema.mjs";
 import { DOTNETDOC_CONFIG_SCHEMA_ID, DOTNETDOC_CONFIG_SCHEMA_VERSION } from "./schema.mjs";
 
-export const DOTNETDOC_RUNNER_VERSION = "0.1.8";
+/**
+ * @lang zh-CN DotNetDoc runner/producer 的公开包版本；它与各个 `0.1.0-draft` artifact contract version 分离。
+ * @lang en Public package version of the DotNetDoc runner/producer, kept separate from every `0.1.0-draft` artifact contract version.
+ */
+export const DOTNETDOC_RUNNER_VERSION = "0.1.9";
 export const DOTNETDOC_INPUT_KINDS = Object.freeze(["dotnet-xml-doc", "dotnet-csharp-source", "dotnet-aspnet-surface", "dotnet-markup-comments", "dotnet-project"]);
 export const DOTNETDOC_OUTPUT_KINDS = Object.freeze(["dotnetdoc-extraction", "hia-document", "dotnetdoc-source-relation", "dotnetdoc-aspnet-endpoint-extraction", "dotnetdoc-markup-comment-extraction", "dotnetdoc-project-discovery"]);
 export const DOTNETDOC_BUILD_WARNING_CLASSIFICATION_CONTRACT = "dotnetdoc-build-warning-classification";

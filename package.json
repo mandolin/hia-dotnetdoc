@@ -1,6 +1,6 @@
 {
   "name": "@hia-doc/hia-dotnetdoc-workspace",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "private": true,
   "description": "Workspace for HIA .NET and ASP.NET documentation packages.",
   "license": "MIT",

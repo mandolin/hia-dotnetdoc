@@ -4,7 +4,16 @@ const path = require("node:path");
 const { spawnSync } = require("node:child_process");
 
 const root = path.resolve(__dirname, "..");
-const releaseVersion = "0.1.8";
+/**
+ * @lang zh-CN 本轮六包必须共享的精确本地发布候选版本。
+ * @lang en Exact local release-candidate version shared by all six packages in this train.
+ */
+const releaseVersion = "0.1.9";
+/**
+ * @lang zh-CN 必须从可发布文件中清除的上一条 exact internal dependency line。
+ * @lang en Previous exact internal dependency line that must be absent from release-bearing files.
+ */
+const previousReleaseVersion = "0.1.8";
 const repositoryUrl = "git+https://github.com/mandolin/hia-dotnetdoc.git";
 const npmCliPath = path.join(path.dirname(process.execPath), "node_modules", "npm", "bin", "npm-cli.js");
 
@@ -117,6 +126,7 @@ function assertNoLegacyReleaseVersions() {
   for (const relativePath of releaseVersionFiles) {
     const content = fs.readFileSync(path.join(root, relativePath), "utf8");
     assert.equal(content.includes('"0.0.0"'), false, `${relativePath} must not contain legacy release version "0.0.0".`);
+    assert.equal(content.includes(`"${previousReleaseVersion}"`), false, `${relativePath} must not retain previous release version "${previousReleaseVersion}".`);
   }
 }
 
