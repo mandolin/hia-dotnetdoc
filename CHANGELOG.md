@@ -4,7 +4,7 @@
 
 This file records user-visible DotNetDoc changes. Versions marked Unreleased have not been published to the npm registry.
 
-## 0.1.9 — Unreleased
+## 0.1.9 — 2026-08-09
 
 ### 变化 / Changes
 
@@ -13,11 +13,15 @@ This file records user-visible DotNetDoc changes. Versions marked Unreleased hav
 - relation 分别报告 resolution、confidence 与 provenance，并把稳定 project identity 投影给 HIA document consumer。
 - producer、runner、XML 与 Roslyn extraction artifact 报告新的 package version，但既有 `0.1.0-draft` wire contract
   identity 不变。
+- 六个包已通过 GitHub Actions OIDC Trusted Publishing 发布，registry SHA-512 integrity、SLSA provenance v1 与
+  registry-only producer/consumer smoke 均已验证。
 
 - Aligns all six public packages on `0.1.9` with one exact internal `@hia-doc/dotnetdoc-*` patch line.
 - Adds project-relative project discovery and XML-documentation-to-C#-declaration source-relation metadata.
 - Reports resolution, confidence, and provenance independently and projects stable project identity to HIA document consumers.
 - Updates producer, runner, XML, and Roslyn extraction package versions without changing existing `0.1.0-draft` wire identities.
+- Publishes all six packages through GitHub Actions OIDC Trusted Publishing, with registry SHA-512 integrity, SLSA provenance
+  v1, and registry-only producer/consumer smoke verified.
 
 ### 隐私、兼容性与限制 / Privacy, compatibility, and limits
 
