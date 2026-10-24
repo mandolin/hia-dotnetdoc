@@ -4,6 +4,13 @@
 
 This file records user-visible DotNetDoc changes. Versions marked Unreleased have not been published to the npm registry.
 
+## Unreleased
+
+- XML与Roslyn成员的HIA符号增加显示用`signature`，保留重载参数类型；Roslyn精确声明包含返回类型、参数名与修饰符。
+- runner仅为唯一且文档ID完全一致的XML成员补充Roslyn声明，即使关闭relation文件也生效；模糊/重复匹配不升级精度。
+- 纯XML缺少的返回类型、参数名和by-ref修饰信息明确保留未知，不根据自然语言注释或参数注释顺序猜测。
+- Adds display signatures to XML/Roslyn HIA symbols. Exact unique source matches enrich XML-derived HIA even without a relation file. XML-only gaps remain explicit; localized comments and member identities are retained.
+
 ## 0.1.9 — 2026-08-09
 
 ### 变化 / Changes

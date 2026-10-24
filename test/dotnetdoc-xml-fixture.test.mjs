@@ -278,6 +278,12 @@ describe("DotNetDoc XML documentation intake", () => {
     const typeRelation = relation.relations.find((item) => item.memberName === "T:Portal.Components.Navigation.PortalMenu");
     assert.equal(typeRelation.declaration.semantic.containingNamespace, "Portal.Components.Navigation");
     assert.ok(typeRelation.declaration.semantic.baseTypeIds.includes("T:System.Object"));
+    // <lang><zh-CN>单独消费XML的HIA文件也应获得精确声明，无需renderer另读relation。</zh-CN><en>Consuming the XML-derived HIA file alone must retain the exact declaration without renderer relation lookups.</en></lang>
+    const enriched = JSON.parse(await fs.readFile(path.join(outputDirectory, "Portal.Components.hia.json"), "utf8"));
+    const render = enriched.symbols.find((symbol) => symbol.name === "Render");
+    assert.match(render.signature, /string .*Render\(string tenantId\)/u);
+    assert.equal(render.metadata.dotnetdoc.signature.source, "roslyn-declaration");
+    assert.equal(render.i18n.fields["returns.summary"].defaultText, "HTML fragment for the tenant menu.");
   });
 
   it("uses a conservative unique-member fallback when parameter type ids differ", async () => {
@@ -315,6 +321,9 @@ describe("DotNetDoc XML documentation intake", () => {
     assert.equal(fallback?.match.exactDocumentationId, false);
     assert.equal(fallback?.confidence, "low");
     assert.equal(fallback?.declaration.path, "fixtures/source/Legacy.Signature/LegacyPage.cs");
+    // <lang><zh-CN>低置信度匹配不能把不完全一致的声明升级为精确签名。</zh-CN><en>Low-confidence matches must not promote a nonidentical declaration to an exact signature.</en></lang>
+    const unchanged = JSON.parse(await fs.readFile(path.join(outputDirectory, "Legacy.Signature.hia.json"), "utf8"));
+    assert.equal(unchanged.symbols.find((symbol) => symbol.name === "Handle").metadata.dotnetdoc.signature.source, "documentation-id");
   });
 
   it("matches legacy overloaded signatures and extracts enum fields and conversion operators", async () => {

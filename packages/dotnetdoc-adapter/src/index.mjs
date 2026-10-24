@@ -1,9 +1,15 @@
+/**
+ * @file
+ * @lang zh-CN 将.NET抽取结果投影为HIA符号、完整i18n与保守/精确显示签名，不读取源码或执行声明。
+ * @lang en Projects .NET extraction into HIA symbols, complete i18n and conservative/exact display signatures without reading source or executing declarations.
+ */
 import {
   DOTNETDOC_ASPNET_ENDPOINT_EXTRACTION_CONTRACT,
   DOTNETDOC_MARKUP_COMMENT_EXTRACTION_CONTRACT,
   DOTNETDOC_PROJECT_DISCOVERY_CONTRACT,
   isDotnetDocMemberExtractionContract
 } from "@hia-doc/dotnetdoc-spec";
+import { createDotnetMemberSignature } from "./signature.mjs";
 
 const HIA_CORE_SCHEMA_VERSION = "0.2.0";
 const HIA_TEXT_I18N_MODEL = "hia-text-i18n";
@@ -254,12 +260,23 @@ export function assertDotnetProjectDiscoveryArtifact(artifact) {
   }
 }
 
+/**
+ * @lang zh-CN 将抽取成员映射为HIA符号，精确签名优先，保留文档内容与来源边界。
+ * @lang en Maps an extracted member into an HIA symbol, preferring exact signatures while retaining documentation and source boundaries.
+ * @param {object} member <lang><zh-CN>不修改的XML/Roslyn成员。</zh-CN><en>XML/Roslyn member, never modified.</en></lang>
+ * @param {object} semanticContext <lang><zh-CN>本批次程序集和类型身份上下文。</zh-CN><en>Batch assembly/type identity context.</en></lang>
+ * @returns {object} <lang><zh-CN>新符号，signature为显示文本，不是可执行源码。</zh-CN><en>New symbol whose signature is display text, not executable source.</en></lang>
+ */
 function mapMemberToSymbol(member, semanticContext) {
+  // <lang><zh-CN>签名缺失信息单独保留，不能以自然语言returns正文猜测返回类型。</zh-CN><en>Keep missing signature information explicit rather than deriving return types from returns prose.</en></lang>
+  const signature = createDotnetMemberSignature(member);
+  // <lang><zh-CN>HIA外壳保持原0.2契约及内容投影；新增可读签名不改变成员identity。</zh-CN><en>Retain the existing 0.2 HIA envelope/content projection; readable signatures never change member identities.</en></lang>
   const symbol = {
     id: member.id,
     name: member.name,
     kind: member.kind,
     summary: normalizeSummary(member.summary, member.remarks, member.name),
+    signature: signature.text,
     source: {
       model: HIA_SOURCE_MODEL,
       modelVersion: HIA_SOURCE_MODEL_VERSION,
@@ -287,6 +304,7 @@ function mapMemberToSymbol(member, semanticContext) {
     metadata: {
       dotnetdoc: {
         memberName: member.memberName,
+        signature: { source: signature.source, missingInformation: signature.missingInformation },
         remarks: member.remarks,
         parameters: member.parameters,
         typeParameters: member.typeParameters,

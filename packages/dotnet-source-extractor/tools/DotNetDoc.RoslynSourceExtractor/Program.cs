@@ -756,6 +756,7 @@ sealed class MemberOutput
     public SemanticOutput? Semantic { get; init; }
 }
 
+/// <summary>声明身份、层级及只读显示信息；不携带声明体。<para>Declaration identity, hierarchy and read-only display information, without declaration bodies.</para></summary>
 sealed class SemanticOutput
 {
     public required string DocumentationCommentId { get; init; }
@@ -768,15 +769,25 @@ sealed class SemanticOutput
     public List<string> InterfaceIds { get; init; } = new();
     public required string DisplayName { get; init; }
 
+    /// <summary>仅含声明头的可读签名，不含方法体或注释。<para>Readable declaration signature without bodies or comments.</para></summary>
+    public required string Signature { get; init; }
+
+    /// <summary>成员的已知结果/值类型；构造器与类型声明为null。<para>Known result/value type, or null for constructors and type declarations.</para></summary>
+    public string? ReturnType { get; init; }
+
+    /// <summary>从Roslyn符号创建中性语义信息，不执行目标源码。<para>Creates neutral semantic information from a Roslyn symbol without executing target source.</para></summary>
     public static SemanticOutput? FromSymbol(ISymbol? symbol)
     {
+        // <lang><zh-CN>文档ID是成员匹配身份，无法取得时不伪造声明。</zh-CN><en>The documentation ID identifies member matches; its absence never produces a fabricated declaration.</en></lang>
         var documentationCommentId = symbol?.GetDocumentationCommentId();
         if (symbol is null || string.IsNullOrWhiteSpace(documentationCommentId))
         {
             return null;
         }
 
+        // <lang><zh-CN>只有命名类型提供继承链；其它成员通过所属类型关联。</zh-CN><en>Only named types supply an inheritance chain; other members relate through their containing type.</en></lang>
         var namedType = symbol as INamedTypeSymbol;
+        // <lang><zh-CN>本次投影持有的新列表，只保存稳定类型身份。</zh-CN><en>A projection-local new list retains stable type identities only.</en></lang>
         var baseTypeIds = new List<string>();
         for (var baseType = namedType?.BaseType; baseType is not null; baseType = baseType.BaseType)
         {
@@ -784,6 +795,7 @@ sealed class SemanticOutput
                 ?? baseType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
         }
 
+        // <lang><zh-CN>接口身份按序去重，不改变编译器符号或输入集合。</zh-CN><en>Deduplicate interface identities in order without changing compiler symbols or input collections.</en></lang>
         var interfaceIds = namedType?.AllInterfaces
             .Select(item => item.GetDocumentationCommentId()
                 ?? item.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat))
@@ -803,8 +815,38 @@ sealed class SemanticOutput
             ParentDocumentationCommentId = symbol.ContainingType?.GetDocumentationCommentId(),
             BaseTypeIds = baseTypeIds,
             InterfaceIds = interfaceIds,
-            DisplayName = symbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)
+            DisplayName = symbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat),
+            Signature = CreateDeclarationSignature(symbol),
+            ReturnType = symbol switch
+            {
+                IMethodSymbol method when method.MethodKind is not MethodKind.Constructor and not MethodKind.StaticConstructor => method.ReturnType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
+                IPropertySymbol property => property.Type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
+                IFieldSymbol field => field.Type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
+                IEventSymbol eventSymbol => eventSymbol.Type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
+                _ => null
+            }
         };
+    }
+
+    /// <summary>使用官方显示策略保留类型、参数名、默认值及ref修饰，不拼接自然语言。<para>Uses official display options to retain types, parameter names, defaults and ref modifiers without prose inference.</para></summary>
+    /// <param name="symbol">已取得的声明符号。<para>The existing declaration symbol.</para></param>
+    /// <returns>只读显示文本，不包含声明体。<para>Read-only display text without declaration bodies.</para></returns>
+    private static string CreateDeclarationSignature(ISymbol symbol)
+    {
+        // <lang><zh-CN>显示格式属于本次投影，不改变编译模型或符号语义。</zh-CN><en>The display format belongs to this projection and never changes the compilation model or symbol semantics.</en></lang>
+        var format = new SymbolDisplayFormat(
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+            memberOptions: SymbolDisplayMemberOptions.IncludeAccessibility | SymbolDisplayMemberOptions.IncludeModifiers
+                | SymbolDisplayMemberOptions.IncludeContainingType | SymbolDisplayMemberOptions.IncludeExplicitInterface
+                | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeRef,
+            parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName
+                | SymbolDisplayParameterOptions.IncludeDefaultValue | SymbolDisplayParameterOptions.IncludeParamsRefOut,
+            propertyStyle: SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
+            kindOptions: SymbolDisplayKindOptions.IncludeTypeKeyword,
+            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers
+                | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+        return symbol.ToDisplayString(format);
     }
 }
 

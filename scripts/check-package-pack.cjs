@@ -47,7 +47,7 @@ const packages = [
     name: "@hia-doc/dotnetdoc-adapter",
     directory: "packages/dotnetdoc-adapter",
     internalDependencies: ["@hia-doc/dotnetdoc-spec"],
-    requiredFiles: ["package.json", "README.md", "LICENSE", "src/index.mjs"]
+    requiredFiles: ["package.json", "README.md", "LICENSE", "src/index.mjs", "src/signature.mjs"]
   },
   {
     name: "@hia-doc/dotnetdoc-runner",
