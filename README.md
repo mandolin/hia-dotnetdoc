@@ -89,6 +89,12 @@ npm run smoke:standalone
 
 ## Release Checks
 
+The six-package `0.1.10` line is published. It adds readable member signatures, preferring unique exact Roslyn declarations;
+XML-only inputs explicitly report unavailable return-type information. XML localized documentation fields remain intact.
+中文：六包 `0.1.10` 已发布；实际源码匹配可补返回类型与参数名，纯XML缺失信息保持明确未知。
+The separate HTML renderer/CLI branding and complete-entry upgrade has its own release status in
+[the main toolchain release plan](https://github.com/mandolin/HIA-Documentation/blob/main/docs/public-package-release-plan.md).
+
 Before publishing the package set, check the npm registry state:
 
 ```bash
