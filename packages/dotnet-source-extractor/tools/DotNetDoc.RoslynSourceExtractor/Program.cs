@@ -9,7 +9,7 @@ const string Contract = "dotnetdoc-csharp-source-extraction";
 const string ContractVersion = "0.1.0-draft";
 const string ProducerName = "@hia-doc/dotnet-source-extractor";
 // <lang><zh-CN>producer package version 随本地发布候选演进，不升级独立的 extraction contract version。</zh-CN><en>The producer package version follows the local release candidate without upgrading the independent extraction contract version.</en></lang>
-const string ProducerVersion = "0.1.9";
+const string ProducerVersion = "0.1.10";
 
 try
 {

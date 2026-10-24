@@ -26,7 +26,7 @@ const PRODUCER_NAME = "@hia-doc/dotnet-source-extractor";
  * @lang zh-CN 随发布包版本演进的源码抽取 producer identity；它不改变独立的 extraction contract version。
  * @lang en Source-extraction producer identity that follows the package release while leaving the independent extraction contract version unchanged.
  */
-const PRODUCER_VERSION = "0.1.9";
+const PRODUCER_VERSION = "0.1.10";
 const ASPNET_SURFACE_EXTENSIONS = new Set([".aspx", ".ascx", ".ashx", ".asmx", ".cs"]);
 const DOTNET_MARKUP_COMMENT_EXTENSIONS = new Set([".aspx", ".ascx", ".master", ".cshtml", ".razor"]);
 const DOTNET_PROJECT_EXTENSIONS = new Set([".csproj", ".sln"]);

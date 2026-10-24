@@ -4,7 +4,7 @@
 
 This file records user-visible DotNetDoc changes. Versions marked Unreleased have not been published to the npm registry.
 
-## Unreleased
+## 0.1.10 — 2026-10-24
 
 - XML与Roslyn成员的HIA符号增加显示用`signature`，保留重载参数类型；Roslyn精确声明包含返回类型、参数名与修饰符。
 - runner仅为唯一且文档ID完全一致的XML成员补充Roslyn声明，即使关闭relation文件也生效；模糊/重复匹配不升级精度。

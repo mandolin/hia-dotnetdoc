@@ -8,12 +8,12 @@ const root = path.resolve(__dirname, "..");
  * @lang zh-CN 本轮六包必须共享的精确本地发布候选版本。
  * @lang en Exact local release-candidate version shared by all six packages in this train.
  */
-const releaseVersion = "0.1.9";
+const releaseVersion = "0.1.10";
 /**
  * @lang zh-CN 必须从可发布文件中清除的上一条 exact internal dependency line。
  * @lang en Previous exact internal dependency line that must be absent from release-bearing files.
  */
-const previousReleaseVersion = "0.1.8";
+const previousReleaseVersion = "0.1.9";
 const repositoryUrl = "git+https://github.com/mandolin/hia-dotnetdoc.git";
 const npmCliPath = path.join(path.dirname(process.execPath), "node_modules", "npm", "bin", "npm-cli.js");
 
