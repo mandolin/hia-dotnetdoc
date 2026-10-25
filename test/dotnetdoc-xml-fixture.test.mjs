@@ -53,7 +53,7 @@ describe("DotNetDoc XML documentation intake", () => {
     assert.deepEqual(hiaDocument.locales, ["en", "zh-CN"]);
     assert.equal(hiaDocument.symbols.length, 3);
     assert.ok(hiaDocument.symbols.some((symbol) => symbol.kind === "dotnet-property" && symbol.name === "Items"));
-    assert.ok(hiaDocument.symbols.every((symbol) => symbol.source.definedIn.link.enabled === false));
+    assert.ok(hiaDocument.symbols.every((symbol) => symbol.source === undefined && symbol.metadata.dotnetdoc.documentationSource.language === "xml"));
     const menu = hiaDocument.symbols.find((symbol) => symbol.name === "PortalMenu");
     const render = hiaDocument.symbols.find((symbol) => symbol.name === "Render");
     assert.equal(menu?.i18n?.fields.summary.localizedText.en, "Represents a portal navigation menu.");

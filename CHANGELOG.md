@@ -1,5 +1,12 @@
 # 变更日志 / Changelog
 
+## Unreleased — 0.1.11 source location correction
+
+- XML文档出处保留在抽取wire和HIA documentationSource元数据，停止将其当成代码definedIn。runner从配置的项目/解决方案或显式源码按程序集与完整成员ID补全唯一C#声明，保留完整范围、注释、i18n与身份，独立于relation文件输出。
+- XML documentation origins remain in extraction wire data and HIA documentationSource metadata instead of code definedIn. The runner resolves unique C# declarations by assembly and full documentation ID from configured projects/solutions or explicit sources, retaining ranges, comments, i18n and identity independently of relation-file emission.
+- 歧义、缺失源码、不可用工具或越根symlink保留未定位；无文件名猜测、PDB解析、业务构建、网络源码抓取或源码正文默认公开。
+- Ambiguity, missing source, unavailable tools and escaping symlinks stay unresolved. No filename guessing, PDB parsing, target builds, network source downloads or implicit source publication.
+
 本文件记录 DotNetDoc 用户可见变化。标记为 Unreleased 的版本尚未发布到 npm registry。
 
 This file records user-visible DotNetDoc changes. Versions marked Unreleased have not been published to the npm registry.

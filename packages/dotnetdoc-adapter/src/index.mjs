@@ -4,6 +4,7 @@
  * @lang en Projects .NET extraction into HIA symbols, complete i18n and conservative/exact display signatures without reading source or executing declarations.
  */
 import {
+  DOTNETDOC_XML_DOC_EXTRACTION_CONTRACT,
   DOTNETDOC_ASPNET_ENDPOINT_EXTRACTION_CONTRACT,
   DOTNETDOC_MARKUP_COMMENT_EXTRACTION_CONTRACT,
   DOTNETDOC_PROJECT_DISCOVERY_CONTRACT,
@@ -270,6 +271,8 @@ export function assertDotnetProjectDiscoveryArtifact(artifact) {
 function mapMemberToSymbol(member, semanticContext) {
   // <lang><zh-CN>签名缺失信息单独保留，不能以自然语言returns正文猜测返回类型。</zh-CN><en>Keep missing signature information explicit rather than deriving return types from returns prose.</en></lang>
   const signature = createDotnetMemberSignature(member);
+  // <lang><zh-CN>XML出处不是代码定义；只有显式的安全C#路径及有效范围可以进入source。</zh-CN><en>An XML origin is not a code definition; only explicit safe C# paths and valid ranges may enter source.</en></lang>
+  const codeSource = selectCodeSource(member.source);
   // <lang><zh-CN>HIA外壳保持原0.2契约及内容投影；新增可读签名不改变成员identity。</zh-CN><en>Retain the existing 0.2 HIA envelope/content projection; readable signatures never change member identities.</en></lang>
   const symbol = {
     id: member.id,
@@ -277,19 +280,15 @@ function mapMemberToSymbol(member, semanticContext) {
     kind: member.kind,
     summary: normalizeSummary(member.summary, member.remarks, member.name),
     signature: signature.text,
-    source: {
+    ...(codeSource ? { source: {
       model: HIA_SOURCE_MODEL,
       modelVersion: HIA_SOURCE_MODEL_VERSION,
       mode: "link",
       definedIn: {
         kind: "defined-in",
-        relativePath: member.source?.path ?? "documentation.xml",
-        language: member.source?.language ?? "xml",
-        position: {
-          line: member.source?.range?.start?.line ?? 1,
-          column: member.source?.range?.start?.column ?? 1
-        },
-        ...(member.source?.range ? { range: member.source.range } : {}),
+        relativePath: codeSource.path,
+        language: "csharp",
+        ...(codeSource.range ? { position: { line: codeSource.range.start.line, column: codeSource.range.start.column ?? 1 }, range: codeSource.range } : {}),
         link: {
           enabled: false,
           openMode: "same-tab"
@@ -299,11 +298,12 @@ function mapMemberToSymbol(member, semanticContext) {
       references: [],
       fragments: [],
       diagnostics: []
-    },
+    } } : {}),
     diagnostics: [],
     metadata: {
       dotnetdoc: {
         memberName: member.memberName,
+        ...(semanticContext.documentationSource ? { documentationSource: semanticContext.documentationSource } : {}),
         signature: { source: signature.source, missingInformation: signature.missingInformation },
         remarks: member.remarks,
         parameters: member.parameters,
@@ -331,6 +331,8 @@ function mapMemberToSymbol(member, semanticContext) {
  */
 function createXmlMemberSemanticContext(artifact) {
   return {
+    // <lang><zh-CN>保留原XML输入的出处；不会随成员代码定位补全而改成.cs路径。</zh-CN><en>Retain the original XML input origin independently of member code-location enrichment.</en></lang>
+    ...(artifact.contract === DOTNETDOC_XML_DOC_EXTRACTION_CONTRACT ? { documentationSource: { path: artifact.source.path, language: "xml", rangeSource: "compiler-xml-doc" } } : {}),
     assemblyName: typeof artifact.assembly?.name === "string" && artifact.assembly.name
       ? artifact.assembly.name
       : null,
@@ -339,6 +341,23 @@ function createXmlMemberSemanticContext(artifact) {
       .map((member) => member.memberName)
       .sort((left, right) => right.length - left.length)
   };
+}
+
+/**
+ * @lang zh-CN 只选择安全C#代码定位，拒绝XML出处、越根路径和无效范围；不读取文件或猜测位置。
+ * @lang en Selects safe C# code locators only, rejecting XML origins, escaping paths and invalid ranges without file reads or guessed positions.
+ * @param {object} source <lang><zh-CN>候选成员来源。</zh-CN><en>Candidate member source.</en></lang>
+ * @returns {object|null} <lang><zh-CN>安全定位或null；无范围时不虚构第一行。</zh-CN><en>Safe locator or null; no first line is invented when a range is absent.</en></lang>
+ */
+function selectCodeSource(source) {
+  // <lang><zh-CN>兼容Windows分隔符，但不接受绝对路径/URI/父级跳转，也不按文件名推断成员。</zh-CN><en>Accept Windows separators while refusing absolute paths, URIs and parent traversal, without inferring members from filenames.</en></lang>
+  const locator = typeof source?.path === "string" ? source.path.replaceAll("\\", "/") : "";
+  if (!locator || /^(?:\/|[a-z][a-z0-9+.-]*:)/iu.test(locator) || locator.split("/").includes("..") || !/\.cs$/iu.test(locator) || source.rangeSource === "compiler-xml-doc") return null;
+  // <lang><zh-CN>范围是一基且有序；非法运行时位置不能转成HTML定位事实。</zh-CN><en>Ranges must be one-based and ordered; invalid runtime positions cannot become HTML-location facts.</en></lang>
+  const range = source.range;
+  if (range && (!Number.isSafeInteger(range.start?.line) || range.start.line < 1 || (range.start.column !== undefined && (!Number.isSafeInteger(range.start.column) || range.start.column < 1)) || (range.end && (!Number.isSafeInteger(range.end.line) || range.end.line < range.start.line || (range.end.column !== undefined && (!Number.isSafeInteger(range.end.column) || range.end.column < 1)))))) return null;
+  if (range?.end && range.end.line === range.start.line && range.end.column !== undefined && range.start.column !== undefined && range.end.column < range.start.column) return null;
+  return { ...source, path: locator };
 }
 
 /**

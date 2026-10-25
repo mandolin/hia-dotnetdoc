@@ -27,12 +27,13 @@ export {
   DOTNETDOC_CONFIG_SCHEMA_VERSION
 } from "./schema.mjs";
 import { DOTNETDOC_CONFIG_SCHEMA_ID, DOTNETDOC_CONFIG_SCHEMA_VERSION } from "./schema.mjs";
+import { enrichXmlSourceLocations } from "./source-locations.mjs";
 
 /**
  * @lang zh-CN DotNetDoc runner/producer 的公开包版本；它与各个 `0.1.0-draft` artifact contract version 分离。
  * @lang en Public package version of the DotNetDoc runner/producer, kept separate from every `0.1.0-draft` artifact contract version.
  */
-export const DOTNETDOC_RUNNER_VERSION = "0.1.10";
+export const DOTNETDOC_RUNNER_VERSION = "0.1.11";
 export const DOTNETDOC_INPUT_KINDS = Object.freeze(["dotnet-xml-doc", "dotnet-csharp-source", "dotnet-aspnet-surface", "dotnet-markup-comments", "dotnet-project"]);
 export const DOTNETDOC_OUTPUT_KINDS = Object.freeze(["dotnetdoc-extraction", "hia-document", "dotnetdoc-source-relation", "dotnetdoc-aspnet-endpoint-extraction", "dotnetdoc-markup-comment-extraction", "dotnetdoc-project-discovery"]);
 export const DOTNETDOC_BUILD_WARNING_CLASSIFICATION_CONTRACT = "dotnetdoc-build-warning-classification";
@@ -100,7 +101,7 @@ export async function runDotnetDoc(request, context = {}) {
 
   // <lang><zh-CN>精确声明投影独立于是否输出relation文件；单独消费XML的HIA产物也保留签名。</zh-CN><en>Exact declaration projection is independent of relation-file emission, retaining signatures in XML-derived HIA artifacts consumed alone.</en></lang>
   const sourceRelation = buildSourceRelationArtifact(extractionRecords, normalized);
-  await enrichXmlHiaSignatures(extractionRecords, sourceRelation, normalized);
+  diagnostics.push(...await enrichXmlSourceLocations(extractionRecords, normalized));
   if (sourceRelation && normalized.options.writeSourceRelationArtifact) {
     const relationPath = "dotnetdoc.source-relation.json";
     await writeJson(path.join(normalized.outputDirectory, relationPath), sourceRelation);
@@ -138,35 +139,7 @@ export async function runDotnetDoc(request, context = {}) {
   return result;
 }
 
-/**
- * @lang zh-CN 仅将唯一、文档ID完全一致的Roslyn声明投影进XML派生HIA；不改变XML原始抽取或注释字段。
- * @lang en Projects only unique Roslyn declarations with identical documentation IDs into XML-derived HIA, without altering raw XML extraction or comment fields.
- * @param {object[]} records <lang><zh-CN>当前请求内已抽取记录，不重新发现源码。</zh-CN><en>Extraction records from this request; no source rediscovery.</en></lang>
- * @param {object|null} relation <lang><zh-CN>当前请求的关系事实；缺失/模糊/回退匹配均不升级。</zh-CN><en>Relation facts for this request; absent, ambiguous and fallback matches never upgrade signatures.</en></lang>
- * @param {object} request <lang><zh-CN>已规范化输出根，仍只写既定HIA路径。</zh-CN><en>Normalized output root; writes remain at existing HIA paths.</en></lang>
- * @returns {Promise<void>} <lang><zh-CN>写回获精确签名的HIA文件，保持成员身份和注释内容。</zh-CN><en>Rewrites HIA files with exact signatures, retaining member identity and comment content.</en></lang>
- */
-async function enrichXmlHiaSignatures(records, relation, request) {
-  if (!relation) return;
-  for (const record of records) {
-    if (record.artifact.contract !== DOTNETDOC_XML_DOC_EXTRACTION_CONTRACT) continue;
-    // <lang><zh-CN>同名多声明包括跨工程重复身份；不能按数组先后任意挑一个。</zh-CN><en>Multiple declarations include cross-project duplicate identities; array order must never choose an arbitrary winner.</en></lang>
-    let changed = false;
-    const members = record.artifact.members.map((member) => {
-      const matches = relation.relations.filter((item) => item.hiaSymbol.artifactPath === record.hiaPath && item.hiaSymbol.id === member.id);
-      if (matches.length !== 1) return member;
-      const exact = matches[0];
-      const semantic = exact.declaration?.semantic;
-      if (exact.match?.exactDocumentationId !== true || semantic?.documentationCommentId !== member.memberName || typeof semantic.signature !== "string" || !semantic.signature.trim()) return member;
-      changed = true;
-      return { ...member, semantic: { ...member.semantic, ...semantic } };
-    });
-    if (!changed) continue;
-    // <lang><zh-CN>适配器继续负责显式签名优先级和i18n投影，避免建立第二套转换逻辑。</zh-CN><en>The adapter retains responsibility for explicit-signature precedence and i18n projection, avoiding a second conversion implementation.</en></lang>
-    record.hiaDocument = dotnetXmlDocsToHiaDocument({ ...record.artifact, members }, { id: record.input.hiaDocumentId, title: record.input.title });
-    await writeJson(path.join(request.outputDirectory, record.hiaPath), record.hiaDocument);
-  }
-}
+
 
 /**
  * 将 .NET build / MSBuild 文本诊断分类为 manual、designer 或 generated 边界。

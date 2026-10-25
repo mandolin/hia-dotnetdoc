@@ -89,9 +89,9 @@ npm run smoke:standalone
 
 ## Release Checks
 
-The six-package `0.1.10` line is published. It adds readable member signatures, preferring unique exact Roslyn declarations;
+The six-package `0.1.11` candidate adds corrected source locations and readable member signatures, preferring unique exact Roslyn declarations;
 XML-only inputs explicitly report unavailable return-type information. XML localized documentation fields remain intact.
-中文：六包 `0.1.10` 已发布；实际源码匹配可补返回类型与参数名，纯XML缺失信息保持明确未知。
+中文：六包 `0.1.11` 候选修复源码定位；实际源码匹配可补返回类型与参数名，纯XML缺失信息保持明确未知。
 The separate HTML renderer/CLI branding and complete-entry upgrade has its own release status in
 [the main toolchain release plan](https://github.com/mandolin/HIA-Documentation/blob/main/docs/public-package-release-plan.md).
 
@@ -182,3 +182,22 @@ hia-dotnetdoc --config dotnetdoc.config.json
 ## License
 
 MIT.
+
+## Code source locations
+
+Compiler XML paths are documentation origins. They stay in extraction `member.source`
+and HIA `metadata.dotnetdoc.documentationSource`; they are not exposed as code definitions.
+For real C# locations, use a configured `dotnet-project` solution/project input or set
+`projectPath` on an XML input. The runner reuses its Roslyn extractor and requires a
+unique assembly and complete documentation-comment ID match. It does not add duplicate
+C# documentation pages and works with `writeSourceRelationArtifact: false`.
+
+Unresolved or ambiguous members have no code locator. Partial declarations, missing
+references, unavailable .NET tooling and sources outside the workspace are never repaired
+by choosing an arbitrary filename. Extraction reads configured source only; it does not
+execute the target build, download source, parse Windows/Portable PDBs or grant publication
+permission. Existing source preview settings still require explicit publication consent.
+
+中文：XML是文档出处；代码定位来自已配置项目中的唯一真实Roslyn声明。缺失/歧义保持未定位，
+不会回退XML或按名称猜文件。需要现有.NET 8 SDK/helper；本轮不实现PDB读取，尤其不能把传统
+Windows PDB当作Portable PDB。范围与语言随真实声明输出，所有XML注释/本地化字段保持。

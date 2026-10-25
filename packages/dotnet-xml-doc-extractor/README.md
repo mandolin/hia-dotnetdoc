@@ -42,3 +42,5 @@ for HIA field-level localization.
 ## License
 
 MIT.
+
+XML extraction is pure: member.source records the XML documentation origin, not a C# definition. Use the runner with configured project/source inputs for verified code locations. The extraction contract/version and XML fields are unchanged. 中文：XML抽取仅保留文档出处，不读取PDB或猜代码位置；真实源码定位由runner完成。
