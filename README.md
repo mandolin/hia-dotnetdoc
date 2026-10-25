@@ -89,9 +89,9 @@ npm run smoke:standalone
 
 ## Release Checks
 
-The published six-package `0.1.11` line adds corrected source locations and readable member signatures, preferring unique exact Roslyn declarations;
+The published six-package `0.1.12` line adds corrected source locations and readable member signatures, preferring unique exact Roslyn declarations;
 XML-only inputs explicitly report unavailable return-type information. XML localized documentation fields remain intact.
-中文：六包 `0.1.11` 已发布，修复源码定位；实际源码匹配可补返回类型与参数名，纯XML缺失信息保持明确未知。
+中文：六包 `0.1.12` 已发布，修复源码定位；实际源码匹配可补返回类型与参数名，纯XML缺失信息保持明确未知。
 The separate HTML renderer/CLI branding and complete-entry upgrade has its own release status in
 [the main toolchain release plan](https://github.com/mandolin/HIA-Documentation/blob/main/docs/public-package-release-plan.md).
 
@@ -206,7 +206,7 @@ Windows PDB当作Portable PDB。范围与语言随真实声明输出，所有XML
 
 From version `0.1.12`, proven partial types from one Roslyn compilation select a primary declaration: non-generated source first, then normalized path and starting position. The choice is recorded at `symbol.metadata.dotnetdoc.sourceLocationResolution` (`selectionRule`, `candidateCount`). Duplicate registrations and genuine conflicting identities remain unresolved with a diagnostic.
 
-The source extractor reads declared `Reference` HintPath metadata and existing `ProjectReference` outputs. When resolving XML input, the XML directory supplies the same-build copy-local reference snapshot. All workspace references require real-path containment. A declared .NET Framework version uses the matching locally installed Windows reference pack; if unavailable, the runtime reference fallback emits a warning. No target build, analyzers, assembly execution, package download or arbitrary DLL-directory scan is performed.
+The source extractor reads declared `Reference` HintPath metadata and existing `ProjectReference` outputs. When resolving XML input, the XML directory supplies the same-build copy-local reference snapshot. All workspace references require real-path containment. A declared .NET Framework version uses the matching locally installed Windows reference pack; if unavailable, the runtime reference fallback emits a warning. No target build, analyzers, assembly execution, automatic target-dependency download or arbitrary DLL-directory scan is performed.
 
 The summary is at **`document.metadata.sourceLocationResolution`**, including `resolved`, `resolvedPartial`, `ambiguous`, `missing` and `referenceDiagnosticCodes`. Every unresolved symbol has `DOTNETDOC_SOURCE_LOCATION_MISSING` or `DOTNETDOC_SOURCE_LOCATION_AMBIGUOUS` in `symbol.diagnostics`, with `data.symbolId`, `data.memberName`, `data.reason` and a bounded detail. Root diagnostics aggregate counts. No unknown root-level `sourceLocationResolution` field is added to HIA documents.
 

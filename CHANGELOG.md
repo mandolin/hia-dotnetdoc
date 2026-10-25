@@ -1,11 +1,12 @@
 # 变更日志 / Changelog
 
-## Unreleased — 0.1.12 source coverage and diagnostics
+## 0.1.12 — 2026-10-26
 
 - 真实partial类型记录主声明选择（非生成优先，再按路径/行）；重复输入与真实冲突保留歧义诊断。
 - 只读已声明HintPath/ProjectReference与同次XML构建引用副本；使用已安装目标.NET Framework reference pack补齐完整参数身份，不按简称/参数数猜测，不执行目标构建/程序集或下载依赖。
 - 每个未定位成员新增原因诊断；计数稳定保留在`metadata.sourceLocationResolution`，新增partial计数/引用诊断代码，HIA根诊断保持有界。原XML文本/i18n/身份及源码公开授权不变。
 - Selects and records primary declarations for proven partial types, resolves full overload/constructor identities using declared read-only metadata, and reports unresolved members individually with bounded root summaries. No target execution, source guessing or implicit publication.
+
 ## 0.1.11 — 2026-10-25
 
 - XML文档出处保留在抽取wire和HIA documentationSource元数据，停止将其当成代码definedIn。runner从配置的项目/解决方案或显式源码按程序集与完整成员ID补全唯一C#声明，保留完整范围、注释、i18n与身份，独立于relation文件输出。
