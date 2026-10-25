@@ -1,7 +1,7 @@
 /** @file @lang zh-CN 分部声明、元数据引用及逐符号覆盖诊断回归。 @lang en Regression coverage for partial declarations, metadata references and per-symbol resolution diagnostics. */
 import { it } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, writeFile, readFile, symlink } from 'node:fs/promises';
+import { mkdtemp, mkdir, writeFile, readFile, symlink, access } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
@@ -157,4 +157,17 @@ it('reports an unavailable framework reference pack and retains bounded fallback
   const artifact=await extractDotnetSourceFiles({workspaceRoot:root,projectPath:'App.csproj'});
   assert.ok(artifact.members.some(member=>member.memberName==='T:Demo.Widget'));
   assert.ok(artifact.diagnostics.some(diagnostic=>diagnostic.code==='DOTNETDOC_FRAMEWORK_REFERENCES_UNAVAILABLE'));
+});
+
+it('uses an installed legacy reference pack without treating its native companions as invalid project references',async()=>{
+  const root=await mkdtemp(path.join(tmpdir(),'dotnet-coverage-installed-framework-'));
+  await writeFile(path.join(root,'Widget.cs'),'namespace Demo { public class Widget { public void Run(System.Web.HttpRequest request) {} } }');
+  await writeFile(path.join(root,'App.csproj'),'<Project><PropertyGroup><TargetFrameworkVersion>v4.8</TargetFrameworkVersion></PropertyGroup><ItemGroup><Compile Include="Widget.cs" /></ItemGroup></Project>');
+  const artifact=await extractDotnetSourceFiles({workspaceRoot:root,projectPath:'App.csproj'});
+  // <lang><zh-CN>没有框架包的平台验证明确缺失，Windows实际装包时验证类型身份及原生伴随文件不误报。</zh-CN><en>Platforms without the pack verify its explicit absence; installed Windows packs verify type identity and no false native-companion warning.</en></lang>
+  const installed=process.platform==='win32' && await access(path.join(process.env['ProgramFiles(x86)'],'Reference Assemblies/Microsoft/Framework/.NETFramework/v4.8/mscorlib.dll')).then(()=>true,()=>false);
+  if(installed){
+    assert.ok(artifact.members.some(member=>member.semantic?.documentationCommentId==='M:Demo.Widget.Run(System.Web.HttpRequest)'));
+    assert.ok(!artifact.diagnostics.some(diagnostic=>diagnostic.code==='DOTNETDOC_METADATA_REFERENCE_INVALID'));
+  }else assert.ok(artifact.diagnostics.some(diagnostic=>diagnostic.code==='DOTNETDOC_FRAMEWORK_REFERENCES_UNAVAILABLE'));
 });

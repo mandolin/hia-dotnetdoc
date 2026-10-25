@@ -96,6 +96,8 @@ static IEnumerable<MetadataReference> CompilationReferences(CommandLineOptions o
 {
     // <lang><zh-CN>同名引用只保留一个，避免混合.NET Framework与当前.NET运行时的基础类型。</zh-CN><en>Keep one reference per filename to avoid mixing .NET Framework and current-runtime core types.</en></lang>
     var files = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+    // <lang><zh-CN>显式项目引用必须是托管元数据；框架包的原生伴随DLL不是编译引用，须区别处理。</zh-CN><en>Explicit project references must contain managed metadata; native companion DLLs in a framework pack are not compilation references.</en></lang>
+    var declaredFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
     // <lang><zh-CN>框架目录只从系统安装根和已校验版本产生，不接受任意外部路径。</zh-CN><en>The framework directory derives only from the system installation root and validated version, never arbitrary external paths.</en></lang>
     var framework = options.FrameworkVersion is null || !OperatingSystem.IsWindows() ? null : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Reference Assemblies", "Microsoft", "Framework", ".NETFramework", options.FrameworkVersion);
     if (framework is not null && File.Exists(Path.Combine(framework, "mscorlib.dll")))
@@ -118,6 +120,7 @@ static IEnumerable<MetadataReference> CompilationReferences(CommandLineOptions o
             var file = options.ResolveWorkspacePath(reference);
             if (!file.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) throw new ArgumentException("A metadata reference must be a DLL.");
             files[Path.GetFileName(file)] = file;
+            declaredFiles.Add(file);
         }
         catch { diagnostics.Add(new DiagnosticOutput { Code = "DOTNETDOC_METADATA_REFERENCE_UNAVAILABLE", Message = "A declared metadata reference could not be read.", Severity = "warning" }); }
     }
@@ -130,7 +133,11 @@ static IEnumerable<MetadataReference> CompilationReferences(CommandLineOptions o
             // <lang><zh-CN>立即验证PE元数据，防止惰性坏文件在稍后整个编译分析中抛异常。</zh-CN><en>Validate PE metadata immediately so a lazy invalid file cannot abort the later compilation analysis.</en></lang>
             using var stream = File.OpenRead(file);
             using var image = new PEReader(stream, PEStreamOptions.PrefetchMetadata);
-            if (!image.HasMetadata) throw new BadImageFormatException();
+            if (!image.HasMetadata)
+            {
+                if (!declaredFiles.Contains(file)) continue;
+                throw new BadImageFormatException();
+            }
             image.GetMetadataReader();
             references.Add(MetadataReference.CreateFromFile(file));
         }
