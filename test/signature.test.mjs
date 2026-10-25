@@ -114,7 +114,10 @@ describe("DotNetDoc member signatures", () => {
     const baseline = dotnetXmlDocsToHiaDocument(extractDotnetXmlDocs(await readFile(path.join(workspaceRoot, xmlPath), "utf8")));
     assert.deepEqual(hia.symbols.map((symbol) => symbol.i18n), baseline.symbols.map((symbol) => symbol.i18n));
     const render = hia.symbols.find((symbol) => symbol.name === "Render");
-    if (duplicate) assert.equal(render.metadata.dotnetdoc.signature.source, "documentation-id");
+    if (duplicate) {
+      assert.equal(render.metadata.dotnetdoc.signature.source, "documentation-id");
+      assert.ok(render.diagnostics.some(item=>item.code==='DOTNETDOC_SOURCE_LOCATION_AMBIGUOUS'&&item.data.reason==='ambiguous'&&item.data.symbolId===render.id));
+    }
     else assert.match(render.signature, /string .*Render\(string tenantId\)/u);
   });
 });

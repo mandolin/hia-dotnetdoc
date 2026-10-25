@@ -1,6 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -9,7 +11,7 @@ const string Contract = "dotnetdoc-csharp-source-extraction";
 const string ContractVersion = "0.1.0-draft";
 const string ProducerName = "@hia-doc/dotnet-source-extractor";
 // <lang><zh-CN>producer package version 随本地发布候选演进，不升级独立的 extraction contract version。</zh-CN><en>The producer package version follows the local release candidate without upgrading the independent extraction contract version.</en></lang>
-const string ProducerVersion = "0.1.11";
+const string ProducerVersion = "0.1.12";
 
 try
 {
@@ -28,7 +30,7 @@ try
     var compilation = CSharpCompilation.Create(
         assemblyName: options.AssemblyName,
         syntaxTrees: sources.Select(source => source.SyntaxTree),
-        references: TrustedPlatformReferences(),
+        references: CompilationReferences(options, diagnostics),
         options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
     diagnostics.AddRange(compilation.GetDiagnostics().Select(ToDiagnosticOutput));
 
@@ -89,18 +91,66 @@ static DiagnosticOutput ToDiagnosticOutput(Diagnostic diagnostic)
     };
 }
 
-static IEnumerable<MetadataReference> TrustedPlatformReferences()
+/// <summary>从已安装目标框架和工作区声明引用建立只读元数据集合；不加载或执行目标程序集。<para>Builds read-only metadata references from the installed target framework and declared workspace files without loading/executing target assemblies.</para></summary>
+static IEnumerable<MetadataReference> CompilationReferences(CommandLineOptions options, List<DiagnosticOutput> diagnostics)
+{
+    // <lang><zh-CN>同名引用只保留一个，避免混合.NET Framework与当前.NET运行时的基础类型。</zh-CN><en>Keep one reference per filename to avoid mixing .NET Framework and current-runtime core types.</en></lang>
+    var files = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+    // <lang><zh-CN>框架目录只从系统安装根和已校验版本产生，不接受任意外部路径。</zh-CN><en>The framework directory derives only from the system installation root and validated version, never arbitrary external paths.</en></lang>
+    var framework = options.FrameworkVersion is null || !OperatingSystem.IsWindows() ? null : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Reference Assemblies", "Microsoft", "Framework", ".NETFramework", options.FrameworkVersion);
+    if (framework is not null && File.Exists(Path.Combine(framework, "mscorlib.dll")))
+    {
+        foreach (var file in Directory.EnumerateFiles(framework, "*.dll")) files[Path.GetFileName(file)] = file;
+        // <lang><zh-CN>标准Facades子目录是同一reference pack的一部分，不递归扫描其它目录。</zh-CN><en>The standard Facades directory belongs to the same reference pack; no other directories are scanned recursively.</en></lang>
+        var facades = Path.Combine(framework, "Facades");
+        if (Directory.Exists(facades)) foreach (var file in Directory.EnumerateFiles(facades, "*.dll")) files[Path.GetFileName(file)] = file;
+    }
+    else
+    {
+        if (options.FrameworkVersion is not null) diagnostics.Add(new DiagnosticOutput { Code = "DOTNETDOC_FRAMEWORK_REFERENCES_UNAVAILABLE", Message = "The declared .NET Framework reference pack is not installed; unresolved signature types remain unavailable.", Severity = "warning" });
+        foreach (var file in TrustedPlatformPaths()) files[Path.GetFileName(file)] = file;
+    }
+    foreach (var reference in options.References)
+    {
+        try
+        {
+            // <lang><zh-CN>相对路径由JS真实路径门禁提供，helper再次限制工作区及.dll后缀。</zh-CN><en>The JS real-path gate supplies relative paths; the helper checks workspace containment and the DLL suffix again.</en></lang>
+            var file = options.ResolveWorkspacePath(reference);
+            if (!file.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) throw new ArgumentException("A metadata reference must be a DLL.");
+            files[Path.GetFileName(file)] = file;
+        }
+        catch { diagnostics.Add(new DiagnosticOutput { Code = "DOTNETDOC_METADATA_REFERENCE_UNAVAILABLE", Message = "A declared metadata reference could not be read.", Severity = "warning" }); }
+    }
+    // <lang><zh-CN>逐文件读取PE元数据；坏文件仅形成固定诊断，不输出异常或绝对路径。</zh-CN><en>Read PE metadata per file; invalid files produce fixed diagnostics without exception text or absolute paths.</en></lang>
+    var references = new List<MetadataReference>();
+    foreach (var file in files.Values)
+    {
+        try
+        {
+            // <lang><zh-CN>立即验证PE元数据，防止惰性坏文件在稍后整个编译分析中抛异常。</zh-CN><en>Validate PE metadata immediately so a lazy invalid file cannot abort the later compilation analysis.</en></lang>
+            using var stream = File.OpenRead(file);
+            using var image = new PEReader(stream, PEStreamOptions.PrefetchMetadata);
+            if (!image.HasMetadata) throw new BadImageFormatException();
+            image.GetMetadataReader();
+            references.Add(MetadataReference.CreateFromFile(file));
+        }
+        catch { diagnostics.Add(new DiagnosticOutput { Code = "DOTNETDOC_METADATA_REFERENCE_INVALID", Message = "A declared metadata file is not readable managed metadata.", Severity = "warning" }); }
+    }
+    return references;
+}
+
+/// <summary>没有已安装传统框架时沿用当前helper运行时引用。<para>Uses current helper-runtime references when no installed legacy framework is available.</para></summary>
+static IEnumerable<string> TrustedPlatformPaths()
 {
     var trustedAssemblies = (string?)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES");
     if (string.IsNullOrWhiteSpace(trustedAssemblies))
     {
-        return new[] { MetadataReference.CreateFromFile(typeof(object).Assembly.Location) };
+        return new[] { typeof(object).Assembly.Location };
     }
 
     return trustedAssemblies
         .Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries)
-        .Where(File.Exists)
-        .Select(assemblyPath => MetadataReference.CreateFromFile(assemblyPath));
+        .Where(File.Exists);
 }
 
 sealed record SourceInput(string RelativePath, SyntaxTree SyntaxTree);
@@ -327,7 +377,7 @@ sealed class DocumentationWalker : CSharpSyntaxWalker
     private void AddMember(SyntaxNode node, string memberName, string kind, string displayName, ISymbol? symbol)
     {
         var documentation = DocumentationData.FromNode(node);
-        var semantic = SemanticOutput.FromSymbol(symbol);
+        var semantic = SemanticOutput.FromSymbol(symbol, node);
         var semanticMemberName = semantic?.DocumentationCommentId;
         Members.Add(new MemberOutput
         {
@@ -654,15 +704,34 @@ sealed class CommandLineOptions
     public required string WorkspaceRoot { get; init; }
     public required string AssemblyName { get; init; }
     public required IReadOnlyList<string> Paths { get; init; }
+    /// <summary>已声明且由工作区门禁验证的元数据相对路径。<para>Declared relative metadata paths validated by the workspace gate.</para></summary>
+    public IReadOnlyList<string> References { get; init; } = Array.Empty<string>();
+    /// <summary>已声明的传统框架版本，不是任意目录。<para>Declared legacy framework version, not an arbitrary directory.</para></summary>
+    public string? FrameworkVersion { get; init; }
 
     public static CommandLineOptions Parse(string[] args)
     {
         var workspaceRoot = Directory.GetCurrentDirectory();
         var assemblyName = "DotNetDoc.SourceExtraction";
         var paths = new List<string>();
+        // <lang><zh-CN>元数据选项与源码位置分开积累，避免把DLL当作源码读取。</zh-CN><en>Collect metadata options separately from source paths so DLLs are never read as source.</en></lang>
+        var references = new List<string>();
+        string? frameworkVersion = null;
         for (var index = 0; index < args.Length; index += 1)
         {
             var arg = args[index];
+            if (arg == "--reference")
+            {
+                if (++index >= args.Length) throw new ArgumentException("--reference requires a value.");
+                references.Add(args[index]);
+                continue;
+            }
+            if (arg == "--framework-version")
+            {
+                if (++index >= args.Length || !Regex.IsMatch(args[index], @"^v\d+(\.\d+){1,2}$")) throw new ArgumentException("--framework-version requires a version.");
+                frameworkVersion = args[index];
+                continue;
+            }
             if (arg == "--workspace-root")
             {
                 index += 1;
@@ -702,7 +771,9 @@ sealed class CommandLineOptions
         {
             WorkspaceRoot = Path.GetFullPath(workspaceRoot),
             AssemblyName = assemblyName,
-            Paths = paths
+            Paths = paths,
+            References = references,
+            FrameworkVersion = frameworkVersion
         };
     }
 
@@ -760,6 +831,10 @@ sealed class MemberOutput
 sealed class SemanticOutput
 {
     public required string DocumentationCommentId { get; init; }
+    /// <summary>声明选择事实，保留partial与生成来源的区别。<para>Declaration-selection facts retaining the partial/generated-source distinction.</para></summary>
+    public DeclarationSelectionOutput? Declaration { get; init; }
+    /// <summary>ID所用参数/转换类型仍包含ErrorType时不能充当精确身份。<para>Parameter/conversion types containing ErrorType cannot establish an exact identity.</para></summary>
+    public bool HasUnresolvedSignatureTypes { get; init; }
     public required string SymbolKind { get; init; }
     public string? ContainingAssembly { get; init; }
     public string? ContainingNamespace { get; init; }
@@ -776,7 +851,7 @@ sealed class SemanticOutput
     public string? ReturnType { get; init; }
 
     /// <summary>从Roslyn符号创建中性语义信息，不执行目标源码。<para>Creates neutral semantic information from a Roslyn symbol without executing target source.</para></summary>
-    public static SemanticOutput? FromSymbol(ISymbol? symbol)
+    public static SemanticOutput? FromSymbol(ISymbol? symbol, SyntaxNode node)
     {
         // <lang><zh-CN>文档ID是成员匹配身份，无法取得时不伪造声明。</zh-CN><en>The documentation ID identifies member matches; its absence never produces a fabricated declaration.</en></lang>
         var documentationCommentId = symbol?.GetDocumentationCommentId();
@@ -806,6 +881,13 @@ sealed class SemanticOutput
         return new SemanticOutput
         {
             DocumentationCommentId = documentationCommentId,
+            Declaration = DeclarationSelectionOutput.From(symbol, node),
+            HasUnresolvedSignatureTypes = symbol switch
+            {
+                IMethodSymbol method => method.Parameters.Any(parameter => ContainsErrorType(parameter.Type)) || method.MethodKind == MethodKind.Conversion && ContainsErrorType(method.ReturnType),
+                IPropertySymbol property => property.Parameters.Any(parameter => ContainsErrorType(parameter.Type)),
+                _ => false
+            },
             SymbolKind = symbol.Kind.ToString(),
             ContainingAssembly = symbol.ContainingAssembly?.Name,
             ContainingNamespace = symbol.ContainingNamespace?.IsGlobalNamespace == false
@@ -828,6 +910,15 @@ sealed class SemanticOutput
         };
     }
 
+    /// <summary>检查文档ID中嵌套数组/指针/泛型参数的未解析类型，不按短名补全。<para>Checks unresolved types nested in documentation-ID arrays, pointers and generic arguments without short-name completion.</para></summary>
+    private static bool ContainsErrorType(ITypeSymbol type) => type.TypeKind == TypeKind.Error || (type switch
+    {
+        IArrayTypeSymbol array => ContainsErrorType(array.ElementType),
+        IPointerTypeSymbol pointer => ContainsErrorType(pointer.PointedAtType),
+        INamedTypeSymbol named => named.TypeArguments.Any(ContainsErrorType),
+        _ => false
+    });
+
     /// <summary>使用官方显示策略保留类型、参数名、默认值及ref修饰，不拼接自然语言。<para>Uses official display options to retain types, parameter names, defaults and ref modifiers without prose inference.</para></summary>
     /// <param name="symbol">已取得的声明符号。<para>The existing declaration symbol.</para></param>
     /// <returns>只读显示文本，不包含声明体。<para>Read-only display text without declaration bodies.</para></returns>
@@ -847,6 +938,35 @@ sealed class SemanticOutput
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers
                 | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
         return symbol.ToDisplayString(format);
+    }
+}
+
+/// <summary>仅保存声明排序所需事实，不复制源码或声明体。<para>Stores facts needed for declaration ordering without copying source or declaration bodies.</para></summary>
+sealed class DeclarationSelectionOutput
+{
+    /// <summary>仅真实partial类型可合并，不用于普通重载或重复注册。<para>Only genuine partial types may be grouped, never ordinary overloads or duplicate registrations.</para></summary>
+    public bool IsPartialType { get; init; }
+    /// <summary>同一次编译的全部语法声明数量。<para>Number of syntax declarations in this compilation.</para></summary>
+    public int DeclarationCount { get; init; }
+    /// <summary>生成文件或标准生成标记的事实。<para>Whether the file/name or standard markers identify generated code.</para></summary>
+    public bool IsGenerated { get; init; }
+
+    /// <summary>从Roslyn符号及当前语法节点建立可复核选择事实。<para>Derives auditable selection facts from a Roslyn symbol and the current syntax node.</para></summary>
+    public static DeclarationSelectionOutput From(ISymbol symbol, SyntaxNode node)
+    {
+        // <lang><zh-CN>路径来自语法树；生成判定不依赖类型名或业务约定。</zh-CN><en>The path comes from the syntax tree; generated-code detection never depends on type names or business conventions.</en></lang>
+        var file = node.SyntaxTree.FilePath;
+        // <lang><zh-CN>只检查文件头前2048字符，不在元数据里保存正文。</zh-CN><en>Inspect at most the first 2048 file-header characters without retaining bodies in metadata.</en></lang>
+        var leading = node.SyntaxTree.GetRoot().GetLeadingTrivia().ToFullString();
+        var header = leading[..Math.Min(leading.Length, 2048)];
+        return new DeclarationSelectionOutput
+        {
+            IsPartialType = symbol is INamedTypeSymbol && node is TypeDeclarationSyntax declaration && declaration.Modifiers.Any(SyntaxKind.PartialKeyword),
+            DeclarationCount = symbol.DeclaringSyntaxReferences.Length,
+            // <lang><zh-CN>属性只检查当前part，不能把整个partial符号聚合的GeneratedCode属性传播给手写part。</zh-CN><en>Inspect attributes on this part only, never propagating an aggregated partial-symbol GeneratedCode attribute to a manual part.</en></lang>
+            IsGenerated = Regex.IsMatch(file, @"\.(designer|generated|g|g\.i)\.cs$", RegexOptions.IgnoreCase) || Regex.IsMatch(header, @"<auto-generated\b", RegexOptions.IgnoreCase)
+                || node is BaseTypeDeclarationSyntax typeNode && typeNode.AttributeLists.SelectMany(list => list.Attributes).Any(attribute => attribute.Name.ToString().Split('.').Last() is "GeneratedCode" or "GeneratedCodeAttribute" or "CompilerGenerated" or "CompilerGeneratedAttribute")
+        };
     }
 }
 

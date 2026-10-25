@@ -192,7 +192,7 @@ For real C# locations, use a configured `dotnet-project` solution/project input 
 unique assembly and complete documentation-comment ID match. It does not add duplicate
 C# documentation pages and works with `writeSourceRelationArtifact: false`.
 
-Unresolved or ambiguous members have no code locator. Partial declarations, missing
+Unresolved or ambiguous members have no code locator. Conflicting declarations, missing
 references, unavailable .NET tooling and sources outside the workspace are never repaired
 by choosing an arbitrary filename. Extraction reads configured source only; it does not
 execute the target build, download source, parse Windows/Portable PDBs or grant publication
@@ -201,3 +201,15 @@ permission. Existing source preview settings still require explicit publication 
 中文：XML是文档出处；代码定位来自已配置项目中的唯一真实Roslyn声明。缺失/歧义保持未定位，
 不会回退XML或按名称猜文件。需要现有.NET 8 SDK/helper；本轮不实现PDB读取，尤其不能把传统
 Windows PDB当作Portable PDB。范围与语言随真实声明输出，所有XML注释/本地化字段保持。
+
+## Source location coverage and diagnostics
+
+From version `0.1.12`, proven partial types from one Roslyn compilation select a primary declaration: non-generated source first, then normalized path and starting position. The choice is recorded at `symbol.metadata.dotnetdoc.sourceLocationResolution` (`selectionRule`, `candidateCount`). Duplicate registrations and genuine conflicting identities remain unresolved with a diagnostic.
+
+The source extractor reads declared `Reference` HintPath metadata and existing `ProjectReference` outputs. When resolving XML input, the XML directory supplies the same-build copy-local reference snapshot. All workspace references require real-path containment. A declared .NET Framework version uses the matching locally installed Windows reference pack; if unavailable, the runtime reference fallback emits a warning. No target build, analyzers, assembly execution, package download or arbitrary DLL-directory scan is performed.
+
+The summary is at **`document.metadata.sourceLocationResolution`**, including `resolved`, `resolvedPartial`, `ambiguous`, `missing` and `referenceDiagnosticCodes`. Every unresolved symbol has `DOTNETDOC_SOURCE_LOCATION_MISSING` or `DOTNETDOC_SOURCE_LOCATION_AMBIGUOUS` in `symbol.diagnostics`, with `data.symbolId`, `data.memberName`, `data.reason` and a bounded detail. Root diagnostics aggregate counts. No unknown root-level `sourceLocationResolution` field is added to HIA documents.
+
+Re-run DotNetDoc extraction and then rebuild the site after upgrading. The existing `@hia-doc/cli@0.1.11` and `@hia-doc/renderer-html@0.1.8` consume these artifacts; this release changes the DotNetDoc packages. Constructors keep canonical `#ctor`/`#cctor` IDs. Overloads still require full parameter identities; unresolved types are never matched by short name or parameter count.
+
+中文：0.1.12按同次编译的真实partial事实选择手写主声明，读已声明引用补完整重载/构造器类型。统计位于metadata层，未定位符号逐项带原因诊断。框架包/引用缺失或真实冲突仍如实报告；所有XML注释、本地化和成员身份保留，需重新抽取再重建。

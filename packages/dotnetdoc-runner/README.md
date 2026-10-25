@@ -78,7 +78,7 @@ For real C# locations, use a configured `dotnet-project` solution/project input 
 unique assembly and complete documentation-comment ID match. It does not add duplicate
 C# documentation pages and works with `writeSourceRelationArtifact: false`.
 
-Unresolved or ambiguous members have no code locator. Partial declarations, missing
+Unresolved or ambiguous members have no code locator. Conflicting declarations, missing
 references, unavailable .NET tooling and sources outside the workspace are never repaired
 by choosing an arbitrary filename. Extraction reads configured source only; it does not
 execute the target build, download source, parse Windows/Portable PDBs or grant publication
@@ -87,3 +87,9 @@ permission. Existing source preview settings still require explicit publication 
 中文：XML是文档出处；代码定位来自已配置项目中的唯一真实Roslyn声明。缺失/歧义保持未定位，
 不会回退XML或按名称猜文件。需要现有.NET 8 SDK/helper；本轮不实现PDB读取，尤其不能把传统
 Windows PDB当作Portable PDB。范围与语言随真实声明输出，所有XML注释/本地化字段保持。
+
+### Coverage diagnostics (0.1.12)
+
+Read `document.metadata.sourceLocationResolution` for coverage counts and reference-warning codes, and each `symbol.diagnostics` for `data.symbolId`, `memberName`, `reason` (`missing`/`ambiguous`) and detail. Proven partial types prefer a non-generated declaration, then stable path/start position; the selected rule and candidate count appear in `symbol.metadata.dotnetdoc.sourceLocationResolution`. Duplicate inputs are not silently collapsed. Re-extract artifacts after upgrading; source publication still requires the existing explicit authorization.
+
+中文：计数在metadata层；未定位成员逐项带诊断，合法partial记录主声明选择。升级后重新抽取，不改变公开授权。

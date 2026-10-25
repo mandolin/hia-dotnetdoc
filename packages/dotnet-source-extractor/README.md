@@ -81,3 +81,11 @@ records source ranges, syntax kind, server/client visibility and `<lang>` /
 标记层注释抽取识别 `.aspx`、`.ascx`、`.cshtml`、`.razor` 中的 Web Forms
 `<%-- --%>`、Razor `@* *@` 与 HTML `<!-- -->` 注释，记录位置、语法类型与
 服务端/客户端可见性，并解析 `<lang>` / `<l>` 语言标记，不嵌入完整源码。
+
+### Project metadata references
+
+`extractDotnetSourceFiles({ workspaceRoot, projectPath, referenceDirectory? })` reads static declared HintPath/ProjectReference metadata. Optional `referenceDirectory` is a workspace-relative same-build copy-local directory, normally supplied by the runner from the XML input's directory. Without that snapshot, multiple existing outputs remain ambiguous. Paths are checked lexically and by real path before reads; dependencies are neither executed nor downloaded. `source.projectContext.metadataReferenceCount` counts selected local paths; metadata validation failures remain diagnostics. Installed Windows .NET Framework packs are selected only by the declared framework version; other platforms/missing packs report the limitation and retain runtime-reference fallback.
+
+Semantic metadata includes declaration facts for proven partial types and `hasUnresolvedSignatureTypes`; unresolved parameter or conversion types must not establish an exact documentation ID. Duplicate inputs and cross-compilation conflicts remain distinct.
+
+中文：补读显式元数据引用，不运行目标构建。XML旁目录约束同次构建副本，缺失/多配置冲突/越界/坏元数据有诊断；传统框架依赖本机已安装reference pack，不能承诺所有平台同样覆盖率。

@@ -18,6 +18,7 @@ import {
   DOTNETDOC_SOURCES_CONTENT_POLICY
 } from "@hia-doc/dotnetdoc-spec";
 import { extractDotnetXmlDocs } from "@hia-doc/dotnet-xml-doc-extractor";
+import { resolveProjectMetadataReferences } from "./metadata-references.mjs";
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const helperProjectPath = path.join(packageRoot, "tools", "DotNetDoc.RoslynSourceExtractor", "DotNetDoc.RoslynSourceExtractor.csproj");
@@ -26,7 +27,7 @@ const PRODUCER_NAME = "@hia-doc/dotnet-source-extractor";
  * @lang zh-CN 随发布包版本演进的源码抽取 producer identity；它不改变独立的 extraction contract version。
  * @lang en Source-extraction producer identity that follows the package release while leaving the independent extraction contract version unchanged.
  */
-const PRODUCER_VERSION = "0.1.11";
+const PRODUCER_VERSION = "0.1.12";
 const ASPNET_SURFACE_EXTENSIONS = new Set([".aspx", ".ascx", ".ashx", ".asmx", ".cs"]);
 const DOTNET_MARKUP_COMMENT_EXTENSIONS = new Set([".aspx", ".ascx", ".master", ".cshtml", ".razor"]);
 const DOTNET_PROJECT_EXTENSIONS = new Set([".csproj", ".sln"]);
@@ -87,6 +88,8 @@ const MINIMAL_API_METHODS = Object.freeze({
  * @param {object} request <lang><en>C# source extraction request.</en><zh-CN>C# 源码抽取请求。</zh-CN></lang>
  * @param {string} request.workspaceRoot <lang><en>Absolute or cwd-relative workspace root.</en><zh-CN>绝对或相对当前目录的工作区根目录。</zh-CN></lang>
  * @param {string[]} request.paths <lang><en>Safe workspace-relative `.cs` file paths.</en><zh-CN>安全的工作区相对 `.cs` 文件路径。</zh-CN></lang>
+ * @param {string} [request.projectPath] <lang><zh-CN>静态项目上下文；读取已声明元数据，不执行目标构建。</zh-CN><en>Static project context; reads declared metadata without executing the target build.</en></lang>
+ * @param {string} [request.referenceDirectory] <lang><zh-CN>同次XML构建旁的引用副本目录，必须在工作区内；未指定时要求输出唯一。</zh-CN><en>Workspace-contained copy-local reference directory adjacent to the same XML build; otherwise outputs must be unique.</en></lang>
  * @returns {Promise<object>} <lang><en>`dotnetdoc-csharp-source-extraction` artifact.</en><zh-CN>`dotnetdoc-csharp-source-extraction` 产物。</zh-CN></lang>
  * @throws {Error} <lang><en>When the Roslyn helper fails or returns an invalid artifact.</en><zh-CN>当 Roslyn helper 失败或返回无效产物时抛出。</zh-CN></lang>
  * @lang zh-CN 使用 Roslyn 语法 API 抽取 C# 源码文档化信息。
@@ -94,7 +97,7 @@ const MINIMAL_API_METHODS = Object.freeze({
 export async function extractDotnetSourceFiles(request) {
   const normalized = normalizeRequest(request);
   const projectContext = normalized.projectPath
-    ? await loadProjectSourceContext(normalized.workspaceRoot, normalized.projectPath)
+    ? await loadProjectSourceContext(normalized.workspaceRoot, normalized.projectPath, normalized.referenceDirectory)
     : null;
   const sourcePaths = uniqueStrings([...(normalized.paths ?? []), ...(projectContext?.paths ?? [])]);
   if (sourcePaths.length === 0) {
@@ -104,7 +107,9 @@ export async function extractDotnetSourceFiles(request) {
   const artifact = await runRoslynHelper({
     ...normalized,
     paths: sourcePaths,
-    assemblyName: projectContext?.project.assemblyName ?? projectContext?.project.name ?? null
+    assemblyName: projectContext?.project.assemblyName ?? projectContext?.project.name ?? null,
+    metadataReferencePaths: projectContext?.metadataReferences.paths ?? [],
+    targetFrameworkVersion: projectContext?.metadataReferences.targetFrameworkVersion
   });
   assertSourceArtifact(artifact);
   if (projectContext) {
@@ -117,10 +122,11 @@ export async function extractDotnetSourceFiles(request) {
         projectIdentity: projectContext.project.identity,
         assemblyName: projectContext.project.assemblyName,
         rootNamespace: projectContext.project.rootNamespace,
-        targetFrameworks: projectContext.project.targetFrameworks
+        targetFrameworks: projectContext.project.targetFrameworks,
+        metadataReferenceCount: projectContext.metadataReferences.paths.length
       }
     };
-    artifact.diagnostics = [...(artifact.diagnostics ?? []), ...(projectContext.project.diagnostics ?? [])];
+    artifact.diagnostics = [...(artifact.diagnostics ?? []), ...(projectContext.project.diagnostics ?? []), ...projectContext.metadataReferences.diagnostics];
   }
   hydrateSourceDocumentationI18n(artifact);
   return artifact;
@@ -363,11 +369,12 @@ function normalizeRequest(request) {
   return {
     workspaceRoot,
     paths: rawPaths.map((value, index) => normalizeSafeRelativePath(value, `paths[${index}]`)),
-    projectPath
+    projectPath,
+    referenceDirectory: request.referenceDirectory === undefined ? undefined : normalizeSafeDirectoryPath(request.referenceDirectory, "referenceDirectory")
   };
 }
 
-async function loadProjectSourceContext(workspaceRoot, projectPath) {
+async function loadProjectSourceContext(workspaceRoot, projectPath, referenceDirectory) {
   const projectText = await readFile(path.join(workspaceRoot, projectPath), "utf8");
   const project = parseProjectFile(projectText, projectPath, {});
   const compileIncludes = project.compileItems
@@ -389,7 +396,8 @@ async function loadProjectSourceContext(workspaceRoot, projectPath) {
   return {
     kind: compileIncludes.length > 0 ? "csproj-explicit-compile-items" : "csproj-sdk-default-compile-items",
     project,
-    paths: uniqueStrings(paths.filter((sourcePath) => !compileRemoves.has(sourcePath)))
+    paths: uniqueStrings(paths.filter((sourcePath) => !compileRemoves.has(sourcePath))),
+    metadataReferences: await resolveProjectMetadataReferences({workspaceRoot,projectPath,referenceDirectory})
   };
 }
 
@@ -486,6 +494,8 @@ function runRoslynHelper(request) {
       "--workspace-root",
       request.workspaceRoot,
       ...(request.assemblyName ? ["--assembly-name", request.assemblyName] : []),
+      ...(request.targetFrameworkVersion ? ["--framework-version", request.targetFrameworkVersion] : []),
+      ...(request.metadataReferencePaths ?? []).flatMap(reference=>["--reference", reference]),
       ...request.paths
     ], {
       cwd: packageRoot,

@@ -68,7 +68,7 @@ For real C# locations, use a configured `dotnet-project` solution/project input 
 unique assembly and complete documentation-comment ID match. It does not add duplicate
 C# documentation pages and works with `writeSourceRelationArtifact: false`.
 
-Unresolved or ambiguous members have no code locator. Partial declarations, missing
+Unresolved or ambiguous members have no code locator. Conflicting declarations, missing
 references, unavailable .NET tooling and sources outside the workspace are never repaired
 by choosing an arbitrary filename. Extraction reads configured source only; it does not
 execute the target build, download source, parse Windows/Portable PDBs or grant publication
