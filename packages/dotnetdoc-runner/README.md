@@ -16,6 +16,45 @@ This package emits DotNetDoc extraction artifacts, HIA document artifacts,
 optional source relation artifacts, ASP.NET endpoint extraction artifacts and a
 documentation producer result manifest without embedding private source text.
 
+## Documentation source map (opt in)
+
+Set `options.writeDocSourceMapArtifact: true` in `dotnetdoc.config.json` to emit
+an independent `doc-source-map@1.1.0` file alongside each XML or C# member
+document. The default is `false`. The runner exports the pure
+`createDotnetDocSourceMap()` writer from its existing package; this does not add
+a separately published npm package. The result manifest and
+`document.metadata.docSourceMaps` reference the emitted file and its actual
+contract version only while the option is enabled.
+
+```json
+{
+  "schemaVersion": "0.1.0-draft",
+  "workspaceRoot": ".",
+  "outputDirectory": "dist/dotnetdoc",
+  "inputs": [
+    { "kind": "dotnet-xml-doc", "path": "bin/Sample.xml", "projectPath": "Sample.csproj" }
+  ],
+  "options": { "writeDocSourceMapArtifact": true }
+}
+```
+
+Only uniquely matched XML members and native C# members with verified Roslyn
+declaration ranges can carry C# source references. Valid declarations use an
+exclusive end and UTF-16 code-unit columns; recovered syntax or incomplete
+range precision remains explicitly unknown. XML-only inputs without a matching
+project keep symbol entries with no code source reference. The map embeds no
+source text, XML comments or arbitrary producer diagnostics. ASP.NET surface,
+markup comment and project-discovery inputs remain outside this first map
+scope. The older source-relation artifact remains independent and may be
+disabled while source-map emission is enabled.
+
+中文：在配置的 `options` 中显式设置 `writeDocSourceMapArtifact: true` 才生成
+`doc-source-map@1.1.0`。纯数据 writer 从现有 runner 包导出，本轮不增加 npm 包。
+XML 注释来源不会伪装成代码位置；只有唯一匹配的 Roslyn 声明和原生 C# 成员可引用
+已核工作区内 `.cs` 文件。有效声明逐条写明排除终点及 UTF-16 列单位；恢复解析或
+列精度不足时标记未知，不能精确查询。映射不包含源码正文或 XML 注释；关系工件与
+源码映射各有独立用途，关闭映射时结果清单与 HIA 文档也不保留悬空引用。
+
 It also exposes `classifyDotnetBuildDiagnostics()` for target scripts that need
 to turn compiler XML documentation warnings such as `CS1591` into a
 generated/designer/manual-source evidence summary.

@@ -8,6 +8,7 @@ import path from 'node:path';
 import { extractDotnetProjectDiscovery, extractDotnetSourceFiles } from '@hia-doc/dotnet-source-extractor';
 import { dotnetXmlDocsToHiaDocument } from '@hia-doc/dotnetdoc-adapter';
 import { DOTNETDOC_XML_DOC_EXTRACTION_CONTRACT, DOTNETDOC_CSHARP_SOURCE_EXTRACTION_CONTRACT, DOTNETDOC_PROJECT_DISCOVERY_CONTRACT } from '@hia-doc/dotnetdoc-spec';
+import { hasUnpairedSurrogate } from './doc-source-map.mjs';
 
 /**
  * @lang zh-CN 按完整成员ID选声明；同次抽取的真实partial类型选主声明，重复注册/跨抽取冲突仍拒绝。
@@ -15,7 +16,7 @@ import { DOTNETDOC_XML_DOC_EXTRACTION_CONTRACT, DOTNETDOC_CSHARP_SOURCE_EXTRACTI
  * @param {object} member <lang><zh-CN>XML成员身份。</zh-CN><en>XML member identity.</en></lang>
  * @param {object[]} candidates <lang><zh-CN>声明及其程序集身份。</zh-CN><en>Declarations with assembly identities.</en></lang>
  * @param {string|null} assembly <lang><zh-CN>XML声明的程序集。</zh-CN><en>Assembly declared by the XML input.</en></lang>
- * @returns {{declaration?:object,status:string,candidateCount:number,selectionRule?:string}} <lang><zh-CN>精确/partial主声明或missing/ambiguous，含候选数与选择规则；不按简称或参数数量回退。</zh-CN><en>Exact/partial primary declaration or missing/ambiguous, with candidate count and selection rule; no short-name or arity fallback.</en></lang>
+ * @returns {{declaration?:object,origin?:object,status:string,candidateCount:number,selectionRule?:string}} <lang><zh-CN>精确/partial主声明及其抽取事实，或missing/ambiguous；不按简称或参数数量回退。</zh-CN><en>Exact/partial primary declaration and its extraction fact, or missing/ambiguous; no short-name or arity fallback.</en></lang>
  */
 export function selectExactDeclaration(member, candidates, assembly) {
   // <lang><zh-CN>完整ID及签名类型先验证；相同位置重复注册不自动合并为同一输入事实。</zh-CN><en>Validate complete IDs and signature types first; duplicate registrations at the same location do not automatically become one input fact.</en></lang>
@@ -25,13 +26,13 @@ export function selectExactDeclaration(member, candidates, assembly) {
     if (assembly && candidate.assembly && candidate.assembly !== 'DotNetDoc.SourceExtraction' && candidate.assembly !== assembly) continue;
     unique.push(candidate);
   }
-  if(unique.length===1) return {status:'resolved',declaration:unique[0].member,candidateCount:1,selectionRule:'exact-documentation-id'};
+  if(unique.length===1) return {status:'resolved',declaration:unique[0].member,origin:unique[0].origin,candidateCount:1,selectionRule:'exact-documentation-id'};
   // <lang><zh-CN>partial必须来自同一编译事实、同一程序集且位置各异；普通重复不能靠排序变成有效声明。</zh-CN><en>Partial declarations must share a compilation and assembly with distinct locations; ordering cannot legitimize ordinary duplicates.</en></lang>
   const first=unique[0];
   const locations=new Set(unique.map(candidate=>`${candidate.member.source?.path}:${candidate.member.source?.range?.start?.line}:${candidate.member.source?.range?.start?.column}`));
   if(unique.length>1 && first.origin && locations.size===unique.length && unique.every(candidate=>candidate.origin===first.origin && candidate.assembly===first.assembly && candidate.member.kind==='dotnet-type' && candidate.member.semantic?.declaration?.isPartialType===true && candidate.member.semantic.declaration.declarationCount===unique.length)){
     const ranked=[...unique].sort(compareDeclarations);
-    return {status:'resolved',declaration:ranked[0].member,candidateCount:unique.length,selectionRule:'non-generated-path-line'};
+    return {status:'resolved',declaration:ranked[0].member,origin:ranked[0].origin,candidateCount:unique.length,selectionRule:'non-generated-path-line'};
   }
   return {status:unique.length===0?'missing':'ambiguous',candidateCount:unique.length};
 }
@@ -109,7 +110,8 @@ export async function enrichXmlSourceLocations(records, request) {
         summary.resolved += 1;
         if(selected.selectionRule==='non-generated-path-line') summary.resolvedPartial+=1;
         members.push({ ...member, source: declaration.source, semantic: { ...member.semantic, ...declaration.semantic } });
-        resolutions.push({status:'resolved',candidateCount:selected.candidateCount,selectionRule:selected.selectionRule});
+        // <lang><zh-CN>只记录当前 Roslyn 事实的固定类别和错误存在性，映射不能凭 XML 或外来名称自行升格。</zh-CN><en>Record only the current Roslyn fact category and error presence, so maps cannot promote XML or foreign labels on their own.</en></lang>
+        resolutions.push({status:'resolved',candidateCount:selected.candidateCount,selectionRule:selected.selectionRule,...(request.options?.writeDocSourceMapArtifact ? {sourceRangeSource:declaration.source.rangeSource,sourceHasErrors:(selected.origin?.diagnostics??[]).some(item=>item.severity==='error')} : {})});
       } catch { summary.missing += 1; members.push(member); resolutions.push({status:'missing',reason:'missing',detail:'unsafe-or-invalid-declaration-location',candidateCount:selected.candidateCount}); }
     }
     const document = dotnetXmlDocsToHiaDocument({ ...record.artifact, members }, { id: record.input.hiaDocumentId, title: record.input.title });
@@ -149,7 +151,7 @@ async function readProjectCandidates(project, root, referenceDirectory) {
 
 /** @lang zh-CN 双重路径包含检查，不读取越界symlink目标正文。 @lang en Checks lexical and real-path containment without reading bodies behind escaping symlinks. */
 async function assertContainedFile(root, relative) {
-  if (typeof relative !== 'string' || /^(?:[/\\]|[a-z][a-z0-9+.-]*:)/iu.test(relative) || relative.replaceAll('\\', '/').split('/').includes('..')) throw new Error('Unsafe source locator');
+  if (typeof relative !== 'string' || hasUnpairedSurrogate(relative) || relative.includes(':') || /^(?:[/\\]|[a-z][a-z0-9+.-]*:)/iu.test(relative) || relative.replaceAll('\\', '/').split('/').includes('..')) throw new Error('Unsafe source locator');
   const [realRoot, realFile] = await Promise.all([realpath(root), realpath(path.resolve(root, relative))]);
   const inside = path.relative(realRoot, realFile);
   if (path.isAbsolute(inside) || inside === '..' || inside.startsWith(`..${path.sep}`)) throw new Error('Source leaves workspace');

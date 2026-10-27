@@ -59,6 +59,7 @@ const requiredPaths = [
   "packages/dotnetdoc-runner/src/index.mjs",
   "packages/dotnetdoc-runner/src/cli.mjs",
   "packages/dotnetdoc-runner/src/schema.mjs",
+  "packages/dotnetdoc-runner/src/doc-source-map.mjs",
   "packages/dotnetdoc-producer/package.json",
   "packages/dotnetdoc-producer/README.md",
   "packages/dotnetdoc-producer/LICENSE",

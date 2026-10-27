@@ -7,6 +7,7 @@ const relativePath = {
   not: {
     anyOf: [
       { pattern: "^(?:[A-Za-z]:|/|\\\\|[A-Za-z][A-Za-z0-9+.-]*:)" },
+      { pattern: ":" },
       { pattern: "(?:^|[\\\\/])\\.\\.(?:[\\\\/]|$)" }
     ]
   }
@@ -64,7 +65,8 @@ export const DOTNETDOC_CONFIG_JSON_SCHEMA = Object.freeze({
       additionalProperties: false,
       properties: {
         writeResultManifest: { type: "boolean" },
-        writeSourceRelationArtifact: { type: "boolean" }
+        writeSourceRelationArtifact: { type: "boolean" },
+        writeDocSourceMapArtifact: { type: "boolean" }
       }
     },
     profileIds: {

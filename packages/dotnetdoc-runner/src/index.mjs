@@ -3,7 +3,7 @@
  * @lang zh-CN 编排显式.NET输入的抽取与HIA/关系输出，仅唯一精确声明补全XML签名，不修改业务输入。
  * @lang en Orchestrates extraction and HIA/relation output for explicit .NET inputs, enriching XML signatures only from unique exact declarations without changing business inputs.
  */
-import { readFile, mkdir, readdir, writeFile } from "node:fs/promises";
+import { readFile, mkdir, readdir, writeFile, realpath } from "node:fs/promises";
 import path from "node:path";
 
 import { extractAspNetEndpoints, extractDotnetMarkupComments, extractDotnetProjectDiscovery, extractDotnetSourceFiles } from "@hia-doc/dotnet-source-extractor";
@@ -28,6 +28,8 @@ export {
 } from "./schema.mjs";
 import { DOTNETDOC_CONFIG_SCHEMA_ID, DOTNETDOC_CONFIG_SCHEMA_VERSION } from "./schema.mjs";
 import { enrichXmlSourceLocations } from "./source-locations.mjs";
+import { createDotnetDocSourceMap, hasUnpairedSurrogate } from "./doc-source-map.mjs";
+export { createDotnetDocSourceMap, DOTNETDOC_DOC_SOURCE_MAP_CONTRACT_VERSION } from "./doc-source-map.mjs";
 
 /**
  * @lang zh-CN DotNetDoc runner/producer 的公开包版本；它与各个 `0.1.0-draft` artifact contract version 分离。
@@ -35,7 +37,7 @@ import { enrichXmlSourceLocations } from "./source-locations.mjs";
  */
 export const DOTNETDOC_RUNNER_VERSION = "0.1.12";
 export const DOTNETDOC_INPUT_KINDS = Object.freeze(["dotnet-xml-doc", "dotnet-csharp-source", "dotnet-aspnet-surface", "dotnet-markup-comments", "dotnet-project"]);
-export const DOTNETDOC_OUTPUT_KINDS = Object.freeze(["dotnetdoc-extraction", "hia-document", "dotnetdoc-source-relation", "dotnetdoc-aspnet-endpoint-extraction", "dotnetdoc-markup-comment-extraction", "dotnetdoc-project-discovery"]);
+export const DOTNETDOC_OUTPUT_KINDS = Object.freeze(["dotnetdoc-extraction", "hia-document", "doc-source-map", "dotnetdoc-source-relation", "dotnetdoc-aspnet-endpoint-extraction", "dotnetdoc-markup-comment-extraction", "dotnetdoc-project-discovery"]);
 export const DOTNETDOC_BUILD_WARNING_CLASSIFICATION_CONTRACT = "dotnetdoc-build-warning-classification";
 export const DOTNETDOC_BUILD_WARNING_CLASSIFICATION_CONTRACT_VERSION = "0.1.0-draft";
 
@@ -62,6 +64,23 @@ export async function runDotnetDoc(request, context = {}) {
     ...normalizedRequest,
     inputs: await expandInputs(normalizedRequest)
   };
+  // <lang><zh-CN>任何输出写入前预检所有地图路径与显式文档身份；拒绝重复、ADS 和不可逆编码的 UTF-16。</zh-CN><en>Preflight every map path and explicit document identity before output writes, rejecting collisions, ADS, and malformed UTF-16.</en></lang>
+  if (normalized.options.writeDocSourceMapArtifact) {
+    const outputBases = new Set();
+    for (const input of normalized.inputs) {
+      const artifactBasePath = normalizeSafeRelativePath(input.artifactBasePath, 'artifactBasePath');
+      if (input.hiaDocumentId !== undefined && (typeof input.hiaDocumentId !== 'string' || hasUnpairedSurrogate(input.hiaDocumentId))) {
+        throw new TypeError('Unsafe DotNetDoc map member identity.');
+      }
+      for (const suffix of ['.dotnetdoc.json', '.hia.json', '.doc-source-map.json']) {
+        const artifactPath = normalizeSafeRelativePath(`${artifactBasePath}${suffix}`, 'map artifact path');
+        encodeURIComponent(artifactPath);
+      }
+      const base = path.normalize(input.artifactBasePath).toLowerCase();
+      if (outputBases.has(base)) throw new TypeError('Duplicate DotNetDoc output artifact base collision.');
+      outputBases.add(base);
+    }
+  }
   await mkdir(normalized.outputDirectory, { recursive: true });
 
   const artifacts = [];
@@ -102,6 +121,26 @@ export async function runDotnetDoc(request, context = {}) {
   // <lang><zh-CN>精确声明投影独立于是否输出relation文件；单独消费XML的HIA产物也保留签名。</zh-CN><en>Exact declaration projection is independent of relation-file emission, retaining signatures in XML-derived HIA artifacts consumed alone.</en></lang>
   const sourceRelation = buildSourceRelationArtifact(extractionRecords, normalized);
   diagnostics.push(...await enrichXmlSourceLocations(extractionRecords, normalized));
+  if (normalized.options.writeDocSourceMapArtifact) {
+    // <lang><zh-CN>源码映射只对成员抽取生成；路径真实包含检查先于纯数据 writer，XML 出处不进入代码引用。</zh-CN><en>Emit maps only for member extractions; real-path containment precedes the pure writer, and XML origins never become code references.</en></lang>
+    for (const record of extractionRecords) {
+      if (![DOTNETDOC_XML_DOC_EXTRACTION_CONTRACT, DOTNETDOC_CSHARP_SOURCE_EXTRACTION_CONTRACT].includes(record.artifact.contract)) continue;
+      try {
+        const verifiedSourcePaths = await verifyCodePaths(record.hiaDocument, normalized.workspaceRoot);
+        const map = createDotnetDocSourceMap({ record, verifiedSourcePaths, producerVersion: DOTNETDOC_RUNNER_VERSION });
+        const mapPath = `${record.input.artifactBasePath}.doc-source-map.json`;
+        // <lang><zh-CN>先写地图，再写带引用的 HIA 文档；前者失败时旧文档不含悬空引用。</zh-CN><en>Write the map before the referencing HIA document so map failures cannot leave a dangling HIA reference.</en></lang>
+        await writeJson(path.join(normalized.outputDirectory, mapPath), map);
+        const updatedDocument = { ...record.hiaDocument, metadata: { ...record.hiaDocument.metadata, docSourceMaps: [{ contract: map.contract, contractVersion: map.contractVersion, path: mapPath }] } };
+        await writeJson(path.join(normalized.outputDirectory, record.hiaPath), updatedDocument);
+        record.hiaDocument = updatedDocument;
+        artifacts.push({ ...artifact(reversibleArtifactId('doc-source-map', mapPath), 'doc-source-map', mapPath, normalized.profileIds), contract: map.contract, contractVersion: map.contractVersion });
+      } catch {
+        // <lang><zh-CN>单个地图失败只降为受控 partial，不拷贝可能含私有路径或正文的底层异常。</zh-CN><en>A single map failure becomes a controlled partial result without copying a potentially private underlying exception.</en></lang>
+        diagnostics.push(createDiagnostic('DOTNETDOC_RUNNER_SOURCE_MAP_FAILED', 'Unable to emit a DotNetDoc source map for this input.', 'error', record.input.path));
+      }
+    }
+  }
   if (sourceRelation && normalized.options.writeSourceRelationArtifact) {
     const relationPath = "dotnetdoc.source-relation.json";
     await writeJson(path.join(normalized.outputDirectory, relationPath), sourceRelation);
@@ -220,7 +259,8 @@ function normalizeRequest(request) {
 
   const options = {
     writeResultManifest: request.options?.writeResultManifest !== false,
-    writeSourceRelationArtifact: request.options?.writeSourceRelationArtifact !== false
+    writeSourceRelationArtifact: request.options?.writeSourceRelationArtifact !== false,
+    writeDocSourceMapArtifact: request.options?.writeDocSourceMapArtifact === true
   };
   const profileIds = normalizeProfileIds(request.profileIds ?? ["dotnetdoc"]);
 
@@ -313,11 +353,11 @@ async function processInput(input, request) {
   return {
     artifacts: [
       {
-        ...artifact(`${safeArtifactId(input.artifactBasePath)}-dotnetdoc`, "dotnetdoc-extraction", dotnetdocPath, request.profileIds),
+        ...artifact(request.options.writeDocSourceMapArtifact ? reversibleArtifactId('dotnetdoc-extraction', dotnetdocPath) : `${safeArtifactId(input.artifactBasePath)}-dotnetdoc`, "dotnetdoc-extraction", dotnetdocPath, request.profileIds),
         contract: dotnetdoc.contract,
         contractVersion: dotnetdoc.contractVersion
       },
-      artifact(`${safeArtifactId(input.artifactBasePath)}-hia-document`, "hia-document", hiaPath, request.profileIds)
+      artifact(request.options.writeDocSourceMapArtifact ? reversibleArtifactId('hia-document', hiaPath) : `${safeArtifactId(input.artifactBasePath)}-hia-document`, "hia-document", hiaPath, request.profileIds)
     ],
     diagnostics: [...(dotnetdoc.diagnostics ?? []), ...(hiaDocument.diagnostics ?? [])]
       .map(normalizeRunnerDiagnostic),
@@ -867,6 +907,30 @@ function artifact(id, kind, artifactPath, profileIds) {
   };
 }
 
+/**
+ * @lang zh-CN 仅确认已有 C# 文件的真实路径仍在工作区内，且不读取或嵌入源码正文。
+ * @lang en Verifies existing C# files remain within the real workspace without reading or embedding their bodies.
+ * @param {object} document <lang><zh-CN>本次生成的 HIA 文档。</zh-CN><en>The HIA document generated in this run.</en></lang>
+ * @param {string} workspaceRoot <lang><zh-CN>工作区根目录。</zh-CN><en>Workspace root.</en></lang>
+ * @returns {Promise<Set<string>>} <lang><zh-CN>经词法与真实路径双重检查的相对文件路径。</zh-CN><en>Relative file paths passing lexical and real-path containment checks.</en></lang>
+ */
+async function verifyCodePaths(document, workspaceRoot) {
+  const verified = new Set();
+  const root = await realpath(workspaceRoot);
+  for (const symbol of document.symbols ?? []) {
+    const relative = symbol?.source?.definedIn?.relativePath?.replaceAll('\\', '/');
+    if (typeof relative !== 'string' || !/\.cs$/iu.test(relative) || hasUnpairedSurrogate(relative) || relative.includes(':') || /^(?:[/\\]|[a-z][a-z0-9+.-]*:)/iu.test(relative) || relative.split('/').includes('..') || verified.has(relative)) continue;
+    try {
+      const file = await realpath(path.resolve(root, relative));
+      const inside = path.relative(root, file);
+      if (inside && !path.isAbsolute(inside) && inside !== '..' && !inside.startsWith(`..${path.sep}`)) verified.add(relative);
+    } catch {
+      // <lang><zh-CN>失效/越根文件保留 HIA 成员但不发布精确代码位置。</zh-CN><en>A missing or escaping file leaves the HIA member intact without a precise code location.</en></lang>
+    }
+  }
+  return verified;
+}
+
 async function writeJson(filePath, value) {
   await mkdir(path.dirname(filePath), { recursive: true });
   await writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
@@ -1003,7 +1067,7 @@ function normalizeSafeRelativePath(value, label) {
     throw new TypeError(`${label} must be a non-empty relative path.`);
   }
   const normalized = value.replaceAll("\\", "/").replace(/^\.\//, "");
-  if (!normalized || normalized.startsWith("/") || /^[a-zA-Z]:\//.test(normalized) || normalized.split("/").includes("..")) {
+  if (!normalized || normalized.startsWith("/") || hasUnpairedSurrogate(normalized) || normalized.includes(":") || normalized.split("/").includes("..")) {
     throw new TypeError(`${label} must be a safe relative path.`);
   }
   return normalized;
@@ -1014,7 +1078,7 @@ function normalizeSafeGlobPattern(value, label) {
     throw new TypeError(`${label} must be a non-empty relative glob pattern.`);
   }
   const normalized = value.replaceAll("\\", "/").replace(/^\.\//, "");
-  if (!normalized || normalized.startsWith("/") || /^[a-zA-Z]:\//.test(normalized) || normalized.split("/").includes("..")) {
+  if (!normalized || normalized.startsWith("/") || hasUnpairedSurrogate(normalized) || normalized.includes(":") || normalized.split("/").includes("..")) {
     throw new TypeError(`${label} must be a safe relative glob pattern.`);
   }
   return normalized;
@@ -1097,6 +1161,17 @@ function stripKnownInputExtension(value) {
 
 function safeArtifactId(value) {
   return value.toLowerCase().replace(/[^a-z0-9._-]+/g, "-").replace(/^-|-$/g, "") || "input";
+}
+
+/**
+ * @lang zh-CN 仅为显式启用地图的结果工件生成可逆路径身份，避免不同路径在旧 slug 下相撞。
+ * @lang en Makes path-reversible result artifact identities only for map-enabled builds, avoiding legacy slug collisions.
+ * @param {string} kind <lang><zh-CN>结果工件类别。</zh-CN><en>Result artifact kind.</en></lang>
+ * @param {string} artifactPath <lang><zh-CN>已经预检的相对输出路径。</zh-CN><en>Preflighted relative output path.</en></lang>
+ * @returns {string} <lang><zh-CN>由 UTF-8 十六进制路径组成的无冲突身份。</zh-CN><en>Collision-free identity containing the UTF-8 hexadecimal path.</en></lang>
+ */
+function reversibleArtifactId(kind, artifactPath) {
+  return `${kind}-${Buffer.from(artifactPath, 'utf8').toString('hex')}`;
 }
 
 function assertRecord(value, message) {

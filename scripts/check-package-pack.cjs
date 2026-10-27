@@ -58,7 +58,7 @@ const packages = [
       "@hia-doc/dotnetdoc-adapter",
       "@hia-doc/dotnetdoc-spec"
     ],
-    requiredFiles: ["package.json", "README.md", "LICENSE", "src/cli.mjs", "src/index.mjs", "src/schema.mjs"]
+    requiredFiles: ["package.json", "README.md", "LICENSE", "src/cli.mjs", "src/index.mjs", "src/schema.mjs", "src/doc-source-map.mjs"]
   },
   {
     name: "@hia-doc/dotnetdoc-producer",
