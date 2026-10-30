@@ -1217,13 +1217,24 @@ function extractMinimalApiEndpoints(text, relativePath) {
   return endpoints;
 }
 
+/**
+ * 将LF/CRLF源码分成行，并保留原始JavaScript UTF-16偏移，避免属性绑定跨行漂移。
+ * @lang en Splits LF/CRLF source into lines while preserving original JavaScript UTF-16 offsets so attribute binding cannot drift between lines.
+ * @param {string} text <lang><zh-CN>未经换行归一化的原始源码。</zh-CN><en>Original source without newline normalization.</en></lang>
+ * @returns {Array<{text: string, offset: number}>} <lang><zh-CN>每行正文与原始起始偏移，含尾空行；不扩大独立CR分行支持。</zh-CN><en>Line bodies and original start offsets, including a trailing empty line; does not add standalone-CR line splitting.</en></lang>
+ */
 function splitLinesWithOffsets(text) {
+  // <lang><zh-CN>行表仅在本次扫描中使用；offset对应原文而非删除CR后的字符串。</zh-CN><en>The line table belongs to this scan; offsets refer to the original text rather than a CR-stripped string.</en></lang>
   const lines = [];
+  // <lang><zh-CN>下一行起点随已匹配分隔符推进；CRLF占两个UTF-16单元。</zh-CN><en>The next line starts after the matched separator; CRLF occupies two UTF-16 code units.</en></lang>
   let offset = 0;
-  for (const line of text.split(/\r?\n/u)) {
-    lines.push({ text: line, offset });
-    offset += line.length + 1;
+  for (const separator of text.matchAll(/\r?\n/gu)) {
+    // <lang><zh-CN>正文不含分隔符，但起点始终保留原文位置；禁止假设每次只增加一个换行单元。</zh-CN><en>Line bodies omit separators while starts retain original positions; never assume every separator adds only one code unit.</en></lang>
+    lines.push({ text: text.slice(offset, separator.index), offset });
+    offset = separator.index + separator[0].length;
   }
+  // <lang><zh-CN>补最后一行以保持空文本和以换行结束文本的旧数组形态。</zh-CN><en>Append the last line to retain the previous array shape for empty and newline-terminated text.</en></lang>
+  lines.push({ text: text.slice(offset), offset });
   return lines;
 }
 
