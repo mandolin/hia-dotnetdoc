@@ -11,7 +11,7 @@ function main() {
   const result = readJson("dotnetdoc.producer-result.json");
 
   assert.equal(dotnetdoc.contract, "dotnetdoc-xml-doc-extraction");
-  assert.equal(dotnetdoc.contractVersion, "0.1.0-draft");
+  assert.equal(dotnetdoc.contractVersion, "1.0.0");
   assert.equal(dotnetdoc.assembly.name, "Portal.Components");
   assert.equal(dotnetdoc.defaultLocale, "en");
   assert.deepEqual(dotnetdoc.locales, ["en", "zh-CN"]);

@@ -4,6 +4,7 @@
  * @lang en Projects .NET extraction into HIA symbols, complete i18n and conservative/exact display signatures without reading source or executing declarations.
  */
 import {
+  readDotnetDocArtifact,
   DOTNETDOC_XML_DOC_EXTRACTION_CONTRACT,
   DOTNETDOC_ASPNET_ENDPOINT_EXTRACTION_CONTRACT,
   DOTNETDOC_MARKUP_COMMENT_EXTRACTION_CONTRACT,
@@ -202,6 +203,8 @@ export function dotnetProjectDiscoveryToHiaDocument(artifact, options = {}) {
  * @lang zh-CN 断言某个值是 DotNetDoc XML documentation extraction artifact。
  */
 export function assertDotnetXmlDocArtifact(artifact) {
+  // <lang><zh-CN>精确新旧身份先核验，members数组不能授权未来版本。</zh-CN><en>Validate exact current/legacy identities first; a members array cannot authorize future versions.</en></lang>
+  readDotnetDocArtifact(artifact);
   if (!artifact || !isDotnetDocMemberExtractionContract(artifact.contract)) {
     throw new Error("Expected a DotNetDoc member extraction artifact.");
   }
@@ -219,6 +222,8 @@ export function assertDotnetXmlDocArtifact(artifact) {
  * @lang zh-CN 断言某个值是 ASP.NET endpoint 抽取产物。
  */
 export function assertDotnetAspNetEndpointArtifact(artifact) {
+  // <lang><zh-CN>先核静态端点的合同/版本/JSON结构，不在adapter内迁移。</zh-CN><en>Validate static-endpoint contract/version/JSON shape without migration inside the adapter.</en></lang>
+  readDotnetDocArtifact(artifact);
   if (!artifact || artifact.contract !== DOTNETDOC_ASPNET_ENDPOINT_EXTRACTION_CONTRACT) {
     throw new Error("Expected a DotNetDoc ASP.NET endpoint extraction artifact.");
   }
@@ -236,6 +241,8 @@ export function assertDotnetAspNetEndpointArtifact(artifact) {
  * @lang zh-CN 断言某个值是 DotNetDoc markup comment extraction artifact。
  */
 export function assertDotnetMarkupCommentArtifact(artifact) {
+  // <lang><zh-CN>标记内容属于文档，精确读取不授予整份源码公开权限。</zh-CN><en>Markup content is documentation; exact reading does not grant whole-source publication rights.</en></lang>
+  readDotnetDocArtifact(artifact);
   if (!artifact || artifact.contract !== DOTNETDOC_MARKUP_COMMENT_EXTRACTION_CONTRACT) {
     throw new Error("Expected a DotNetDoc markup comment extraction artifact.");
   }
@@ -253,6 +260,8 @@ export function assertDotnetMarkupCommentArtifact(artifact) {
  * @lang zh-CN 断言某个值是 .NET project discovery 抽取产物。
  */
 export function assertDotnetProjectDiscoveryArtifact(artifact) {
+  // <lang><zh-CN>核项目元数据结构，不执行项目或读取其路径。</zh-CN><en>Validate project metadata without executing projects or reading their paths.</en></lang>
+  readDotnetDocArtifact(artifact);
   if (!artifact || artifact.contract !== DOTNETDOC_PROJECT_DISCOVERY_CONTRACT) {
     throw new Error("Expected a DotNetDoc project discovery artifact.");
   }

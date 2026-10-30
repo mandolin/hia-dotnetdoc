@@ -1,0 +1,313 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mandolin.github.io/HIA-Documentation/schemas/dotnetdoc-project-discovery-1.0.0.schema.json",
+  "$comment": "中文：已确认静态领域产物的精确版本与传输结构，不授权源码读取/执行或精确导航。 English: Exact version and transport structure for the confirmed static domain artifact, without authorizing source reads/execution or exact navigation.",
+  "title": "dotnetdoc-project-discovery 1.0.0",
+  "type": "object",
+  "required": [
+    "contract",
+    "contractVersion",
+    "producer",
+    "diagnostics",
+    "source",
+    "projects",
+    "solutions",
+    "privacy",
+    "identityPolicy"
+  ],
+  "properties": {
+    "contract": {
+      "const": "dotnetdoc-project-discovery"
+    },
+    "contractVersion": {
+      "const": "1.0.0"
+    },
+    "$schema": {
+      "const": "https://mandolin.github.io/HIA-Documentation/schemas/dotnetdoc-project-discovery-1.0.0.schema.json"
+    },
+    "producer": {
+      "type": "object",
+      "required": [
+        "name",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "engine": {
+          "type": "string",
+          "minLength": 1
+        },
+        "engineVersion": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "severity"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string",
+            "minLength": 1
+          },
+          "message": {
+            "type": "string"
+          },
+          "severity": {
+            "enum": [
+              "error",
+              "warning",
+              "info",
+              "hint"
+            ]
+          },
+          "path": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "range": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "start"
+            ],
+            "properties": {
+              "start": {
+                "type": "object",
+                "required": [
+                  "line"
+                ],
+                "properties": {
+                  "line": {
+                    "type": "integer"
+                  },
+                  "column": {
+                    "type": "integer"
+                  }
+                }
+              },
+              "end": {
+                "type": "object",
+                "required": [
+                  "line"
+                ],
+                "properties": {
+                  "line": {
+                    "type": "integer"
+                  },
+                  "column": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "defaultLocale": {
+      "type": "string",
+      "minLength": 1
+    },
+    "locales": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "summary": {
+      "type": "object"
+    },
+    "source": {
+      "type": "object"
+    },
+    "projects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "path",
+          "identity",
+          "targetFrameworks"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "identity": {
+            "type": "object",
+            "required": [
+              "id",
+              "path",
+              "policy"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "policy": {
+                "const": "project-relative-owner-resolved"
+              }
+            }
+          },
+          "targetFrameworks": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "source": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "language": {
+                "type": "string"
+              },
+              "range": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "required": [
+                  "start"
+                ],
+                "properties": {
+                  "start": {
+                    "type": "object",
+                    "required": [
+                      "line"
+                    ],
+                    "properties": {
+                      "line": {
+                        "type": "integer"
+                      },
+                      "column": {
+                        "type": "integer"
+                      }
+                    }
+                  },
+                  "end": {
+                    "type": "object",
+                    "required": [
+                      "line"
+                    ],
+                    "properties": {
+                      "line": {
+                        "type": "integer"
+                      },
+                      "column": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                }
+              },
+              "confidence": {
+                "type": "string"
+              },
+              "rangeSource": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "solutions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "path",
+          "projects"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "projects": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "properties": {
+        "sourcesContentPolicy": {
+          "const": "none"
+        },
+        "sourcePreviewPolicy": {
+          "const": "none"
+        },
+        "embedsSourcesContent": {
+          "const": false
+        }
+      }
+    },
+    "identityPolicy": {
+      "type": "object",
+      "properties": {
+        "policy": {
+          "const": "project-relative-owner-resolved"
+        },
+        "pathKind": {
+          "const": "project-relative"
+        },
+        "absolutePathInIdentity": {
+          "const": false
+        },
+        "displayLabelInIdentity": {
+          "const": false
+        },
+        "localeInIdentity": {
+          "const": false
+        }
+      }
+    }
+  }
+}

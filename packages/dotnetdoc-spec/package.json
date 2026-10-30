@@ -23,7 +23,8 @@
   },
   "homepage": "https://github.com/mandolin/hia-dotnetdoc/tree/main/packages/dotnetdoc-spec#readme",
   "exports": {
-    ".": "./src/index.mjs"
+    ".": "./src/index.mjs",
+    "./schemas/*": "./src/schemas/*"
   },
   "publishConfig": {
     "access": "public"
@@ -32,5 +33,8 @@
     "src",
     "README.md",
     "LICENSE"
-  ]
+  ],
+  "dependencies": {
+    "ajv": "8.17.1"
+  }
 }

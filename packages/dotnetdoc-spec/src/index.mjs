@@ -6,11 +6,11 @@
 export const DOTNETDOC_XML_DOC_EXTRACTION_CONTRACT = "dotnetdoc-xml-doc-extraction";
 
 /**
- * Draft contract version for compiler XML documentation extraction artifacts.
+ * Stable current contract version for compiler XML documentation extraction artifacts.
  *
- * @lang zh-CN 编译器 XML documentation comments 抽取产物的草案合同版本。
+ * @lang zh-CN 编译器XML文档提取的稳定新版本，旧身份读取另保留。
  */
-export const DOTNETDOC_XML_DOC_EXTRACTION_CONTRACT_VERSION = "0.1.0-draft";
+export const DOTNETDOC_XML_DOC_EXTRACTION_CONTRACT_VERSION = "1.0.0";
 
 /**
  * Contract name for Roslyn-backed C# source extraction artifacts.
@@ -20,11 +20,11 @@ export const DOTNETDOC_XML_DOC_EXTRACTION_CONTRACT_VERSION = "0.1.0-draft";
 export const DOTNETDOC_CSHARP_SOURCE_EXTRACTION_CONTRACT = "dotnetdoc-csharp-source-extraction";
 
 /**
- * Draft contract version for Roslyn-backed C# source extraction artifacts.
+ * Stable current contract version for Roslyn-backed C# source extraction artifacts.
  *
- * @lang zh-CN Roslyn 驱动的 C# 源码抽取产物草案合同版本。
+ * @lang zh-CN Roslyn驱动C#源码提取的稳定新版本，精确旧读保留。
  */
-export const DOTNETDOC_CSHARP_SOURCE_EXTRACTION_CONTRACT_VERSION = "0.1.0-draft";
+export const DOTNETDOC_CSHARP_SOURCE_EXTRACTION_CONTRACT_VERSION = "1.0.0";
 
 /**
  * Contract name for relation artifacts that connect XML docs, C# declarations and HIA symbols.
@@ -34,25 +34,25 @@ export const DOTNETDOC_CSHARP_SOURCE_EXTRACTION_CONTRACT_VERSION = "0.1.0-draft"
 export const DOTNETDOC_SOURCE_RELATION_CONTRACT = "dotnetdoc-source-relation";
 
 /**
- * Draft contract version for DotNetDoc source relation artifacts.
+ * Stable current contract version for DotNetDoc source relation artifacts.
  *
- * @lang zh-CN DotNetDoc source relation 产物的草案合同版本。
+ * @lang zh-CN DotNetDoc源码关系的稳定新版本，不重写历史引用。
  */
-export const DOTNETDOC_SOURCE_RELATION_CONTRACT_VERSION = "0.1.0-draft";
+export const DOTNETDOC_SOURCE_RELATION_CONTRACT_VERSION = "1.0.0";
 
 /**
- * Draft contract name reserved for ASP.NET endpoint extraction artifacts.
+ * Contract name for static ASP.NET endpoint extraction artifacts.
  *
- * @lang zh-CN 预留给 ASP.NET endpoint 抽取产物的草案合同名称。
+ * @lang zh-CN ASP.NET静态端点提取合同，不等于运行时端点发现。
  */
 export const DOTNETDOC_ASPNET_ENDPOINT_EXTRACTION_CONTRACT = "dotnetdoc-aspnet-endpoint-extraction";
 
 /**
- * Draft version reserved for ASP.NET endpoint extraction artifacts.
+ * Stable current version for static ASP.NET endpoint extraction artifacts.
  *
- * @lang zh-CN 预留给 ASP.NET endpoint 抽取产物的草案版本。
+ * @lang zh-CN ASP.NET静态端点提取的稳定新版本，精确旧读保留。
  */
-export const DOTNETDOC_ASPNET_ENDPOINT_EXTRACTION_CONTRACT_VERSION = "0.1.0-draft";
+export const DOTNETDOC_ASPNET_ENDPOINT_EXTRACTION_CONTRACT_VERSION = "1.0.0";
 
 /**
  * Contract name for ASP.NET and Razor markup comment extraction artifacts.
@@ -62,25 +62,25 @@ export const DOTNETDOC_ASPNET_ENDPOINT_EXTRACTION_CONTRACT_VERSION = "0.1.0-draf
 export const DOTNETDOC_MARKUP_COMMENT_EXTRACTION_CONTRACT = "dotnetdoc-markup-comment-extraction";
 
 /**
- * Draft contract version for ASP.NET and Razor markup comment extraction artifacts.
+ * Stable current contract version for ASP.NET and Razor markup comment extraction artifacts.
  *
- * @lang zh-CN ASP.NET 与 Razor 标记层非 XML 注释抽取产物的草案合同版本。
+ * @lang zh-CN ASP.NET与Razor标记注释提取的稳定新版本，精确旧读保留。
  */
-export const DOTNETDOC_MARKUP_COMMENT_EXTRACTION_CONTRACT_VERSION = "0.1.0-draft";
+export const DOTNETDOC_MARKUP_COMMENT_EXTRACTION_CONTRACT_VERSION = "1.0.0";
 
 /**
- * Draft contract name for .NET solution and project discovery artifacts.
+ * Contract name for static .NET solution and project discovery artifacts.
  *
- * @lang zh-CN .NET solution 与 project 发现产物的草案合同名称。
+ * @lang zh-CN .NET解决方案与项目静态发现合同名称。
  */
 export const DOTNETDOC_PROJECT_DISCOVERY_CONTRACT = "dotnetdoc-project-discovery";
 
 /**
- * Draft version for .NET solution and project discovery artifacts.
+ * Stable current version for static .NET solution and project discovery artifacts.
  *
- * @lang zh-CN .NET solution 与 project 发现产物的草案版本。
+ * @lang zh-CN .NET解决方案与项目静态发现的稳定新版本，不引入项目执行。
  */
-export const DOTNETDOC_PROJECT_DISCOVERY_CONTRACT_VERSION = "0.1.0-draft";
+export const DOTNETDOC_PROJECT_DISCOVERY_CONTRACT_VERSION = "1.0.0";
 
 /**
  * Stable identity policy shared by DotNetDoc project discovery and source relations.
@@ -186,3 +186,16 @@ export function isDotnetDocMemberExtractionContract(contract) {
     DOTNETDOC_CSHARP_SOURCE_EXTRACTION_CONTRACT
   ].includes(contract);
 }
+
+/** 精确两代领域工件的schema/profile读取与无损迁移；不执行宿主动作。 @lang en Exact dual-generation artifact schema/profile reading and lossless migration without host actions. */
+export {
+  DOTNETDOC_ARTIFACT_CONTRACTS,
+  DOTNETDOC_LEGACY_ARTIFACT_VERSION,
+  DOTNETDOC_ARTIFACT_VERSION,
+  getDotnetDocArtifactSchema,
+  getDotnetDocArtifactProfile,
+  readDotnetDocArtifact,
+  migrateDotnetDocArtifact
+} from './artifact-contracts.mjs';
+/** 无副作用的普通JSON复制，用于跨包配置迁移且不执行getter。 @lang en Side-effect-free ordinary-JSON copying for cross-package config migration without invoking getters. */
+export { cloneDotnetDocJson } from './json-value.mjs';

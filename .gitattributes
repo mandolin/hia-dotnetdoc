@@ -1,0 +1,6 @@
+# 中文：冻结旧产物与原配置模块保持原LF字节，不能因Windows检出转换破坏历史摘要。
+# English: Preserve original LF bytes for frozen artifacts and the legacy config module so Windows checkout conversion cannot invalidate historical digests.
+/test/fixtures/legacy-contracts/*.json text eol=lf
+/packages/dotnetdoc-runner/src/schema-legacy.mjs text eol=lf
+/packages/dotnetdoc-spec/src/schemas/*.json text eol=lf
+/packages/dotnetdoc-runner/src/schemas/*.json text eol=lf

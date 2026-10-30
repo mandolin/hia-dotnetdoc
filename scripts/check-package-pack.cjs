@@ -21,7 +21,7 @@ const packages = [
   {
     name: "@hia-doc/dotnetdoc-spec",
     directory: "packages/dotnetdoc-spec",
-    requiredFiles: ["package.json", "README.md", "LICENSE", "src/index.mjs"]
+    requiredFiles: ["package.json", "README.md", "LICENSE", "src/index.mjs", "src/artifact-contracts.mjs", "src/json-value.mjs", ...["0.1.0-draft", "1.0.0"].flatMap(version => ["dotnetdoc-xml-doc-extraction", "dotnetdoc-csharp-source-extraction", "dotnetdoc-source-relation", "dotnetdoc-aspnet-endpoint-extraction", "dotnetdoc-markup-comment-extraction", "dotnetdoc-project-discovery", "dotnetdoc-build-warning-classification"].map(contract => `src/schemas/${contract}-${version}.schema.json`))]
   },
   {
     name: "@hia-doc/dotnet-xml-doc-extractor",
@@ -60,7 +60,7 @@ const packages = [
       "@hia-doc/dotnetdoc-adapter",
       "@hia-doc/dotnetdoc-spec"
     ],
-    requiredFiles: ["package.json", "README.md", "LICENSE", "src/cli.mjs", "src/index.mjs", "src/schema.mjs", "src/doc-source-map.mjs"]
+    requiredFiles: ["package.json", "README.md", "LICENSE", "src/cli.mjs", "src/index.mjs", "src/schema.mjs", "src/schema-legacy.mjs", "src/config-compatibility.mjs", "src/doc-source-map.mjs", "src/schemas/dotnetdoc-config-0.1.0-draft.schema.json", "src/schemas/dotnetdoc-config-1.0.0.schema.json"]
   },
   {
     name: "@hia-doc/dotnetdoc-producer",

@@ -19,6 +19,18 @@ richer source-linkage.
 | `@hia-doc/dotnetdoc-runner` | Runs XML documentation inputs from JSON config or CLI and emits producer result manifests. |
 | `@hia-doc/dotnetdoc-producer` | Exposes the runner through the HIA documentation producer contract. |
 
+## Contracts and Compatibility
+
+Current writers emit configuration and seven domain artifacts at `1.0.0`.
+Exact `0.1.0-draft` reading and explicit lossless migration remain available;
+unknown identities are rejected. Shared producer SDK `1.0.0` and document source
+map `1.1.0` keep independent version boundaries. See [compatibility](COMPATIBILITY.md)
+and [contract APIs](docs/contracts.md). These wire identities do not imply a new
+npm publication; see the [changelog](CHANGELOG.md) for unreleased changes.
+
+当前写者采用八项自有1.0.0身份，保留精确旧读与显式无损迁移；不会只改旧产物版本号。
+共享SDK、源码地图和npm包各自版本化，尚未发布的变更见变更日志。
+
 ## Runtime Requirements
 
 Use Node.js 22 or 24. C# source extraction requires the **.NET 10 SDK and runtime**;
@@ -156,8 +168,8 @@ For a normal project, create a `dotnetdoc.config.json`:
 
 ```json
 {
-  "$schema": "https://mandolin.github.io/HIA-Documentation/schemas/dotnetdoc-config-0.1.0-draft.schema.json",
-  "schemaVersion": "0.1.0-draft",
+  "$schema": "https://mandolin.github.io/HIA-Documentation/schemas/dotnetdoc-config-1.0.0.schema.json",
+  "schemaVersion": "1.0.0",
   "workspaceRoot": ".",
   "outputDirectory": "dist/dotnetdoc",
   "inputs": [

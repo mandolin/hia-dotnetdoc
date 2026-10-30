@@ -1,5 +1,28 @@
 # @hia-doc/dotnetdoc-runner
 
+## Configuration Compatibility
+
+Current configuration uses `schemaVersion: "1.0.0"`; exact `0.1.0-draft`
+configuration remains readable. `readDotnetDocConfig(value)` returns the original
+relative config, while `loadDotnetDocConfig(path)` reads a file and resolves its
+runtime directories. `migrateDotnetDocConfig(value)` explicitly creates a new
+current object without materializing omitted defaults or modifying input.
+
+New config requires nonempty `inputs` with explicit supported `kind`. Omitted
+directories retain `.` / `dist/dotnetdoc`; explicit null and wrong types are
+rejected. Legacy omission/null runtime behavior remains readable despite its
+original schema's required-directory fields; lossy null/coercion-dependent
+migrations are refused. `getDotnetDocConfigSchema(identity)` selects an exact
+version or matching ID, returning `undefined` otherwise. Both schemas ship under
+`@hia-doc/dotnetdoc-runner/schemas/dotnetdoc-config-<version>.schema.json`.
+
+新旧配置精确读取，不自动改号；新版本允许目录省略但拒绝null，旧默认按原运行语义保留。
+显式迁移无法无损表示时拒绝；不填默认、删字段或执行抽取来凑通过。
+主SDK结果使用1.0.0，领域wire与源码地图版本独立；失败结果/CLI不回显底层路径和堆栈。
+
+See the [compatibility guide](https://github.com/mandolin/hia-dotnetdoc/blob/main/COMPATIBILITY.md)
+for all seven domain artifacts, original-schema preservation and runtime requirements.
+
 Standalone runner and CLI for compiler-generated .NET XML documentation files,
 C# source inputs, ASP.NET endpoint surface inputs, ASP.NET/Razor markup comment
 inputs and `.sln`/`.csproj` structure discovery.
@@ -28,7 +51,7 @@ contract version only while the option is enabled.
 
 ```json
 {
-  "schemaVersion": "0.1.0-draft",
+  "schemaVersion": "1.0.0",
   "workspaceRoot": ".",
   "outputDirectory": "dist/dotnetdoc",
   "inputs": [

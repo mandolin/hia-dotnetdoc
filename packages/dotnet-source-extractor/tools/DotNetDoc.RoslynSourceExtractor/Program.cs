@@ -8,7 +8,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 const string Contract = "dotnetdoc-csharp-source-extraction";
-const string ContractVersion = "0.1.0-draft";
+// <lang><zh-CN>已确认B的新C#提取wire；JS阅读器另保留精确旧版本，不能只改外层标签。</zh-CN><en>Confirmed B current C# extraction wire; the JS reader separately retains the exact legacy generation rather than relabeling the outer result.</en></lang>
+const string ContractVersion = "1.0.0";
 const string ProducerName = "@hia-doc/dotnet-source-extractor";
 // <lang><zh-CN>producer package version 随本地发布候选演进，不升级独立的 extraction contract version。</zh-CN><en>The producer package version follows the local release candidate without upgrading the independent extraction contract version.</en></lang>
 const string ProducerVersion = "0.1.12";

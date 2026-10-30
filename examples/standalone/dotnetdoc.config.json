@@ -1,6 +1,6 @@
 {
-  "$schema": "https://mandolin.github.io/HIA-Documentation/schemas/dotnetdoc-config-0.1.0-draft.schema.json",
-  "schemaVersion": "0.1.0-draft",
+  "$schema": "https://mandolin.github.io/HIA-Documentation/schemas/dotnetdoc-config-1.0.0.schema.json",
+  "schemaVersion": "1.0.0",
   "workspaceRoot": ".",
   "outputDirectory": "dist/dotnetdoc",
   "inputs": [

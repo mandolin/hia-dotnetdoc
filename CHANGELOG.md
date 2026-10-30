@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- 配置与七种.NET领域产物协调新增1.0.0，保留原配置schema、精确0.1.0-draft读取与纯显式无损迁移；新配置目录可省略但不接纳null，旧运行默认按旧语义读取。共享producer/result采用1.0.0，文档源码地图维持1.1.0。
+- Introduces coordinated 1.0.0 config/domain wires, exact legacy reading and explicit lossless migration. Original config schema/runtime differences remain documented; current omissions retain defaults while null is rejected. Shared producer/result uses 1.0.0; document source maps stay at 1.1.0.
+- 16份本地schema随包导出；JSON校验不执行getter/proxy、不加载远端schema，失败/CLI不回显底层私有路径或原始堆栈。新增Ajv闭包已逐官方归档/安装文件字节与宽松许可核对，补齐旧锁缺失来源/SRI，不升级原三依赖版本。
+- Ships sixteen local schemas, rejects behavior-bearing/non-JSON migration data and controls public failures without raw paths/stacks. Reviews the permissively licensed Ajv closure and fills missing legacy lock provenance without upgrading the three existing dependencies.
 - 修复CRLF/混合换行累计偏移，避免Windows检出后控制器属性丢失、动作漏报；保留原文行列而非归一化源码。
 - Fixes accumulated CRLF/mixed-newline offsets that could drop controller attributes and actions after Windows checkout, retaining original source positions instead of normalizing source text.
 - 工具环境调整为Node.js22/24；C# Roslyn helper迁移至.NET10，需稳定受支持补丁的SDK/runtime，不再依赖.NET8 runtime。输入项目框架保持原样，旧XML/项目/源码继续按静态边界读取。

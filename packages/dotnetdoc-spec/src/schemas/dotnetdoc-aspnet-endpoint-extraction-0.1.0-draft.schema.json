@@ -1,0 +1,261 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mandolin.github.io/HIA-Documentation/schemas/dotnetdoc-aspnet-endpoint-extraction-0.1.0-draft.schema.json",
+  "title": "dotnetdoc-aspnet-endpoint-extraction 0.1.0-draft",
+  "type": "object",
+  "required": [
+    "contract",
+    "contractVersion",
+    "producer",
+    "diagnostics",
+    "source",
+    "endpoints",
+    "summary"
+  ],
+  "properties": {
+    "contract": {
+      "const": "dotnetdoc-aspnet-endpoint-extraction"
+    },
+    "contractVersion": {
+      "const": "0.1.0-draft"
+    },
+    "$schema": {
+      "const": "https://mandolin.github.io/HIA-Documentation/schemas/dotnetdoc-aspnet-endpoint-extraction-0.1.0-draft.schema.json"
+    },
+    "producer": {
+      "type": "object",
+      "required": [
+        "name",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "engine": {
+          "type": "string",
+          "minLength": 1
+        },
+        "engineVersion": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "severity"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string",
+            "minLength": 1
+          },
+          "message": {
+            "type": "string"
+          },
+          "severity": {
+            "enum": [
+              "error",
+              "warning",
+              "info",
+              "hint"
+            ]
+          },
+          "path": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "range": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "start"
+            ],
+            "properties": {
+              "start": {
+                "type": "object",
+                "required": [
+                  "line"
+                ],
+                "properties": {
+                  "line": {
+                    "type": "integer"
+                  },
+                  "column": {
+                    "type": "integer"
+                  }
+                }
+              },
+              "end": {
+                "type": "object",
+                "required": [
+                  "line"
+                ],
+                "properties": {
+                  "line": {
+                    "type": "integer"
+                  },
+                  "column": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "defaultLocale": {
+      "type": "string",
+      "minLength": 1
+    },
+    "locales": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "summary": {
+      "type": "object"
+    },
+    "source": {
+      "type": "object"
+    },
+    "endpoints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "route",
+          "httpMethods",
+          "routable",
+          "source"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "type": "string",
+            "minLength": 1
+          },
+          "framework": {
+            "type": "string",
+            "minLength": 1
+          },
+          "route": {
+            "type": "object",
+            "properties": {
+              "template": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "normalizedPath": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "httpMethods": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "routable": {
+            "type": "boolean"
+          },
+          "handler": {
+            "type": "object"
+          },
+          "source": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "language": {
+                "type": "string"
+              },
+              "range": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "required": [
+                  "start"
+                ],
+                "properties": {
+                  "start": {
+                    "type": "object",
+                    "required": [
+                      "line"
+                    ],
+                    "properties": {
+                      "line": {
+                        "type": "integer"
+                      },
+                      "column": {
+                        "type": "integer"
+                      }
+                    }
+                  },
+                  "end": {
+                    "type": "object",
+                    "required": [
+                      "line"
+                    ],
+                    "properties": {
+                      "line": {
+                        "type": "integer"
+                      },
+                      "column": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                }
+              },
+              "confidence": {
+                "type": "string"
+              },
+              "rangeSource": {
+                "type": "string"
+              }
+            }
+          },
+          "metadata": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  },
+  "$comment": "中文：基于65ceafe实际旧wire首次建模的兼容读取schema，不冒称历史包已有schema；不授权执行或导航。 English: Initial compatibility-reader schema modeled from the actual 65ceafe legacy wire, not a claim of a schema in historical packages; grants no execution or navigation rights."
+}

@@ -1,0 +1,34 @@
+{
+  "sourceWireHead": "65ceafee573461bd06498e90755a1ddfbd0f1928",
+  "description": "旧wire阅读schema初次模型在本次实现中定稿，按LF字节固定；原七个旧wire数据字节和原配置模块从未改写。",
+  "schemas": [
+    {
+      "sha256": "5dbcea029724df1a2a258bfcb045cfdfabbbf879530c726a9bcd6f0586809d4a",
+      "name": "dotnetdoc-aspnet-endpoint-extraction-0.1.0-draft.schema.json"
+    },
+    {
+      "sha256": "1610b716d01057398f63b8f2a3a1c3eee67c94b2208a8974ca10e83a01649819",
+      "name": "dotnetdoc-build-warning-classification-0.1.0-draft.schema.json"
+    },
+    {
+      "sha256": "6b1c5f5c4c51a38258a545dd30d5bda785ce12836e3f441d983b2eb42f2e7bba",
+      "name": "dotnetdoc-csharp-source-extraction-0.1.0-draft.schema.json"
+    },
+    {
+      "sha256": "8363015f30a3892fe0d6fbe37f6968e746c6bd85a27e80d51452caba21fa000c",
+      "name": "dotnetdoc-markup-comment-extraction-0.1.0-draft.schema.json"
+    },
+    {
+      "sha256": "d113886686680879da92511d6358950e05db0af36377ae27cb35a0f02dbebb89",
+      "name": "dotnetdoc-project-discovery-0.1.0-draft.schema.json"
+    },
+    {
+      "sha256": "316ee37618cc0d67c65a3720b0c54838f69e9f2f224c0a50925a649e742fccea",
+      "name": "dotnetdoc-source-relation-0.1.0-draft.schema.json"
+    },
+    {
+      "sha256": "1028a2a804143f1df5ed6e715dbcdf361440bad5f781d5e37750ae25626c0f35",
+      "name": "dotnetdoc-xml-doc-extraction-0.1.0-draft.schema.json"
+    }
+  ]
+}

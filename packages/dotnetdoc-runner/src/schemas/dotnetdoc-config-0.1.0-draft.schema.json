@@ -1,0 +1,284 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mandolin.github.io/HIA-Documentation/schemas/dotnetdoc-config-0.1.0-draft.schema.json",
+  "title": "DotNetDoc Config",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "workspaceRoot",
+    "outputDirectory",
+    "inputs"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "https://mandolin.github.io/HIA-Documentation/schemas/dotnetdoc-config-0.1.0-draft.schema.json"
+    },
+    "schemaVersion": {
+      "const": "0.1.0-draft"
+    },
+    "workspaceRoot": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "anyOf": [
+          {
+            "pattern": "^(?:[A-Za-z]:|/|\\\\|[A-Za-z][A-Za-z0-9+.-]*:)"
+          },
+          {
+            "pattern": ":"
+          },
+          {
+            "pattern": "(?:^|[\\\\/])\\.\\.(?:[\\\\/]|$)"
+          }
+        ]
+      }
+    },
+    "outputDirectory": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "anyOf": [
+          {
+            "pattern": "^(?:[A-Za-z]:|/|\\\\|[A-Za-z][A-Za-z0-9+.-]*:)"
+          },
+          {
+            "pattern": ":"
+          },
+          {
+            "pattern": "(?:^|[\\\\/])\\.\\.(?:[\\\\/]|$)"
+          }
+        ]
+      }
+    },
+    "inputs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind"
+        ],
+        "anyOf": [
+          {
+            "required": [
+              "path"
+            ]
+          },
+          {
+            "required": [
+              "paths"
+            ]
+          },
+          {
+            "required": [
+              "projectPath"
+            ]
+          },
+          {
+            "required": [
+              "glob"
+            ]
+          },
+          {
+            "required": [
+              "globs"
+            ]
+          }
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "dotnet-xml-doc",
+              "dotnet-csharp-source",
+              "dotnet-aspnet-surface",
+              "dotnet-markup-comments",
+              "dotnet-project"
+            ]
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "not": {
+              "anyOf": [
+                {
+                  "pattern": "^(?:[A-Za-z]:|/|\\\\|[A-Za-z][A-Za-z0-9+.-]*:)"
+                },
+                {
+                  "pattern": ":"
+                },
+                {
+                  "pattern": "(?:^|[\\\\/])\\.\\.(?:[\\\\/]|$)"
+                }
+              ]
+            }
+          },
+          "paths": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "not": {
+                "anyOf": [
+                  {
+                    "pattern": "^(?:[A-Za-z]:|/|\\\\|[A-Za-z][A-Za-z0-9+.-]*:)"
+                  },
+                  {
+                    "pattern": ":"
+                  },
+                  {
+                    "pattern": "(?:^|[\\\\/])\\.\\.(?:[\\\\/]|$)"
+                  }
+                ]
+              }
+            }
+          },
+          "projectPath": {
+            "type": "string",
+            "minLength": 1,
+            "not": {
+              "anyOf": [
+                {
+                  "pattern": "^(?:[A-Za-z]:|/|\\\\|[A-Za-z][A-Za-z0-9+.-]*:)"
+                },
+                {
+                  "pattern": ":"
+                },
+                {
+                  "pattern": "(?:^|[\\\\/])\\.\\.(?:[\\\\/]|$)"
+                }
+              ]
+            }
+          },
+          "glob": {
+            "type": "string",
+            "minLength": 1,
+            "not": {
+              "anyOf": [
+                {
+                  "pattern": "^(?:[A-Za-z]:|/|\\\\|[A-Za-z][A-Za-z0-9+.-]*:)"
+                },
+                {
+                  "pattern": ":"
+                },
+                {
+                  "pattern": "(?:^|[\\\\/])\\.\\.(?:[\\\\/]|$)"
+                }
+              ]
+            }
+          },
+          "globs": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "not": {
+                "anyOf": [
+                  {
+                    "pattern": "^(?:[A-Za-z]:|/|\\\\|[A-Za-z][A-Za-z0-9+.-]*:)"
+                  },
+                  {
+                    "pattern": ":"
+                  },
+                  {
+                    "pattern": "(?:^|[\\\\/])\\.\\.(?:[\\\\/]|$)"
+                  }
+                ]
+              }
+            }
+          },
+          "excludeGlobs": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "not": {
+                "anyOf": [
+                  {
+                    "pattern": "^(?:[A-Za-z]:|/|\\\\|[A-Za-z][A-Za-z0-9+.-]*:)"
+                  },
+                  {
+                    "pattern": ":"
+                  },
+                  {
+                    "pattern": "(?:^|[\\\\/])\\.\\.(?:[\\\\/]|$)"
+                  }
+                ]
+              }
+            }
+          },
+          "applicationRoot": {
+            "type": "string",
+            "minLength": 1,
+            "not": {
+              "anyOf": [
+                {
+                  "pattern": "^(?:[A-Za-z]:|/|\\\\|[A-Za-z][A-Za-z0-9+.-]*:)"
+                },
+                {
+                  "pattern": ":"
+                },
+                {
+                  "pattern": "(?:^|[\\\\/])\\.\\.(?:[\\\\/]|$)"
+                }
+              ]
+            }
+          },
+          "artifactBasePath": {
+            "type": "string",
+            "minLength": 1,
+            "not": {
+              "anyOf": [
+                {
+                  "pattern": "^(?:[A-Za-z]:|/|\\\\|[A-Za-z][A-Za-z0-9+.-]*:)"
+                },
+                {
+                  "pattern": ":"
+                },
+                {
+                  "pattern": "(?:^|[\\\\/])\\.\\.(?:[\\\\/]|$)"
+                }
+              ]
+            }
+          },
+          "hiaDocumentId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "options": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "writeResultManifest": {
+          "type": "boolean"
+        },
+        "writeSourceRelationArtifact": {
+          "type": "boolean"
+        },
+        "writeDocSourceMapArtifact": {
+          "type": "boolean"
+        }
+      }
+    },
+    "profileIds": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9][a-z0-9._-]*$"
+      }
+    }
+  }
+}

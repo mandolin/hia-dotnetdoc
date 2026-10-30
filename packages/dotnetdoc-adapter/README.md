@@ -1,5 +1,15 @@
 # @hia-doc/dotnetdoc-adapter
 
+The public adapters accept exact domain artifact versions `1.0.0` and
+`0.1.0-draft`; unknown versions and mismatched structures are rejected before
+projection. Reading does not migrate the input. XML/source member projection,
+static ASP.NET endpoints, markup comments and project discovery retain their
+documentation and locale content. XML documentation provenance never becomes
+a guessed C# definition or return type.
+
+公开adapter精确读取两代产物，不自动迁移或猜源码位置；完整注释/i18n与原领域边界保留。
+文档出处与代码定义分开，静态关系不等于目标构建或运行时端点发现。
+
 Convert DotNetDoc extraction artifacts into HIA document shapes.
 
 将 DotNetDoc 抽取产物转换为 HIA document 形态。

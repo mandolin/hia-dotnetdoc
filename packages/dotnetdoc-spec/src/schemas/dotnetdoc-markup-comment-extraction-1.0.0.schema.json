@@ -1,0 +1,253 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mandolin.github.io/HIA-Documentation/schemas/dotnetdoc-markup-comment-extraction-1.0.0.schema.json",
+  "$comment": "中文：已确认静态领域产物的精确版本与传输结构，不授权源码读取/执行或精确导航。 English: Exact version and transport structure for the confirmed static domain artifact, without authorizing source reads/execution or exact navigation.",
+  "title": "dotnetdoc-markup-comment-extraction 1.0.0",
+  "type": "object",
+  "required": [
+    "contract",
+    "contractVersion",
+    "producer",
+    "diagnostics",
+    "source",
+    "comments",
+    "privacy"
+  ],
+  "properties": {
+    "contract": {
+      "const": "dotnetdoc-markup-comment-extraction"
+    },
+    "contractVersion": {
+      "const": "1.0.0"
+    },
+    "$schema": {
+      "const": "https://mandolin.github.io/HIA-Documentation/schemas/dotnetdoc-markup-comment-extraction-1.0.0.schema.json"
+    },
+    "producer": {
+      "type": "object",
+      "required": [
+        "name",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "engine": {
+          "type": "string",
+          "minLength": 1
+        },
+        "engineVersion": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "severity"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string",
+            "minLength": 1
+          },
+          "message": {
+            "type": "string"
+          },
+          "severity": {
+            "enum": [
+              "error",
+              "warning",
+              "info",
+              "hint"
+            ]
+          },
+          "path": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "range": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "start"
+            ],
+            "properties": {
+              "start": {
+                "type": "object",
+                "required": [
+                  "line"
+                ],
+                "properties": {
+                  "line": {
+                    "type": "integer"
+                  },
+                  "column": {
+                    "type": "integer"
+                  }
+                }
+              },
+              "end": {
+                "type": "object",
+                "required": [
+                  "line"
+                ],
+                "properties": {
+                  "line": {
+                    "type": "integer"
+                  },
+                  "column": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "defaultLocale": {
+      "type": "string",
+      "minLength": 1
+    },
+    "locales": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "summary": {
+      "type": "object"
+    },
+    "source": {
+      "type": "object"
+    },
+    "comments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "content",
+          "commentKind",
+          "source"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "const": "dotnet-markup-comment"
+          },
+          "content": {
+            "type": "string"
+          },
+          "commentKind": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "language": {
+                "type": "string"
+              },
+              "range": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "required": [
+                  "start"
+                ],
+                "properties": {
+                  "start": {
+                    "type": "object",
+                    "required": [
+                      "line"
+                    ],
+                    "properties": {
+                      "line": {
+                        "type": "integer"
+                      },
+                      "column": {
+                        "type": "integer"
+                      }
+                    }
+                  },
+                  "end": {
+                    "type": "object",
+                    "required": [
+                      "line"
+                    ],
+                    "properties": {
+                      "line": {
+                        "type": "integer"
+                      },
+                      "column": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                }
+              },
+              "confidence": {
+                "type": "string"
+              },
+              "rangeSource": {
+                "type": "string"
+              }
+            }
+          },
+          "i18n": {
+            "type": "object"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "visibility": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "properties": {
+        "sourcesContentPolicy": {
+          "const": "none"
+        },
+        "sourcePreviewPolicy": {
+          "const": "none"
+        },
+        "embedsSourcesContent": {
+          "const": false
+        }
+      }
+    }
+  }
+}

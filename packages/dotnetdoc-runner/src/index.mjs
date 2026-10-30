@@ -27,22 +27,30 @@ export {
   DOTNETDOC_CONFIG_SCHEMA_VERSION
 } from "./schema.mjs";
 import { DOTNETDOC_CONFIG_SCHEMA_ID, DOTNETDOC_CONFIG_SCHEMA_VERSION } from "./schema.mjs";
+import { cloneDotnetDocJson } from '@hia-doc/dotnetdoc-spec';
+import { inspectDotnetDocConfig } from './config-compatibility.mjs';
+/** 两代配置schema的精确选择，不执行配置或读取schema URL。 @lang en Exact dual-generation config-schema selection without config execution or schema URL reads. */
+export { getDotnetDocConfigSchema } from './config-compatibility.mjs';
+/** 原始旧schema按字节档案导出，不以新版本替代其历史语义。 @lang en Exports the byte-preserved legacy schema without replacing its historical semantics with the new version. */
+export { DOTNETDOC_CONFIG_JSON_SCHEMA as DOTNETDOC_LEGACY_CONFIG_JSON_SCHEMA, DOTNETDOC_CONFIG_SCHEMA_ID as DOTNETDOC_LEGACY_CONFIG_SCHEMA_ID, DOTNETDOC_CONFIG_SCHEMA_VERSION as DOTNETDOC_LEGACY_CONFIG_SCHEMA_VERSION } from './schema-legacy.mjs';
 import { enrichXmlSourceLocations } from "./source-locations.mjs";
 import { createDotnetDocSourceMap, hasUnpairedSurrogate } from "./doc-source-map.mjs";
 export { createDotnetDocSourceMap, DOTNETDOC_DOC_SOURCE_MAP_CONTRACT_VERSION } from "./doc-source-map.mjs";
 
 /**
- * @lang zh-CN DotNetDoc runner/producer 的公开包版本；它与各个 `0.1.0-draft` artifact contract version 分离。
- * @lang en Public package version of the DotNetDoc runner/producer, kept separate from every `0.1.0-draft` artifact contract version.
+ * @lang zh-CN DotNetDoc runner/producer公开包版本，与领域工件、配置及主SDK各自身份分开。
+ * @lang en Public DotNetDoc runner/producer package version, independent from domain-artifact, config and main SDK identities.
  */
 export const DOTNETDOC_RUNNER_VERSION = "0.1.12";
 export const DOTNETDOC_INPUT_KINDS = Object.freeze(["dotnet-xml-doc", "dotnet-csharp-source", "dotnet-aspnet-surface", "dotnet-markup-comments", "dotnet-project"]);
 export const DOTNETDOC_OUTPUT_KINDS = Object.freeze(["dotnetdoc-extraction", "hia-document", "doc-source-map", "dotnetdoc-source-relation", "dotnetdoc-aspnet-endpoint-extraction", "dotnetdoc-markup-comment-extraction", "dotnetdoc-project-discovery"]);
 export const DOTNETDOC_BUILD_WARNING_CLASSIFICATION_CONTRACT = "dotnetdoc-build-warning-classification";
-export const DOTNETDOC_BUILD_WARNING_CLASSIFICATION_CONTRACT_VERSION = "0.1.0-draft";
+/** 构建告警分类的新稳定wire，旧产物由spec精确读取。 @lang en Stable current build-warning wire with exact legacy reading in the spec package. */
+export const DOTNETDOC_BUILD_WARNING_CLASSIFICATION_CONTRACT_VERSION = "1.0.0";
 
 const RESULT_CONTRACT = "documentation-producer-result";
-const RESULT_CONTRACT_VERSION = "0.1.0-draft";
+/** 主SDK已确认的新结果身份，独立于.NET领域wire。 @lang en Confirmed current main SDK result identity, independent from .NET domain wires. */
+const RESULT_CONTRACT_VERSION = "1.0.0";
 const PRODUCER_ID = "dotnetdoc";
 const SAFE_ID_PATTERN = /^[a-z0-9][a-z0-9._-]*$/;
 const DESIGNER_CODE_PATTERN = /(?:^|[\\/])[^\\/]+\.designer\.(?:cs|vb)$/iu;
@@ -107,13 +115,14 @@ export async function runDotnetDoc(request, context = {}) {
       diagnostics.push(...generated.diagnostics);
       extractionRecords.push(generated.extractionRecord);
       completed += 1;
-    } catch (error) {
+    } catch {
+      // <lang><zh-CN>底层异常可能含私有绝对路径/正文，公开结果只保留固定原因。</zh-CN><en>Lower-layer errors may contain private absolute paths/bodies; public results retain only a fixed cause.</en></lang>
       diagnostics.push(createDiagnostic(
         "DOTNETDOC_RUNNER_INPUT_FAILED",
         `Unable to process DotNetDoc input ${input.path}.`,
         "error",
         input.path,
-        { cause: error instanceof Error ? error.message : String(error) }
+        { cause: 'input-processing-failed' }
       ));
     }
   }
@@ -205,7 +214,7 @@ export function classifyDotnetBuildDiagnostics(diagnostics) {
     },
     policy: {
       name: "dotnetdoc-generated-designer-warning-policy",
-      version: "0.1.0-draft",
+      version: DOTNETDOC_BUILD_WARNING_CLASSIFICATION_CONTRACT_VERSION,
       defaultDocumentationGate: "do-not-block-on-generated-or-designer-cs1591",
       sourcesContentPolicy: "none"
     },
@@ -225,15 +234,8 @@ export function classifyDotnetBuildDiagnostics(diagnostics) {
  */
 export async function loadDotnetDocConfig(configPath, options = {}) {
   const absoluteConfigPath = path.resolve(options.cwd ?? process.cwd(), configPath);
-  const config = JSON.parse(await readFile(absoluteConfigPath, "utf8"));
-  assertRecord(config, "DotNetDoc config must be a JSON object.");
-  assertKnownKeys(config, ["$schema", "schemaVersion", "workspaceRoot", "outputDirectory", "inputs", "options", "profileIds"], "config");
-  if (config.schemaVersion !== DOTNETDOC_CONFIG_SCHEMA_VERSION) {
-    throw new TypeError(`schemaVersion must be ${DOTNETDOC_CONFIG_SCHEMA_VERSION}.`);
-  }
-  if (config.$schema !== undefined && config.$schema !== DOTNETDOC_CONFIG_SCHEMA_ID) {
-    throw new TypeError(`$schema must be ${DOTNETDOC_CONFIG_SCHEMA_ID}.`);
-  }
+  // <lang><zh-CN>读取两代精确身份，规范化和执行继续分开；不自动升级旧配置。</zh-CN><en>Read both exact identities while keeping normalization/execution separate, without automatically upgrading legacy config.</en></lang>
+  const config = readDotnetDocConfig(JSON.parse(await readFile(absoluteConfigPath, "utf8")));
 
   const configDirectory = path.dirname(absoluteConfigPath);
   const workspaceDirectory = normalizeConfigDirectory(config.workspaceRoot ?? ".", "workspaceRoot");
@@ -247,6 +249,47 @@ export async function loadDotnetDocConfig(configPath, options = {}) {
     options: config.options,
     profileIds: config.profileIds
   });
+}
+
+/**
+ * 精确读取两代配置并保留原对象；旧版保留原运行时省略/null默认，新版另受严格schema约束。
+ * @lang en Reads two exact config generations and retains the original object; legacy reading keeps omission/null defaults while current reading also enforces the strict schema.
+ * @param {unknown} value <lang><zh-CN>普通JSON配置；不执行getter、抽取或I/O。</zh-CN><en>Ordinary-JSON config without getter, extraction or I/O execution.</en></lang>
+ * @returns {object} <lang><zh-CN>原对象；相对目录未物化为绝对路径。</zh-CN><en>Original object without materializing relative directories into absolute paths.</en></lang>
+ * @throws {TypeError} <lang><zh-CN>未知/错配身份或无效原运行语义固定拒绝。</zh-CN><en>Fixed refusal for unknown/mismatched identities or invalid original runtime semantics.</en></lang>
+ */
+export function readDotnetDocConfig(value) {
+  try {
+    // <lang><zh-CN>副本只用于校验，原调用方对象在通过后原样返回；不把旧schema错误required变成历史正确。</zh-CN><en>Use a copy only for validation and return the caller object unchanged; do not recast the legacy schema's incorrect required fields as historically correct.</en></lang>
+    const config = inspectDotnetDocConfig(value);
+    assertRecord(config, 'DotNetDoc config must be a JSON object.');
+    assertKnownKeys(config, ['$schema', 'schemaVersion', 'workspaceRoot', 'outputDirectory', 'inputs', 'options', 'profileIds'], 'config');
+    // <lang><zh-CN>纯规范化只验证既有目录/输入/option语义；结果丢弃，不创建目录或启动helper。</zh-CN><en>Pure normalization validates existing directory/input/option semantics; discard the result without creating directories or starting the helper.</en></lang>
+    const workspaceDirectory = normalizeConfigDirectory(config.workspaceRoot ?? '.', 'workspaceRoot');
+    const outputDirectory = normalizeConfigDirectory(config.outputDirectory ?? 'dist/dotnetdoc', 'outputDirectory');
+    normalizeRequest({ workspaceRoot: workspaceDirectory, outputDirectory, inputs: config.inputs, options: config.options, profileIds: config.profileIds });
+    return value;
+  } catch { throw new TypeError('DotNetDoc config must match an exact supported identity and structure.'); }
+}
+
+/**
+ * 显式无损迁移旧配置，仅更新身份，不能把null/扩展/特殊JSON值静默改写成新默认。
+ * @lang en Explicitly migrates legacy config losslessly by updating identity only, never silently rewriting nulls, extensions or non-JSON values into current defaults.
+ * @param {unknown} value <lang><zh-CN>精确旧配置，先按原运行语义验证。</zh-CN><en>Exact legacy config, first validated against original runtime semantics.</en></lang>
+ * @returns {object} <lang><zh-CN>新对象，保持内容、字段省略和相对路径；不写盘或执行。</zh-CN><en>Fresh object retaining content, omitted fields and relative paths without file writes or execution.</en></lang>
+ * @throws {TypeError} <lang><zh-CN>不满足任一代读取或JSON无损条件则固定拒绝。</zh-CN><en>Fixed refusal when either generation's reading or lossless-JSON conditions fail.</en></lang>
+ */
+export function migrateDotnetDocConfig(value) {
+  try {
+    // <lang><zh-CN>副本校验后只变版本及已有$schema，不强制填目录或推断输入kind。</zh-CN><en>After copy validation change only version and an existing $schema, never filling directories or inferring input kinds.</en></lang>
+    const config = cloneDotnetDocJson(value);
+    if (config?.schemaVersion !== '0.1.0-draft') throw new TypeError('Unsupported legacy config.');
+    readDotnetDocConfig(config);
+    config.schemaVersion = DOTNETDOC_CONFIG_SCHEMA_VERSION;
+    if (config.$schema !== undefined) config.$schema = DOTNETDOC_CONFIG_SCHEMA_ID;
+    readDotnetDocConfig(config);
+    return config;
+  } catch { throw new TypeError('DotNetDoc config cannot be migrated losslessly.'); }
 }
 
 function normalizeRequest(request) {
