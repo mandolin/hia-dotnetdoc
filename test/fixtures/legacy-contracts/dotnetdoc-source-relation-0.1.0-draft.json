@@ -1,0 +1,268 @@
+{
+  "contract": "dotnetdoc-source-relation",
+  "contractVersion": "0.1.0-draft",
+  "producer": {
+    "name": "@hia-doc/dotnetdoc-runner",
+    "version": "0.1.12"
+  },
+  "source": {
+    "kind": "dotnetdoc-source-relation",
+    "relation": "xml-doc-to-csharp-source",
+    "xmlDocArtifacts": [
+      {
+        "contract": "dotnetdoc-xml-doc-extraction",
+        "contractVersion": "0.1.0-draft",
+        "artifactPath": "xml.dotnetdoc.json",
+        "inputPath": "fixtures/xml-doc/Portal.Components.xml"
+      }
+    ],
+    "csharpSourceArtifacts": [
+      {
+        "contract": "dotnetdoc-csharp-source-extraction",
+        "contractVersion": "0.1.0-draft",
+        "artifactPath": "source.dotnetdoc.json",
+        "inputPath": "fixtures/source/Portal.Components/Navigation/PortalMenu.cs"
+      }
+    ]
+  },
+  "identityPolicy": {
+    "policy": "project-relative-owner-resolved",
+    "scope": "workspace",
+    "pathKind": "project-relative",
+    "absolutePathInIdentity": false,
+    "displayLabelInIdentity": false,
+    "localeInIdentity": false
+  },
+  "summary": {
+    "relationCount": 3,
+    "fallbackRelationCount": 0,
+    "signatureFallbackRelationCount": 0,
+    "unresolvedCount": 0,
+    "xmlMemberCount": 3,
+    "csharpSourceMemberCount": 3
+  },
+  "privacy": {
+    "sourcesContentPolicy": "none",
+    "sourcePreviewPolicy": "none",
+    "embedsSourcesContent": false
+  },
+  "relations": [
+    {
+      "id": "dotnetdoc:source-relation:t-portal.components.navigation.portalmenu",
+      "relation": "documents-declaration",
+      "memberName": "T:Portal.Components.Navigation.PortalMenu",
+      "memberId": "dotnet:t:portal.components.navigation.portalmenu",
+      "kind": "dotnet-type",
+      "name": "PortalMenu",
+      "resolution": "resolved",
+      "confidence": "medium",
+      "provenance": {
+        "producer": "@hia-doc/dotnetdoc-runner",
+        "activity": "xml-doc-to-csharp-source",
+        "contract": "dotnetdoc-source-relation",
+        "contractVersion": "0.1.0-draft"
+      },
+      "match": {
+        "mode": "documentation-id",
+        "exactDocumentationId": true
+      },
+      "hiaSymbol": {
+        "id": "dotnet:t:portal.components.navigation.portalmenu",
+        "artifactPath": "xml.hia.json",
+        "documentId": null
+      },
+      "documentation": {
+        "memberId": "dotnet:t:portal.components.navigation.portalmenu",
+        "artifactPath": "xml.dotnetdoc.json",
+        "path": "fixtures/xml-doc/Portal.Components.xml",
+        "language": "xml",
+        "range": null,
+        "rangeSource": "compiler-xml-doc",
+        "confidence": "high"
+      },
+      "declaration": {
+        "memberId": "dotnet:t:portal.components.navigation.portalmenu",
+        "artifactPath": "source.dotnetdoc.json",
+        "path": "fixtures/source/Portal.Components/Navigation/PortalMenu.cs",
+        "language": "csharp",
+        "range": {
+          "start": {
+            "line": 18,
+            "column": 5
+          },
+          "end": {
+            "line": 45,
+            "column": 6
+          }
+        },
+        "rangeSource": "roslyn-syntax",
+        "confidence": "medium",
+        "semantic": {
+          "documentationCommentId": "T:Portal.Components.Navigation.PortalMenu",
+          "declaration": {
+            "isPartialType": false,
+            "declarationCount": 1,
+            "isGenerated": false
+          },
+          "hasUnresolvedSignatureTypes": false,
+          "symbolKind": "NamedType",
+          "containingAssembly": "DotNetDoc.SourceExtraction",
+          "containingNamespace": "Portal.Components.Navigation",
+          "containingType": null,
+          "parentDocumentationCommentId": null,
+          "baseTypeIds": [
+            "T:System.Object"
+          ],
+          "interfaceIds": [],
+          "displayName": "Portal.Components.Navigation.PortalMenu",
+          "signature": "class Portal.Components.Navigation.PortalMenu",
+          "returnType": null
+        }
+      }
+    },
+    {
+      "id": "dotnetdoc:source-relation:p-portal.components.navigation.portalmenu.items",
+      "relation": "documents-declaration",
+      "memberName": "P:Portal.Components.Navigation.PortalMenu.Items",
+      "memberId": "dotnet:p:portal.components.navigation.portalmenu.items",
+      "kind": "dotnet-property",
+      "name": "Items",
+      "resolution": "resolved",
+      "confidence": "medium",
+      "provenance": {
+        "producer": "@hia-doc/dotnetdoc-runner",
+        "activity": "xml-doc-to-csharp-source",
+        "contract": "dotnetdoc-source-relation",
+        "contractVersion": "0.1.0-draft"
+      },
+      "match": {
+        "mode": "documentation-id",
+        "exactDocumentationId": true
+      },
+      "hiaSymbol": {
+        "id": "dotnet:p:portal.components.navigation.portalmenu.items",
+        "artifactPath": "xml.hia.json",
+        "documentId": null
+      },
+      "documentation": {
+        "memberId": "dotnet:p:portal.components.navigation.portalmenu.items",
+        "artifactPath": "xml.dotnetdoc.json",
+        "path": "fixtures/xml-doc/Portal.Components.xml",
+        "language": "xml",
+        "range": null,
+        "rangeSource": "compiler-xml-doc",
+        "confidence": "high"
+      },
+      "declaration": {
+        "memberId": "dotnet:p:portal.components.navigation.portalmenu.items",
+        "artifactPath": "source.dotnetdoc.json",
+        "path": "fixtures/source/Portal.Components/Navigation/PortalMenu.cs",
+        "language": "csharp",
+        "range": {
+          "start": {
+            "line": 23,
+            "column": 9
+          },
+          "end": {
+            "line": 23,
+            "column": 77
+          }
+        },
+        "rangeSource": "roslyn-syntax",
+        "confidence": "medium",
+        "semantic": {
+          "documentationCommentId": "P:Portal.Components.Navigation.PortalMenu.Items",
+          "declaration": {
+            "isPartialType": false,
+            "declarationCount": 1,
+            "isGenerated": false
+          },
+          "hasUnresolvedSignatureTypes": false,
+          "symbolKind": "Property",
+          "containingAssembly": "DotNetDoc.SourceExtraction",
+          "containingNamespace": "Portal.Components.Navigation",
+          "containingType": "Portal.Components.Navigation.PortalMenu",
+          "parentDocumentationCommentId": "T:Portal.Components.Navigation.PortalMenu",
+          "baseTypeIds": [],
+          "interfaceIds": [],
+          "displayName": "Portal.Components.Navigation.PortalMenu.Items",
+          "signature": "public System.Collections.Generic.IReadOnlyList<string> Portal.Components.Navigation.PortalMenu.Items { get; }",
+          "returnType": "IReadOnlyList<string>"
+        }
+      }
+    },
+    {
+      "id": "dotnetdoc:source-relation:m-portal.components.navigation.portalmenu.render-system.string",
+      "relation": "documents-declaration",
+      "memberName": "M:Portal.Components.Navigation.PortalMenu.Render(System.String)",
+      "memberId": "dotnet:m:portal.components.navigation.portalmenu.render-system.string",
+      "kind": "dotnet-method",
+      "name": "Render",
+      "resolution": "resolved",
+      "confidence": "medium",
+      "provenance": {
+        "producer": "@hia-doc/dotnetdoc-runner",
+        "activity": "xml-doc-to-csharp-source",
+        "contract": "dotnetdoc-source-relation",
+        "contractVersion": "0.1.0-draft"
+      },
+      "match": {
+        "mode": "documentation-id",
+        "exactDocumentationId": true
+      },
+      "hiaSymbol": {
+        "id": "dotnet:m:portal.components.navigation.portalmenu.render-system.string",
+        "artifactPath": "xml.hia.json",
+        "documentId": null
+      },
+      "documentation": {
+        "memberId": "dotnet:m:portal.components.navigation.portalmenu.render-system.string",
+        "artifactPath": "xml.dotnetdoc.json",
+        "path": "fixtures/xml-doc/Portal.Components.xml",
+        "language": "xml",
+        "range": null,
+        "rangeSource": "compiler-xml-doc",
+        "confidence": "high"
+      },
+      "declaration": {
+        "memberId": "dotnet:m:portal.components.navigation.portalmenu.render-system.string",
+        "artifactPath": "source.dotnetdoc.json",
+        "path": "fixtures/source/Portal.Components/Navigation/PortalMenu.cs",
+        "language": "csharp",
+        "range": {
+          "start": {
+            "line": 36,
+            "column": 9
+          },
+          "end": {
+            "line": 44,
+            "column": 10
+          }
+        },
+        "rangeSource": "roslyn-syntax",
+        "confidence": "medium",
+        "semantic": {
+          "documentationCommentId": "M:Portal.Components.Navigation.PortalMenu.Render(System.String)",
+          "declaration": {
+            "isPartialType": false,
+            "declarationCount": 1,
+            "isGenerated": false
+          },
+          "hasUnresolvedSignatureTypes": false,
+          "symbolKind": "Method",
+          "containingAssembly": "DotNetDoc.SourceExtraction",
+          "containingNamespace": "Portal.Components.Navigation",
+          "containingType": "Portal.Components.Navigation.PortalMenu",
+          "parentDocumentationCommentId": "T:Portal.Components.Navigation.PortalMenu",
+          "baseTypeIds": [],
+          "interfaceIds": [],
+          "displayName": "Portal.Components.Navigation.PortalMenu.Render(string)",
+          "signature": "public string Portal.Components.Navigation.PortalMenu.Render(string tenantId)",
+          "returnType": "string"
+        }
+      }
+    }
+  ],
+  "unresolved": [],
+  "diagnostics": []
+}

@@ -1,0 +1,187 @@
+{
+  "contract": "dotnetdoc-markup-comment-extraction",
+  "contractVersion": "0.1.0-draft",
+  "producer": {
+    "name": "@hia-doc/dotnet-source-extractor",
+    "version": "0.1.12",
+    "engine": "markup-comment-scan",
+    "engineVersion": "0.1.0"
+  },
+  "source": {
+    "kind": "dotnet-markup-comments",
+    "files": [
+      {
+        "path": "fixtures/source/Portal.Web/Default.aspx",
+        "language": "aspx"
+      },
+      {
+        "path": "fixtures/source/Portal.Web/Views/Home/Index.cshtml",
+        "language": "razor"
+      }
+    ]
+  },
+  "defaultLocale": "en",
+  "locales": [
+    "en",
+    "zh-CN"
+  ],
+  "summary": {
+    "inputCount": 2,
+    "commentCount": 4,
+    "webFormsServerCommentCount": 1,
+    "razorCommentCount": 1,
+    "htmlCommentCount": 2,
+    "serverHiddenCommentCount": 2,
+    "clientVisibleCommentCount": 2
+  },
+  "privacy": {
+    "sourcesContentPolicy": "none",
+    "sourcePreviewPolicy": "none",
+    "embedsSourcesContent": false
+  },
+  "comments": [
+    {
+      "id": "dotnetdoc:markup-comment:fixtures-source-portal.web-default.aspx:1",
+      "kind": "dotnet-markup-comment",
+      "name": "Default.aspx webforms-server-comment 1",
+      "commentKind": "webforms-server-comment",
+      "syntax": "<%-- --%>",
+      "visibility": "server-hidden",
+      "language": "aspx",
+      "summary": "Portal home Web Forms page.",
+      "content": "@component PortalHomePage\n<lang>\n  <en>Portal home Web Forms page.</en>\n  <zh-CN>门户首页 Web Forms 页面。</zh-CN>\n</lang>",
+      "source": {
+        "path": "fixtures/source/Portal.Web/Default.aspx",
+        "language": "aspx",
+        "rangeSource": "webforms-server-comment",
+        "confidence": "medium",
+        "range": {
+          "start": {
+            "line": 2,
+            "column": 1
+          },
+          "end": {
+            "line": 8,
+            "column": 5
+          }
+        }
+      },
+      "i18n": {
+        "model": "hia-text-i18n",
+        "defaultLocale": "en",
+        "locales": [
+          "en",
+          "zh-CN"
+        ],
+        "fields": {
+          "content": {
+            "defaultLocale": "en",
+            "localizedText": {
+              "en": "Portal home Web Forms page.",
+              "zh-CN": "门户首页 Web Forms 页面。"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "dotnetdoc:markup-comment:fixtures-source-portal.web-default.aspx:2",
+      "kind": "dotnet-markup-comment",
+      "name": "Default.aspx html-comment 2",
+      "commentKind": "html-comment",
+      "syntax": "<!-- -->",
+      "visibility": "client-visible",
+      "language": "aspx",
+      "summary": "Client-visible home layout marker.",
+      "content": "Client-visible home layout marker.",
+      "source": {
+        "path": "fixtures/source/Portal.Web/Default.aspx",
+        "language": "aspx",
+        "rangeSource": "html-comment",
+        "confidence": "medium",
+        "range": {
+          "start": {
+            "line": 10,
+            "column": 3
+          },
+          "end": {
+            "line": 10,
+            "column": 46
+          }
+        }
+      }
+    },
+    {
+      "id": "dotnetdoc:markup-comment:fixtures-source-portal.web-views-home-index.cshtml:1",
+      "kind": "dotnet-markup-comment",
+      "name": "Index.cshtml razor-comment 1",
+      "commentKind": "razor-comment",
+      "syntax": "@* *@",
+      "visibility": "server-hidden",
+      "language": "razor",
+      "summary": "Home dashboard Razor view.",
+      "content": "@component HomeDashboardView\n<lang>\n  <en>Home dashboard Razor view.</en>\n  <zh-CN>首页仪表盘 Razor 视图。</zh-CN>\n</lang>",
+      "source": {
+        "path": "fixtures/source/Portal.Web/Views/Home/Index.cshtml",
+        "language": "razor",
+        "rangeSource": "razor-comment",
+        "confidence": "medium",
+        "range": {
+          "start": {
+            "line": 1,
+            "column": 1
+          },
+          "end": {
+            "line": 7,
+            "column": 3
+          }
+        }
+      },
+      "i18n": {
+        "model": "hia-text-i18n",
+        "defaultLocale": "en",
+        "locales": [
+          "en",
+          "zh-CN"
+        ],
+        "fields": {
+          "content": {
+            "defaultLocale": "en",
+            "localizedText": {
+              "en": "Home dashboard Razor view.",
+              "zh-CN": "首页仪表盘 Razor 视图。"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "dotnetdoc:markup-comment:fixtures-source-portal.web-views-home-index.cshtml:2",
+      "kind": "dotnet-markup-comment",
+      "name": "Index.cshtml html-comment 2",
+      "commentKind": "html-comment",
+      "syntax": "<!-- -->",
+      "visibility": "client-visible",
+      "language": "razor",
+      "summary": "Client-visible Razor dashboard region marker.",
+      "content": "Client-visible Razor dashboard region marker.",
+      "source": {
+        "path": "fixtures/source/Portal.Web/Views/Home/Index.cshtml",
+        "language": "razor",
+        "rangeSource": "html-comment",
+        "confidence": "medium",
+        "range": {
+          "start": {
+            "line": 8,
+            "column": 1
+          },
+          "end": {
+            "line": 8,
+            "column": 55
+          }
+        }
+      }
+    }
+  ],
+  "diagnostics": []
+}

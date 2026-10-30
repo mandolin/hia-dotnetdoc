@@ -1,0 +1,48 @@
+{
+  "description": "65ceafe真实旧写者原始产物，后续只核摘要，禁止新写者改号代替历史。",
+  "sourceHead": "65ceafee573461bd06498e90755a1ddfbd0f1928",
+  "entries": [
+    {
+      "name": "dotnetdoc-xml-doc-extraction-0.1.0-draft.json",
+      "contract": "dotnetdoc-xml-doc-extraction",
+      "version": "0.1.0-draft",
+      "sha256": "2e9ae5c419a657d40b42eda81f7ad24917583ddc26de736c3eb96405cd49fe79"
+    },
+    {
+      "name": "dotnetdoc-csharp-source-extraction-0.1.0-draft.json",
+      "contract": "dotnetdoc-csharp-source-extraction",
+      "version": "0.1.0-draft",
+      "sha256": "6539846ec11395d1cc96be8f310539d2c247b7f7eb71a74add59ded18ca0d7a3"
+    },
+    {
+      "name": "dotnetdoc-source-relation-0.1.0-draft.json",
+      "contract": "dotnetdoc-source-relation",
+      "version": "0.1.0-draft",
+      "sha256": "f1673925b0eeb9be4ba22106653a612e78fff4c4cfdab1da42caa554bf98bc78"
+    },
+    {
+      "name": "dotnetdoc-aspnet-endpoint-extraction-0.1.0-draft.json",
+      "contract": "dotnetdoc-aspnet-endpoint-extraction",
+      "version": "0.1.0-draft",
+      "sha256": "7f042697f03c981d4b421bd706705ee7663dce51d16656c066238ba504a1a1b5"
+    },
+    {
+      "name": "dotnetdoc-markup-comment-extraction-0.1.0-draft.json",
+      "contract": "dotnetdoc-markup-comment-extraction",
+      "version": "0.1.0-draft",
+      "sha256": "46b1c8d0a8f55ddf016388b8ddb0051d0c47638821c56f60dbccfacd0b54a518"
+    },
+    {
+      "name": "dotnetdoc-project-discovery-0.1.0-draft.json",
+      "contract": "dotnetdoc-project-discovery",
+      "version": "0.1.0-draft",
+      "sha256": "428cc6398250569597079fc84e27e95cd1ddd8c1926b60020522fffde31da0c7"
+    },
+    {
+      "name": "dotnetdoc-build-warning-classification-0.1.0-draft.json",
+      "contract": "dotnetdoc-build-warning-classification",
+      "version": "0.1.0-draft",
+      "sha256": "32ba334bad6685a3d6bdc95b4e4436a16132f147d3d52122d9e17725facc4a37"
+    }
+  ]
+}

@@ -1,0 +1,136 @@
+{
+  "contract": "dotnetdoc-project-discovery",
+  "contractVersion": "0.1.0-draft",
+  "producer": {
+    "name": "@hia-doc/dotnet-source-extractor",
+    "version": "0.1.12",
+    "engine": "project-file-scan",
+    "engineVersion": "0.1.0"
+  },
+  "source": {
+    "kind": "dotnet-solution",
+    "files": [
+      {
+        "path": "fixtures/source/Portal.sln",
+        "language": "sln"
+      }
+    ]
+  },
+  "identityPolicy": {
+    "policy": "project-relative-owner-resolved",
+    "scope": "workspace",
+    "pathKind": "project-relative",
+    "absolutePathInIdentity": false,
+    "displayLabelInIdentity": false,
+    "localeInIdentity": false
+  },
+  "privacy": {
+    "sourcesContentPolicy": "none",
+    "sourcePreviewPolicy": "none",
+    "embedsSourcesContent": false
+  },
+  "summary": {
+    "inputCount": 1,
+    "solutionCount": 1,
+    "projectCount": 1,
+    "csharpProjectCount": 1,
+    "targetFrameworkCount": 1,
+    "packageReferenceCount": 1,
+    "projectReferenceCount": 0,
+    "compileItemCount": 1,
+    "diagnosticCount": 0
+  },
+  "solutions": [
+    {
+      "id": "dotnet-solution:fixtures-source-portal.sln",
+      "path": "fixtures/source/Portal.sln",
+      "name": "Portal",
+      "format": "sln",
+      "projectCount": 1,
+      "projects": [
+        {
+          "id": "dotnet-solution-project:fixtures-source-portal.sln-portal.components-portal.components.csproj",
+          "name": "Portal.Components",
+          "path": "Portal.Components/Portal.Components.csproj",
+          "projectGuid": "{6C99EBD0-7F98-4B9E-8DE8-7F0166319F5E}",
+          "projectTypeGuid": "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}",
+          "kind": "csharp-project"
+        }
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "id": "dotnet-project:fixtures-source-portal.components-portal.components.csproj",
+      "path": "fixtures/source/Portal.Components/Portal.Components.csproj",
+      "identity": {
+        "id": "dotnet-project:fixtures-source-portal.components-portal.components.csproj",
+        "path": "fixtures/source/Portal.Components/Portal.Components.csproj",
+        "policy": "project-relative-owner-resolved"
+      },
+      "resolution": "resolved",
+      "confidence": "medium",
+      "provenance": {
+        "producer": "@hia-doc/dotnet-source-extractor",
+        "activity": "project-file-scan",
+        "contract": "dotnetdoc-project-discovery",
+        "contractVersion": "0.1.0-draft"
+      },
+      "name": "Portal.Components",
+      "fileName": "Portal.Components.csproj",
+      "kind": "csharp-project",
+      "sdk": "Microsoft.NET.Sdk",
+      "outputType": null,
+      "targetFrameworks": [
+        "net8.0"
+      ],
+      "rootNamespace": "Portal.Components",
+      "assemblyName": "Portal.Components",
+      "nullable": "enable",
+      "implicitUsings": "enable",
+      "usesSdkDefaultCompileItems": false,
+      "packageReferences": [
+        {
+          "include": "Microsoft.CodeAnalysis.CSharp",
+          "version": "5.6.0",
+          "privateAssets": "all",
+          "includeAssets": null,
+          "excludeAssets": null,
+          "condition": null
+        }
+      ],
+      "projectReferences": [],
+      "compileItems": [
+        {
+          "include": "Navigation/PortalMenu.cs",
+          "update": null,
+          "remove": null,
+          "condition": null
+        }
+      ],
+      "propertyGroups": [
+        {
+          "condition": null,
+          "properties": {
+            "TargetFramework": "net8.0",
+            "RootNamespace": "Portal.Components",
+            "AssemblyName": "Portal.Components",
+            "Nullable": "enable",
+            "ImplicitUsings": "enable"
+          }
+        }
+      ],
+      "source": {
+        "path": "fixtures/source/Portal.Components/Portal.Components.csproj",
+        "language": "xml",
+        "rangeSource": "project-file",
+        "confidence": "medium"
+      },
+      "metadata": {
+        "solutionPath": "fixtures/source/Portal.sln"
+      },
+      "diagnostics": []
+    }
+  ],
+  "diagnostics": []
+}

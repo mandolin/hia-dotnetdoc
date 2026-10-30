@@ -1,0 +1,470 @@
+{
+  "contract": "dotnetdoc-xml-doc-extraction",
+  "contractVersion": "0.1.0-draft",
+  "producer": {
+    "name": "@hia-doc/dotnet-xml-doc-extractor",
+    "version": "0.1.12"
+  },
+  "source": {
+    "kind": "dotnet-xml-doc",
+    "path": "fixtures/xml-doc/Portal.Components.xml"
+  },
+  "assembly": {
+    "name": "Portal.Components"
+  },
+  "defaultLocale": "en",
+  "locales": [
+    "en",
+    "zh-CN"
+  ],
+  "members": [
+    {
+      "id": "dotnet:t:portal.components.navigation.portalmenu",
+      "memberName": "T:Portal.Components.Navigation.PortalMenu",
+      "kind": "dotnet-type",
+      "name": "PortalMenu",
+      "summary": "Represents a portal navigation menu.",
+      "remarks": "Used by ASP.NET Portal layout pages.",
+      "parameters": [],
+      "typeParameters": [],
+      "returns": "",
+      "exceptions": [],
+      "see": [],
+      "seeAlso": [],
+      "i18n": {
+        "enabled": true,
+        "model": "hia-text-i18n",
+        "modelVersion": "0.2.0",
+        "defaultLocale": "en",
+        "locales": [
+          "en",
+          "zh-CN"
+        ],
+        "fields": {
+          "summary": {
+            "fieldPath": "summary",
+            "kind": "summary",
+            "defaultLocale": "en",
+            "defaultText": "Represents a portal navigation menu.",
+            "source": "xml.summary",
+            "localizedText": {
+              "en": "Represents a portal navigation menu.",
+              "zh-CN": "表示一个门户导航菜单。"
+            },
+            "blocks": [
+              {
+                "kind": "lang-block",
+                "locale": "en",
+                "fieldPath": "summary",
+                "text": "Represents a portal navigation menu.",
+                "source": "xml.lang",
+                "rangeInComment": null
+              },
+              {
+                "kind": "lang-block",
+                "locale": "zh-CN",
+                "fieldPath": "summary",
+                "text": "表示一个门户导航菜单。",
+                "source": "xml.lang",
+                "rangeInComment": null
+              }
+            ],
+            "resolutions": {
+              "en": {
+                "requestedLocale": "en",
+                "resolvedLocale": "en",
+                "fallbackChain": [
+                  "en"
+                ],
+                "usedFallback": false,
+                "missing": false,
+                "sourceKind": "lang-block",
+                "sourceLocale": "en",
+                "source": "xml.summary"
+              },
+              "zh-CN": {
+                "requestedLocale": "zh-CN",
+                "resolvedLocale": "zh-CN",
+                "fallbackChain": [
+                  "zh-CN",
+                  "zh",
+                  "en"
+                ],
+                "usedFallback": false,
+                "missing": false,
+                "sourceKind": "lang-block",
+                "sourceLocale": "zh-CN",
+                "source": "xml.summary"
+              }
+            },
+            "missingLocales": []
+          },
+          "remarks": {
+            "fieldPath": "remarks",
+            "kind": "remarks",
+            "defaultLocale": "en",
+            "defaultText": "Used by ASP.NET Portal layout pages.",
+            "source": "xml.remarks",
+            "localizedText": {
+              "en": "Used by ASP.NET Portal layout pages.",
+              "zh-CN": "供 ASP.NET Portal 布局页面使用。"
+            },
+            "blocks": [
+              {
+                "kind": "lang-block",
+                "locale": "en",
+                "fieldPath": "remarks",
+                "text": "Used by ASP.NET Portal layout pages.",
+                "source": "xml.div-para-lang",
+                "rangeInComment": null
+              },
+              {
+                "kind": "lang-block",
+                "locale": "zh-CN",
+                "fieldPath": "remarks",
+                "text": "供 ASP.NET Portal 布局页面使用。",
+                "source": "xml.div-para-lang",
+                "rangeInComment": null
+              }
+            ],
+            "resolutions": {
+              "en": {
+                "requestedLocale": "en",
+                "resolvedLocale": "en",
+                "fallbackChain": [
+                  "en"
+                ],
+                "usedFallback": false,
+                "missing": false,
+                "sourceKind": "lang-block",
+                "sourceLocale": "en",
+                "source": "xml.remarks"
+              },
+              "zh-CN": {
+                "requestedLocale": "zh-CN",
+                "resolvedLocale": "zh-CN",
+                "fallbackChain": [
+                  "zh-CN",
+                  "zh",
+                  "en"
+                ],
+                "usedFallback": false,
+                "missing": false,
+                "sourceKind": "lang-block",
+                "sourceLocale": "zh-CN",
+                "source": "xml.remarks"
+              }
+            },
+            "missingLocales": []
+          }
+        }
+      },
+      "source": {
+        "path": "fixtures/xml-doc/Portal.Components.xml",
+        "rangeSource": "compiler-xml-doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "dotnet:p:portal.components.navigation.portalmenu.items",
+      "memberName": "P:Portal.Components.Navigation.PortalMenu.Items",
+      "kind": "dotnet-property",
+      "name": "Items",
+      "summary": "Gets the menu items visible to the current user.",
+      "remarks": "",
+      "parameters": [],
+      "typeParameters": [],
+      "returns": "",
+      "exceptions": [],
+      "see": [],
+      "seeAlso": [],
+      "i18n": {
+        "enabled": true,
+        "model": "hia-text-i18n",
+        "modelVersion": "0.2.0",
+        "defaultLocale": "en",
+        "locales": [
+          "en"
+        ],
+        "fields": {
+          "summary": {
+            "fieldPath": "summary",
+            "kind": "summary",
+            "defaultLocale": "en",
+            "defaultText": "Gets the menu items visible to the current user.",
+            "source": "xml.summary",
+            "localizedText": {
+              "en": "Gets the menu items visible to the current user."
+            },
+            "resolutions": {
+              "en": {
+                "requestedLocale": "en",
+                "resolvedLocale": "en",
+                "fallbackChain": [
+                  "en"
+                ],
+                "usedFallback": false,
+                "missing": false,
+                "sourceKind": "default-text",
+                "sourceLocale": "en",
+                "source": "xml.summary"
+              }
+            },
+            "missingLocales": []
+          }
+        }
+      },
+      "source": {
+        "path": "fixtures/xml-doc/Portal.Components.xml",
+        "rangeSource": "compiler-xml-doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "dotnet:m:portal.components.navigation.portalmenu.render-system.string",
+      "memberName": "M:Portal.Components.Navigation.PortalMenu.Render(System.String)",
+      "kind": "dotnet-method",
+      "name": "Render",
+      "summary": "Renders a menu for the selected tenant.",
+      "remarks": "",
+      "parameters": [
+        {
+          "name": "tenantId",
+          "summary": "Tenant identifier.",
+          "i18nField": {
+            "fieldPath": "params.tenantId.summary",
+            "kind": "param",
+            "defaultLocale": "en",
+            "defaultText": "Tenant identifier.",
+            "source": "xml.param.tenantId",
+            "localizedText": {
+              "en": "Tenant identifier.",
+              "zh-CN": "租户标识。"
+            },
+            "segments": [
+              {
+                "kind": "lang-inline",
+                "id": "params.tenantId.summary:l:1",
+                "fieldPath": "params.tenantId.summary",
+                "raw": "<l>",
+                "localized": {
+                  "en": "Tenant identifier.",
+                  "zh-CN": "租户标识。"
+                }
+              }
+            ],
+            "resolutions": {
+              "en": {
+                "requestedLocale": "en",
+                "resolvedLocale": "en",
+                "fallbackChain": [
+                  "en"
+                ],
+                "usedFallback": false,
+                "missing": false,
+                "sourceKind": "lang-block",
+                "sourceLocale": "en",
+                "source": "xml.param.tenantId"
+              },
+              "zh-CN": {
+                "requestedLocale": "zh-CN",
+                "resolvedLocale": "zh-CN",
+                "fallbackChain": [
+                  "zh-CN",
+                  "zh",
+                  "en"
+                ],
+                "usedFallback": false,
+                "missing": false,
+                "sourceKind": "lang-block",
+                "sourceLocale": "zh-CN",
+                "source": "xml.param.tenantId"
+              }
+            },
+            "missingLocales": []
+          }
+        }
+      ],
+      "typeParameters": [],
+      "returns": "HTML fragment for the tenant menu.",
+      "exceptions": [
+        {
+          "cref": "T:System.ArgumentException",
+          "summary": "Thrown when the tenant id is empty.",
+          "i18nField": {
+            "fieldPath": "exceptions.T:System.ArgumentException.summary",
+            "kind": "exception",
+            "defaultLocale": "en",
+            "defaultText": "Thrown when the tenant id is empty.",
+            "source": "xml.exception.T:System.ArgumentException",
+            "localizedText": {
+              "en": "Thrown when the tenant id is empty."
+            },
+            "resolutions": {
+              "en": {
+                "requestedLocale": "en",
+                "resolvedLocale": "en",
+                "fallbackChain": [
+                  "en"
+                ],
+                "usedFallback": false,
+                "missing": false,
+                "sourceKind": "default-text",
+                "sourceLocale": "en",
+                "source": "xml.exception.T:System.ArgumentException"
+              }
+            },
+            "missingLocales": []
+          }
+        }
+      ],
+      "see": [],
+      "seeAlso": [],
+      "i18n": {
+        "enabled": true,
+        "model": "hia-text-i18n",
+        "modelVersion": "0.2.0",
+        "defaultLocale": "en",
+        "locales": [
+          "en",
+          "zh-CN"
+        ],
+        "fields": {
+          "summary": {
+            "fieldPath": "summary",
+            "kind": "summary",
+            "defaultLocale": "en",
+            "defaultText": "Renders a menu for the selected tenant.",
+            "source": "xml.summary",
+            "localizedText": {
+              "en": "Renders a menu for the selected tenant."
+            },
+            "resolutions": {
+              "en": {
+                "requestedLocale": "en",
+                "resolvedLocale": "en",
+                "fallbackChain": [
+                  "en"
+                ],
+                "usedFallback": false,
+                "missing": false,
+                "sourceKind": "default-text",
+                "sourceLocale": "en",
+                "source": "xml.summary"
+              }
+            },
+            "missingLocales": []
+          },
+          "params.tenantId.summary": {
+            "fieldPath": "params.tenantId.summary",
+            "kind": "param",
+            "defaultLocale": "en",
+            "defaultText": "Tenant identifier.",
+            "source": "xml.param.tenantId",
+            "localizedText": {
+              "en": "Tenant identifier.",
+              "zh-CN": "租户标识。"
+            },
+            "segments": [
+              {
+                "kind": "lang-inline",
+                "id": "params.tenantId.summary:l:1",
+                "fieldPath": "params.tenantId.summary",
+                "raw": "<l>",
+                "localized": {
+                  "en": "Tenant identifier.",
+                  "zh-CN": "租户标识。"
+                }
+              }
+            ],
+            "resolutions": {
+              "en": {
+                "requestedLocale": "en",
+                "resolvedLocale": "en",
+                "fallbackChain": [
+                  "en"
+                ],
+                "usedFallback": false,
+                "missing": false,
+                "sourceKind": "lang-block",
+                "sourceLocale": "en",
+                "source": "xml.param.tenantId"
+              },
+              "zh-CN": {
+                "requestedLocale": "zh-CN",
+                "resolvedLocale": "zh-CN",
+                "fallbackChain": [
+                  "zh-CN",
+                  "zh",
+                  "en"
+                ],
+                "usedFallback": false,
+                "missing": false,
+                "sourceKind": "lang-block",
+                "sourceLocale": "zh-CN",
+                "source": "xml.param.tenantId"
+              }
+            },
+            "missingLocales": []
+          },
+          "returns.summary": {
+            "fieldPath": "returns.summary",
+            "kind": "returns",
+            "defaultLocale": "en",
+            "defaultText": "HTML fragment for the tenant menu.",
+            "source": "xml.returns",
+            "localizedText": {
+              "en": "HTML fragment for the tenant menu."
+            },
+            "resolutions": {
+              "en": {
+                "requestedLocale": "en",
+                "resolvedLocale": "en",
+                "fallbackChain": [
+                  "en"
+                ],
+                "usedFallback": false,
+                "missing": false,
+                "sourceKind": "default-text",
+                "sourceLocale": "en",
+                "source": "xml.returns"
+              }
+            },
+            "missingLocales": []
+          },
+          "exceptions.T:System.ArgumentException.summary": {
+            "fieldPath": "exceptions.T:System.ArgumentException.summary",
+            "kind": "exception",
+            "defaultLocale": "en",
+            "defaultText": "Thrown when the tenant id is empty.",
+            "source": "xml.exception.T:System.ArgumentException",
+            "localizedText": {
+              "en": "Thrown when the tenant id is empty."
+            },
+            "resolutions": {
+              "en": {
+                "requestedLocale": "en",
+                "resolvedLocale": "en",
+                "fallbackChain": [
+                  "en"
+                ],
+                "usedFallback": false,
+                "missing": false,
+                "sourceKind": "default-text",
+                "sourceLocale": "en",
+                "source": "xml.exception.T:System.ArgumentException"
+              }
+            },
+            "missingLocales": []
+          }
+        }
+      },
+      "source": {
+        "path": "fixtures/xml-doc/Portal.Components.xml",
+        "rangeSource": "compiler-xml-doc",
+        "confidence": "high"
+      }
+    }
+  ],
+  "diagnostics": []
+}

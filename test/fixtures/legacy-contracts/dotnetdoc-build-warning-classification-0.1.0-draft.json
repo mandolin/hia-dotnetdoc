@@ -1,0 +1,79 @@
+{
+  "contract": "dotnetdoc-build-warning-classification",
+  "contractVersion": "0.1.0-draft",
+  "producer": {
+    "name": "@hia-doc/dotnetdoc-runner",
+    "version": "0.1.12"
+  },
+  "policy": {
+    "name": "dotnetdoc-generated-designer-warning-policy",
+    "version": "0.1.0-draft",
+    "defaultDocumentationGate": "do-not-block-on-generated-or-designer-cs1591",
+    "sourcesContentPolicy": "none"
+  },
+  "summary": {
+    "diagnosticCount": 2,
+    "generatedOrDesignerCount": 1,
+    "manualSourceCount": 1,
+    "defaultBlockingCount": 0,
+    "countsByBoundary": {
+      "manual-source": 1,
+      "generated-code": 1
+    },
+    "countsByCode": {
+      "CS1591": 2
+    }
+  },
+  "diagnostics": [
+    {
+      "id": "dotnet-build-diagnostic:1",
+      "path": "src/Widget.cs",
+      "range": {
+        "start": {
+          "line": 1,
+          "column": 1
+        }
+      },
+      "severity": "warning",
+      "code": "CS1591",
+      "message": "Missing documentation",
+      "raw": "src/Widget.cs(1,1): warning CS1591: Missing documentation",
+      "boundary": {
+        "kind": "manual-source",
+        "confidence": "medium",
+        "reason": "no-generated-pattern"
+      },
+      "gate": {
+        "severity": "warning",
+        "defaultAction": "keep-in-documentation-warning-gate",
+        "blocksDefaultDocumentation": false,
+        "rationale": "Manual source diagnostics remain visible for target-owner documentation governance."
+      }
+    },
+    {
+      "id": "dotnet-build-diagnostic:2",
+      "path": "obj/Widget.g.cs",
+      "range": {
+        "start": {
+          "line": 1,
+          "column": 1
+        }
+      },
+      "severity": "warning",
+      "code": "CS1591",
+      "message": "Missing documentation",
+      "raw": "obj/Widget.g.cs(1,1): warning CS1591: Missing documentation",
+      "boundary": {
+        "kind": "generated-code",
+        "confidence": "high",
+        "reason": "generated-path-or-file-name"
+      },
+      "gate": {
+        "severity": "info",
+        "defaultAction": "exclude-from-documentation-warning-gate",
+        "blocksDefaultDocumentation": false,
+        "rationale": "Generated or designer code is documented through the source template or generated artifact boundary."
+      }
+    }
+  ]
+}

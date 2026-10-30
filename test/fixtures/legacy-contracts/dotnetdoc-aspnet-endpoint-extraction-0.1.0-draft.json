@@ -1,0 +1,537 @@
+{
+  "contract": "dotnetdoc-aspnet-endpoint-extraction",
+  "contractVersion": "0.1.0-draft",
+  "producer": {
+    "name": "@hia-doc/dotnet-source-extractor",
+    "version": "0.1.12",
+    "engine": "source-scan",
+    "engineVersion": "0.1.0"
+  },
+  "source": {
+    "kind": "aspnet-surface",
+    "applicationRoot": ".",
+    "files": [
+      {
+        "path": "Default.aspx",
+        "language": "aspx"
+      },
+      {
+        "path": "Admin/Users.ascx",
+        "language": "ascx"
+      },
+      {
+        "path": "Controllers/BooksController.cs",
+        "language": "csharp"
+      },
+      {
+        "path": "Program.cs",
+        "language": "csharp"
+      }
+    ]
+  },
+  "summary": {
+    "endpointCount": 6,
+    "routableEndpointCount": 5,
+    "webFormsSurfaceCount": 2,
+    "aspNetCoreSurfaceCount": 4
+  },
+  "endpoints": [
+    {
+      "id": "aspnet:aspnet-webforms-page:default.aspx",
+      "kind": "aspnet-webforms-page",
+      "framework": "aspnet-webforms",
+      "name": "Default.aspx",
+      "displayName": "Page ~/Default.aspx",
+      "route": {
+        "template": "~/Default.aspx",
+        "normalizedPath": "/Default.aspx",
+        "source": "webforms-file-path",
+        "confidence": "high"
+      },
+      "httpMethods": [
+        "GET",
+        "POST"
+      ],
+      "routable": true,
+      "handler": {
+        "kind": "webforms-codebehind",
+        "typeName": "Portal.Web.DefaultPage",
+        "memberName": "Page_Load",
+        "source": {
+          "path": "Default.aspx.cs",
+          "language": "csharp",
+          "rangeSource": "webforms-codebehind-handler",
+          "confidence": "medium",
+          "range": {
+            "start": {
+              "line": 12,
+              "column": 9
+            },
+            "end": {
+              "line": 12,
+              "column": 34
+            }
+          }
+        }
+      },
+      "source": {
+        "path": "Default.aspx",
+        "language": "aspnet-markup",
+        "rangeSource": "aspnet-webforms-directive",
+        "confidence": "high",
+        "range": {
+          "start": {
+            "line": 1,
+            "column": 1
+          },
+          "end": {
+            "line": 1,
+            "column": 146
+          }
+        }
+      },
+      "metadata": {
+        "webForms": {
+          "directive": "Page",
+          "inherits": "Portal.Web.DefaultPage",
+          "codeBehind": "Default.aspx.cs",
+          "masterPageFile": "~/Default.master",
+          "autoEventWireup": "True"
+        }
+      }
+    },
+    {
+      "id": "aspnet:aspnet-webforms-control:admin-users.ascx",
+      "kind": "aspnet-webforms-control",
+      "framework": "aspnet-webforms",
+      "name": "Users.ascx",
+      "displayName": "Control ~/Admin/Users.ascx",
+      "route": {
+        "template": "~/Admin/Users.ascx",
+        "normalizedPath": "/Admin/Users.ascx",
+        "source": "webforms-file-path",
+        "confidence": "high"
+      },
+      "httpMethods": [],
+      "routable": false,
+      "handler": {
+        "kind": "webforms-codebehind",
+        "typeName": "Portal.Web.Admin.UsersControl",
+        "memberName": "Page_Load",
+        "source": {
+          "path": "Admin/Users.ascx.cs",
+          "language": "csharp",
+          "rangeSource": "webforms-codebehind-handler",
+          "confidence": "medium",
+          "range": {
+            "start": {
+              "line": 12,
+              "column": 9
+            },
+            "end": {
+              "line": 12,
+              "column": 34
+            }
+          }
+        }
+      },
+      "source": {
+        "path": "Admin/Users.ascx",
+        "language": "aspnet-markup",
+        "rangeSource": "aspnet-webforms-directive",
+        "confidence": "high",
+        "range": {
+          "start": {
+            "line": 1,
+            "column": 1
+          },
+          "end": {
+            "line": 1,
+            "column": 120
+          }
+        }
+      },
+      "metadata": {
+        "webForms": {
+          "directive": "Control",
+          "inherits": "Portal.Web.Admin.UsersControl",
+          "codeBehind": "Admin/Users.ascx.cs",
+          "masterPageFile": null,
+          "autoEventWireup": "True"
+        }
+      }
+    },
+    {
+      "id": "aspnet:controller-action:bookscontroller.get.api-books-id",
+      "kind": "aspnet-controller-action",
+      "framework": "aspnet-core",
+      "name": "Get",
+      "displayName": "BooksController.Get",
+      "route": {
+        "template": "api/Books/{id}",
+        "normalizedPath": "/api/Books/{id}",
+        "source": "attribute-routing",
+        "confidence": "high",
+        "name": "GetBook"
+      },
+      "httpMethods": [
+        "GET"
+      ],
+      "routable": true,
+      "handler": {
+        "kind": "controller-action",
+        "typeName": "BooksController",
+        "memberName": "Get",
+        "source": {
+          "path": "Controllers/BooksController.cs",
+          "language": "csharp",
+          "rangeSource": "attribute-routing-action",
+          "confidence": "medium",
+          "range": {
+            "start": {
+              "line": 20,
+              "column": 5
+            },
+            "end": {
+              "line": 20,
+              "column": 30
+            }
+          }
+        }
+      },
+      "source": {
+        "path": "Controllers/BooksController.cs",
+        "language": "csharp",
+        "rangeSource": "attribute-routing-action",
+        "confidence": "medium",
+        "range": {
+          "start": {
+            "line": 20,
+            "column": 5
+          },
+          "end": {
+            "line": 20,
+            "column": 30
+          }
+        }
+      },
+      "metadata": {
+        "aspnetCore": {
+          "controller": "BooksController",
+          "attributes": [
+            "[HttpGet(\"{id}\", Name = \"GetBook\")",
+            "[AllowAnonymous",
+            "[ProducesResponseType(StatusCodes.Status200OK)"
+          ],
+          "classAttributes": [
+            "[ApiController",
+            "[Route(\"api/[controller]\")",
+            "[Authorize(Policy = \"Books.Read\")",
+            "[Produces(\"application/json\")"
+          ],
+          "routePrefix": "api/[controller]",
+          "endpointName": "GetBook",
+          "tags": [],
+          "authorization": {
+            "required": false,
+            "allowAnonymous": true,
+            "policies": [
+              "Books.Read"
+            ],
+            "roles": [],
+            "source": "attributes",
+            "confidence": "medium"
+          },
+          "responses": [
+            {
+              "statusCode": null,
+              "contentTypes": [
+                "application/json"
+              ],
+              "source": "attributes",
+              "raw": "[Produces(\"application/json\")"
+            },
+            {
+              "statusCode": 200,
+              "contentTypes": [],
+              "source": "attributes",
+              "raw": "[ProducesResponseType(StatusCodes.Status200OK)"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "aspnet:controller-action:bookscontroller.create.api-books",
+      "kind": "aspnet-controller-action",
+      "framework": "aspnet-core",
+      "name": "Create",
+      "displayName": "BooksController.Create",
+      "route": {
+        "template": "api/Books",
+        "normalizedPath": "/api/Books",
+        "source": "attribute-routing",
+        "confidence": "high",
+        "name": null
+      },
+      "httpMethods": [
+        "POST"
+      ],
+      "routable": true,
+      "handler": {
+        "kind": "controller-action",
+        "typeName": "BooksController",
+        "memberName": "Create",
+        "source": {
+          "path": "Controllers/BooksController.cs",
+          "language": "csharp",
+          "rangeSource": "attribute-routing-action",
+          "confidence": "medium",
+          "range": {
+            "start": {
+              "line": 32,
+              "column": 5
+            },
+            "end": {
+              "line": 32,
+              "column": 33
+            }
+          }
+        }
+      },
+      "source": {
+        "path": "Controllers/BooksController.cs",
+        "language": "csharp",
+        "rangeSource": "attribute-routing-action",
+        "confidence": "medium",
+        "range": {
+          "start": {
+            "line": 32,
+            "column": 5
+          },
+          "end": {
+            "line": 32,
+            "column": 33
+          }
+        }
+      },
+      "metadata": {
+        "aspnetCore": {
+          "controller": "BooksController",
+          "attributes": [
+            "[HttpPost",
+            "[Authorize(Roles = \"Editors\")",
+            "[ProducesResponseType(StatusCodes.Status201Created)"
+          ],
+          "classAttributes": [
+            "[ApiController",
+            "[Route(\"api/[controller]\")",
+            "[Authorize(Policy = \"Books.Read\")",
+            "[Produces(\"application/json\")"
+          ],
+          "routePrefix": "api/[controller]",
+          "endpointName": null,
+          "tags": [],
+          "authorization": {
+            "required": true,
+            "allowAnonymous": false,
+            "policies": [
+              "Books.Read"
+            ],
+            "roles": [
+              "Editors"
+            ],
+            "source": "attributes",
+            "confidence": "medium"
+          },
+          "responses": [
+            {
+              "statusCode": null,
+              "contentTypes": [
+                "application/json"
+              ],
+              "source": "attributes",
+              "raw": "[Produces(\"application/json\")"
+            },
+            {
+              "statusCode": 201,
+              "contentTypes": [],
+              "source": "attributes",
+              "raw": "[ProducesResponseType(StatusCodes.Status201Created)"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "aspnet:minimal-api:mapget.-health",
+      "kind": "aspnet-minimal-api-endpoint",
+      "framework": "aspnet-core",
+      "name": "MapGet",
+      "displayName": "MapGet /health",
+      "route": {
+        "template": "/health",
+        "normalizedPath": "/health",
+        "source": "minimal-api-map",
+        "confidence": "medium",
+        "name": "HealthCheck"
+      },
+      "httpMethods": [
+        "GET"
+      ],
+      "routable": true,
+      "handler": {
+        "kind": "minimal-api-delegate",
+        "typeName": null,
+        "memberName": "MapGet",
+        "source": {
+          "path": "Program.cs",
+          "language": "csharp",
+          "rangeSource": "minimal-api-map",
+          "confidence": "medium",
+          "range": {
+            "start": {
+              "line": 4,
+              "column": 1
+            },
+            "end": {
+              "line": 4,
+              "column": 21
+            }
+          }
+        }
+      },
+      "source": {
+        "path": "Program.cs",
+        "language": "csharp",
+        "rangeSource": "minimal-api-map",
+        "confidence": "medium",
+        "range": {
+          "start": {
+            "line": 4,
+            "column": 1
+          },
+          "end": {
+            "line": 4,
+            "column": 21
+          }
+        }
+      },
+      "metadata": {
+        "aspnetCore": {
+          "mapMethod": "MapGet",
+          "endpointName": "HealthCheck",
+          "tags": [
+            "System"
+          ],
+          "authorization": {
+            "required": false,
+            "allowAnonymous": true,
+            "policies": [],
+            "roles": [],
+            "source": "minimal-api-fluent",
+            "confidence": "medium"
+          },
+          "responses": [],
+          "fluentCalls": [
+            "MapGet",
+            "WithName",
+            "WithTags",
+            "AllowAnonymous"
+          ]
+        }
+      }
+    },
+    {
+      "id": "aspnet:minimal-api:mappost.-books",
+      "kind": "aspnet-minimal-api-endpoint",
+      "framework": "aspnet-core",
+      "name": "MapPost",
+      "displayName": "MapPost /books",
+      "route": {
+        "template": "/books",
+        "normalizedPath": "/books",
+        "source": "minimal-api-map",
+        "confidence": "medium",
+        "name": "CreateBook"
+      },
+      "httpMethods": [
+        "POST"
+      ],
+      "routable": true,
+      "handler": {
+        "kind": "minimal-api-delegate",
+        "typeName": null,
+        "memberName": "MapPost",
+        "source": {
+          "path": "Program.cs",
+          "language": "csharp",
+          "rangeSource": "minimal-api-map",
+          "confidence": "medium",
+          "range": {
+            "start": {
+              "line": 9,
+              "column": 1
+            },
+            "end": {
+              "line": 9,
+              "column": 21
+            }
+          }
+        }
+      },
+      "source": {
+        "path": "Program.cs",
+        "language": "csharp",
+        "rangeSource": "minimal-api-map",
+        "confidence": "medium",
+        "range": {
+          "start": {
+            "line": 9,
+            "column": 1
+          },
+          "end": {
+            "line": 9,
+            "column": 21
+          }
+        }
+      },
+      "metadata": {
+        "aspnetCore": {
+          "mapMethod": "MapPost",
+          "endpointName": "CreateBook",
+          "tags": [
+            "Books"
+          ],
+          "authorization": {
+            "required": true,
+            "allowAnonymous": false,
+            "policies": [
+              "Books.Write"
+            ],
+            "roles": [],
+            "source": "minimal-api-fluent",
+            "confidence": "medium"
+          },
+          "responses": [
+            {
+              "statusCode": 200,
+              "contentTypes": [],
+              "source": "minimal-api-fluent",
+              "raw": "StatusCodes.Status200OK"
+            }
+          ],
+          "fluentCalls": [
+            "MapPost",
+            "Ok",
+            "WithName",
+            "WithTags",
+            "RequireAuthorization",
+            "Produces"
+          ]
+        }
+      }
+    }
+  ],
+  "diagnostics": []
+}
