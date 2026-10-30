@@ -38,6 +38,8 @@ const packages = [
       "README.md",
       "LICENSE",
       "src/index.mjs",
+      // <lang><zh-CN>SDK策略是安装后helper运行的必要文件，必须进入真实归档闭包。</zh-CN><en>The SDK policy is required for the installed helper and must be part of the actual archive closure.</en></lang>
+      "global.json",
       "tools/DotNetDoc.RoslynSourceExtractor/DotNetDoc.RoslynSourceExtractor.csproj",
       "tools/DotNetDoc.RoslynSourceExtractor/Program.cs"
     ],

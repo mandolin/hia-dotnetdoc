@@ -6,6 +6,20 @@ for DotNetDoc.
 DotNetDoc 源码抽取器，覆盖 C# 源码、ASP.NET endpoint surface，以及
 ASP.NET/Razor 标记层非 XML 注释。
 
+## Tool Runtime
+
+C# extraction requires Node.js 22/24 and a serviced, stable **.NET 10 SDK plus
+runtime**. The helper is compiled for `net10.0`. The package includes its own
+`global.json`; its SDK selection starts from the extractor package directory,
+not the input project's working directory. Keep .NET 10 servicing updates installed.
+No .NET 8 runtime is required to run the helper. Static project, endpoint and
+markup scans do not invoke it. The input project's target framework remains
+metadata and is not rewritten or built by extraction.
+
+C# 抽取工具需 Node.js 22/24 与受支持补丁的稳定 .NET 10 SDK/runtime；
+无需 .NET 8 runtime。随包 global.json 从提取包目录选 SDK；不使用输入项目目录的
+SDK 规则，不运行其构建。静态项目/端点/标记扫描不启动 helper，旧框架输入保留原样。
+
 ```js
 import {
   extractAspNetEndpoints,

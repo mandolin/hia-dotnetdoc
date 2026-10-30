@@ -16,13 +16,17 @@ concurrency:
 
 jobs:
   release-gate:
-    name: Release gate / Node ${{ matrix.node }}
-    runs-on: ubuntu-latest
+    name: Release gate / ${{ matrix.os }} / Node ${{ matrix.node }}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        # 中文：固定受支持宿主，两OS都运行真实helper与完整门禁。
+        # English: Pin supported hosts and run the real helper plus the complete gate on both operating systems.
+        os:
+          - ubuntu-24.04
+          - windows-2022
         node:
-          - 20.20.2
           - 22.x
           - 24.x
 
@@ -39,10 +43,16 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 10.0.x
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Record selected tool environment
+        run: |
+          dotnet --version
+          dotnet --list-runtimes
+          node --version
 
       - name: Run release gate
         run: npm run release:gate

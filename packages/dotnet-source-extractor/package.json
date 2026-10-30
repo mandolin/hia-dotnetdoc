@@ -4,6 +4,9 @@
   "description": "Parse C# source files into DotNetDoc extraction artifacts through a Roslyn helper.",
   "type": "module",
   "license": "MIT",
+  "engines": {
+    "node": "^22.0.0 || ^24.0.0"
+  },
   "keywords": [
     "hia",
     "dotnetdoc",
@@ -28,6 +31,7 @@
   },
   "files": [
     "src",
+    "global.json",
     "tools/DotNetDoc.RoslynSourceExtractor/DotNetDoc.RoslynSourceExtractor.csproj",
     "tools/DotNetDoc.RoslynSourceExtractor/Program.cs",
     "README.md",

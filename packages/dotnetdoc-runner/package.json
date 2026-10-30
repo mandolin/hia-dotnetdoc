@@ -4,6 +4,9 @@
   "description": "Standalone .NET XML documentation runner and CLI.",
   "type": "module",
   "license": "MIT",
+  "engines": {
+    "node": "^22.0.0 || ^24.0.0"
+  },
   "keywords": [
     "hia",
     "dotnetdoc",

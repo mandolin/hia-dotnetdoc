@@ -24,7 +24,7 @@ jobs:
   publish:
     name: Publish package with npm provenance
     if: inputs.confirm_publish == 'publish @hia-doc dotnetdoc package'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Check out repository
@@ -40,7 +40,7 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 10.0.x
 
       - name: Install npm trusted publishing baseline
         run: npm install -g npm@^11.15.0

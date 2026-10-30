@@ -1,5 +1,12 @@
 # 变更日志 / Changelog
 
+## Unreleased
+
+- 工具环境调整为Node.js22/24；C# Roslyn helper迁移至.NET10，需稳定受支持补丁的SDK/runtime，不再依赖.NET8 runtime。输入项目框架保持原样，旧XML/项目/源码继续按静态边界读取。
+- Moves tooling to Node.js 22/24 and the C# Roslyn helper to .NET 10. A serviced stable SDK/runtime is required; the helper no longer depends on a .NET 8 runtime. Input frameworks remain unchanged within existing static-analysis limits.
+- 提取包随附global.json，SDK选择与输入目录隔离；CI在Windows2022/Ubuntu24.04和两条Node线执行完整门禁。
+- Ships the extractor's SDK selection policy independently of the input directory; CI runs the complete gate on Windows 2022/Ubuntu 24.04 with both Node lines.
+
 ## 0.1.12 — 2026-10-26
 
 - 真实partial类型记录主声明选择（非生成优先，再按路径/行）；重复输入与真实冲突保留歧义诊断。

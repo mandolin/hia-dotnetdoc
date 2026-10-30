@@ -4,6 +4,9 @@
   "description": "Documentation producer adapter for DotNetDoc.",
   "type": "module",
   "license": "MIT",
+  "engines": {
+    "node": "^22.0.0 || ^24.0.0"
+  },
   "keywords": [
     "hia",
     "dotnetdoc",

@@ -29,14 +29,14 @@
     "release:trusted-publish:plan": "node scripts/print-trusted-publish-commands.cjs",
     "smoke:standalone": "node packages/dotnetdoc-runner/src/cli.mjs --config examples/standalone/dotnetdoc.config.json",
     "wp95:enterprise-source-usability:evidence": "npm test && node scripts/prepare-wp95-enterprise-source-usability-evidence.mjs",
-    "test": "node --test test/dotnetdoc-xml-fixture.test.mjs test/signature.test.mjs test/source-locations.test.mjs test/source-coverage.test.mjs test/doc-source-map.test.mjs",
+    "test": "node --test test/dotnetdoc-xml-fixture.test.mjs test/signature.test.mjs test/source-locations.test.mjs test/source-coverage.test.mjs test/doc-source-map.test.mjs test/runtime-environment.test.mjs",
     "test:all": "npm run release:gate"
   },
   "workspaces": [
     "packages/*"
   ],
   "engines": {
-    "node": ">=20.19.0"
+    "node": "^22.0.0 || ^24.0.0"
   },
   "dependencies": {
     "fast-xml-parser": "5.3.2"

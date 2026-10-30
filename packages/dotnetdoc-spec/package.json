@@ -4,6 +4,9 @@
   "description": "Shared DotNetDoc contract constants and member kind registry.",
   "type": "module",
   "license": "MIT",
+  "engines": {
+    "node": "^22.0.0 || ^24.0.0"
+  },
   "keywords": [
     "hia",
     "dotnetdoc",

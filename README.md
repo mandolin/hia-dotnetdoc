@@ -19,9 +19,27 @@ richer source-linkage.
 | `@hia-doc/dotnetdoc-runner` | Runs XML documentation inputs from JSON config or CLI and emits producer result manifests. |
 | `@hia-doc/dotnetdoc-producer` | Exposes the runner through the HIA documentation producer contract. |
 
+## Runtime Requirements
+
+Use Node.js 22 or 24. C# source extraction requires the **.NET 10 SDK and runtime**;
+install current stable .NET 10 servicing updates. The extractor builds and runs
+its own Roslyn helper, so a runtime-only installation is insufficient. XML,
+static project discovery, ASP.NET route scans and markup-comment parsing do not
+run the helper by themselves.
+
+The repository and source-extractor package select stable .NET 10 SDKs through
+`global.json` (`10.0.100`, `latestFeature`, no previews). This selects tooling;
+it does not upgrade the target framework of input projects or execute their
+MSBuild files. Legacy .NET Framework and .NET 8 source/XML remain readable within
+the documented static-analysis limits. See [runtime compatibility and migration](docs/runtime-compatibility.md).
+
+工具环境采用 Node.js 22/24；C# 源码抽取需当前受支持补丁的 .NET 10 SDK 与 runtime，
+只有 runtime 不够。包内 SDK 策略与业务项目框架无关，不改写或执行业务项目；
+XML、静态项目/端点和标记注释解析本身不启动 Roslyn helper。
+
 ## Current Scope
 
-The first milestone is intentionally narrow:
+The supported extraction scope is intentionally bounded:
 
 - consume compiler-generated XML documentation files, explicit C# source inputs, ASP.NET surface inputs and markup comment inputs;
 - preserve .NET member ids such as `T:`, `M:`, `P:`, `F:`, and `E:`;

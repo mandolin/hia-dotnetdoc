@@ -4,6 +4,9 @@
   "description": "Parse compiler XML documentation files into DotNetDoc extraction artifacts.",
   "type": "module",
   "license": "MIT",
+  "engines": {
+    "node": "^22.0.0 || ^24.0.0"
+  },
   "keywords": [
     "hia",
     "dotnetdoc",
