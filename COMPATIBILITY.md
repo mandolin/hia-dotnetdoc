@@ -88,3 +88,8 @@ Legacy input frameworks are unchanged. See [runtime migration](docs/runtime-comp
 Schemas ship under `@hia-doc/dotnetdoc-spec/schemas/*.schema.json` and
 `@hia-doc/dotnetdoc-runner/schemas/*.schema.json`; no remote schema downloads are performed.
 See [contract APIs](docs/contracts.md) for examples and failure semantics.
+
+The repository test gate limits file-level Node test workers to two while
+retaining process isolation and every suite. This bounds the combined schema
+compilation/native-helper workload; it does not change extraction semantics.
+仓库测试门禁固定两文件worker资源预算，保留进程隔离和全部用例，不改变实际抽取能力。

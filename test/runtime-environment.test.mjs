@@ -17,6 +17,13 @@ const extractorRoot = path.join(root, 'packages/dotnet-source-extractor');
 /** 自有Roslyn工具目录；测试不构建输入项目。 @lang en Owned Roslyn tool directory; tests never build input projects. */
 const helperRoot = path.join(extractorRoot, 'tools/DotNetDoc.RoslynSourceExtractor');
 
+it('bounds file-level test workers without disabling process isolation or skipping suites', async () => {
+  // <lang><zh-CN>Ajv/原生helper并行导入有实际Zone OOM证据；固定两worker预算，所有文件仍执行。</zh-CN><en>Parallel Ajv/native-helper imports produced an actual Zone OOM; fix a two-worker budget while still executing every file.</en></lang>
+  const manifest = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
+  assert.match(manifest.scripts.test, /^node --test --test-concurrency=2 /u);
+  assert.doesNotMatch(manifest.scripts.test, /--test-isolation=none|--test-name-pattern/u);
+});
+
 it('declares the supported Node lines for all six distributed packages', async () => {
   // <lang><zh-CN>发布包不可只依赖私有仓根的engine声明；逐包检查用户可消费的元数据。</zh-CN><en>Distributed packages cannot rely on the private workspace engine declaration; check each consumer-visible manifest.</en></lang>
   for (const name of ['dotnetdoc-spec', 'dotnet-xml-doc-extractor', 'dotnet-source-extractor', 'dotnetdoc-adapter', 'dotnetdoc-runner', 'dotnetdoc-producer']) {
