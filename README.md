@@ -50,14 +50,17 @@ The supported extraction scope is intentionally bounded:
 - emit `dotnetdoc-markup-comment-extraction` for Web Forms `<%-- --%>`, Razor `@* *@` and HTML `<!-- -->` comments in `.aspx`, `.ascx`, `.cshtml` and `.razor` files;
 - emit HIA-compatible document artifacts and producer result manifests without embedding private source text.
 
-The first Roslyn source extractor is syntax-only: it extracts documented/public
-declarations, XML documentation trivia and source ranges from explicit `.cs`
-files. The first ASP.NET endpoint extractor is source-scan based: it records
+The Roslyn source extractor parses explicit `.cs` files or statically resolved
+project source files and creates a lightweight compilation with declared,
+available metadata references. It extracts documented/public declarations,
+semantic documentation IDs, XML trivia and source ranges without loading an
+MSBuild workspace or building the input project. The ASP.NET endpoint extractor is source-scan based: it records
 Web Forms file-system surfaces and common ASP.NET Core route declarations, but
 does not yet perform full project compilation, endpoint discovery through the
 runtime pipeline, route constraint expansion or OpenAPI generation. Full
-semantic compilation, `.sln`/`.csproj` discovery, inherited docs, DocFX, SHFB
-project import and richer source-linkage are planned follow-up layers.
+MSBuild project-load semantics, inherited docs, DocFX, SHFB project import and
+richer runtime source-linkage remain outside the current scope. Static
+`.sln`/`.csproj` discovery and declared reference resolution are supported.
 
 The first markup comment extractor is also source-scan based. It treats
 server-side comments (`<%-- --%>` and `@* *@`) as documentation-only source and

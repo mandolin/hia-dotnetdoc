@@ -1,3 +1,7 @@
+/**
+ * @file 在受限工作区静态读取C#/ASP.NET/项目元数据；只运行自有Roslyn helper，保留原文位置，不执行业务构建。
+ * @lang en Statically reads C#/ASP.NET/project metadata within a bounded workspace, running only the owned Roslyn helper and retaining original positions without executing business builds.
+ */
 import { spawn } from "node:child_process";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
