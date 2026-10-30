@@ -26,7 +26,7 @@ const DEFAULT_LOCALE = "en";
  */
 const PRODUCER_IDENTITY = Object.freeze({
   name: "@hia-doc/dotnet-xml-doc-extractor",
-  version: "0.1.12"
+  version: "1.0.0"
 });
 const XML_ATTRIBUTE_KEYS = new Set(["name", "cref", "href", "lang", "h_type", "h-type", "path", "key", "#text"]);
 const LOCALE_TAG_PATTERN = /^[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{2,8})*$/u;

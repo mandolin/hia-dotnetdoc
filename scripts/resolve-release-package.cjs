@@ -7,7 +7,7 @@ const { loadReleasePackages } = require("./release-packages.cjs");
  * @lang zh-CN Trusted Publisher resolver 只接受的六包统一候选版本。
  * @lang en Unified six-package candidate version accepted by the Trusted Publisher resolver.
  */
-const releaseVersion = "0.1.12";
+const releaseVersion = "1.0.0";
 const packageName = process.argv[2];
 const writeGithubOutput = process.argv.includes("--github-output");
 

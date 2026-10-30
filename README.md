@@ -10,6 +10,13 @@ richer source-linkage.
 
 ## Packages
 
+The six packages have coordinated `1.0.0` source candidates. This is an unreleased
+source line; verify registry availability separately. Each package ships an API
+reference, migration guide and conservative ESM TypeScript declarations.
+
+中文：六包源码候选协调到1.0.0，尚未执行npm发布。安装时应核验实际registry版本，
+按包内API/迁移指南处理精确新旧身份；类型不替代schema、公开权限和源码精度校验。
+
 | Package | Purpose |
 | --- | --- |
 | `@hia-doc/dotnetdoc-spec` | Shared constants for DotNetDoc contracts and member kinds. |
@@ -18,6 +25,18 @@ richer source-linkage.
 | `@hia-doc/dotnetdoc-adapter` | Converts DotNetDoc extraction artifacts to HIA document shapes. |
 | `@hia-doc/dotnetdoc-runner` | Runs XML documentation inputs from JSON config or CLI and emits producer result manifests. |
 | `@hia-doc/dotnetdoc-producer` | Exposes the runner through the HIA documentation producer contract. |
+
+Package references: [spec](packages/dotnetdoc-spec/API.md),
+[XML extractor](packages/dotnet-xml-doc-extractor/API.md),
+[source extractor](packages/dotnet-source-extractor/API.md),
+[adapter](packages/dotnetdoc-adapter/API.md),
+[runner and CLI](packages/dotnetdoc-runner/API.md),
+[producer](packages/dotnetdoc-producer/API.md).
+
+`npm run check:release-plan` verifies the local six-package inventory without
+network access. `release-plan.json` currently marks `local-candidate`;
+registry prepublication checks and the manual publisher reject this state.
+Passing source tests does not change publication readiness automatically.
 
 ## Contracts and Compatibility
 

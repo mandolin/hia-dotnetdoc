@@ -1,0 +1,38 @@
+{
+  "version": "1.0.0",
+  "status": "local-candidate",
+  "publishedToNpm": false,
+  "description": "中文：六包源码候选，未执行npm发布。 English: Six-package source candidate; npm publishing has not been executed.",
+  "packages": [
+    {
+      "name": "@hia-doc/dotnetdoc-spec",
+      "directory": "packages/dotnetdoc-spec",
+      "version": "1.0.0"
+    },
+    {
+      "name": "@hia-doc/dotnet-xml-doc-extractor",
+      "directory": "packages/dotnet-xml-doc-extractor",
+      "version": "1.0.0"
+    },
+    {
+      "name": "@hia-doc/dotnet-source-extractor",
+      "directory": "packages/dotnet-source-extractor",
+      "version": "1.0.0"
+    },
+    {
+      "name": "@hia-doc/dotnetdoc-adapter",
+      "directory": "packages/dotnetdoc-adapter",
+      "version": "1.0.0"
+    },
+    {
+      "name": "@hia-doc/dotnetdoc-runner",
+      "directory": "packages/dotnetdoc-runner",
+      "version": "1.0.0"
+    },
+    {
+      "name": "@hia-doc/dotnetdoc-producer",
+      "directory": "packages/dotnetdoc-producer",
+      "version": "1.0.0"
+    }
+  ]
+}

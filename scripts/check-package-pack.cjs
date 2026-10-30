@@ -8,12 +8,12 @@ const root = path.resolve(__dirname, "..");
  * @lang zh-CN 本轮六包必须共享的精确本地发布候选版本。
  * @lang en Exact local release-candidate version shared by all six packages in this train.
  */
-const releaseVersion = "0.1.12";
+const releaseVersion = "1.0.0";
 /**
  * @lang zh-CN 必须从可发布文件中清除的上一条 exact internal dependency line。
  * @lang en Previous exact internal dependency line that must be absent from release-bearing files.
  */
-const previousReleaseVersion = "0.1.9";
+const previousReleaseVersion = "0.1.12";
 const repositoryUrl = "git+https://github.com/mandolin/hia-dotnetdoc.git";
 const npmCliPath = path.join(path.dirname(process.execPath), "node_modules", "npm", "bin", "npm-cli.js");
 
@@ -106,6 +106,8 @@ function main() {
     }
 
     const packedFiles = dryRunPack(packageRoot, packageInfo.name);
+    // <lang><zh-CN>类型与公开责任须在实际归档中，仓库内存在文件不足以通过分发检查。</zh-CN><en>Declarations and public responsibility must exist in actual archives; repository presence alone cannot pass distribution checks.</en></lang>
+    for (const file of ["src/index.d.mts", "API.md", "MIGRATION.md"]) assert.ok(packedFiles.includes(file), `${packageInfo.name} requires ${file}.`);
     for (const requiredFile of packageInfo.requiredFiles) {
       assert.ok(packedFiles.includes(requiredFile), `${packageInfo.name} pack output is missing ${requiredFile}.`);
     }

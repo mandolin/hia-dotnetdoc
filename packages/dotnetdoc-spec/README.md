@@ -62,3 +62,9 @@ npm install @hia-doc/dotnetdoc-spec
 ## License
 
 MIT.
+
+## API and migration
+
+See the [API reference](API.md), [migration guide](MIGRATION.md), and bundled ESM declarations for 1.0.0.
+
+中文：API、精确新旧读取和迁移规则随包提供；类型不替代运行时校验或公开权限。

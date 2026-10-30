@@ -1,5 +1,13 @@
 # Compatibility and Migration
 
+The six `1.0.0` package manifests are source candidates, with exact internal
+dependencies and bundled API/migration guides. `release-plan.json` remains
+`local-candidate`; neither this document nor a successful source gate reports
+npm publication. Root ESM declarations support strict NodeNext consumption;
+nested metadata remains `unknown` until validated.
+
+中文：六包1.0.0源码候选与发行就绪分开；包内保守类型不替代schema、宿主权限或精度验证。
+
 ## Independent Version Boundaries
 
 | Boundary | Current writer | Exact legacy reader |

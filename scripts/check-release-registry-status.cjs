@@ -1,6 +1,10 @@
-const { execFileSync, execSync } = require("node:child_process");
+/** @file 只读registry核对与受控预发布检查，不执行发布或回显底层错误。 @lang en Read-only registry verification and controlled prepublication checks without publication or lower-level error echoes. */
+const { execFileSync } = require("node:child_process");
+const fs = require('node:fs');
+const path = require('node:path');
 
 const { loadReleasePackages } = require("./release-packages.cjs");
+const { validateReleasePlan } = require('./check-release-plan.cjs');
 
 const defaultRegistry = "https://registry.npmjs.org/";
 
@@ -23,27 +27,13 @@ function parseArgs(args) {
   return options;
 }
 
-function firstMeaningfulLines(value) {
-  return value
-    .split(/\r?\n/u)
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .slice(0, 4)
-    .join(" | ");
-}
-
+/** 用固定npm CLI查询一个精确版本，不调用shell；错误只返回受控状态。 @lang en Queries one exact version through the fixed npm CLI without a shell, returning controlled error states only. */
 function readRegistryVersion(packageName, version, registry) {
   try {
-    const output =
-      process.platform === "win32"
-        ? execSync(`npm view "${packageName}@${version}" version "--registry=${registry}"`, {
-            encoding: "utf8",
-            stdio: ["ignore", "pipe", "pipe"]
-          }).trim()
-        : execFileSync("npm", ["view", `${packageName}@${version}`, "version", `--registry=${registry}`], {
-            encoding: "utf8",
-            stdio: ["ignore", "pipe", "pipe"]
-          }).trim();
+    // <lang><zh-CN>直接用当前Node的npm CLI参数数组，避免Windows shell解释registry内容。</zh-CN><en>Use the current Node's npm CLI argument array directly, avoiding Windows shell interpretation of registry values.</en></lang>
+    const output = execFileSync(process.execPath, [path.join(path.dirname(process.execPath), 'node_modules/npm/bin/npm-cli.js'), 'view', `${packageName}@${version}`, 'version', `--registry=${registry}`], {
+      encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 30000
+    }).trim();
     return {
       registryVersion: output,
       status: output === version ? "published" : "version-mismatch"
@@ -60,7 +50,7 @@ function readRegistryVersion(packageName, version, registry) {
     }
 
     return {
-      details: firstMeaningfulLines(details || error.message),
+      details: 'registry lookup failed',
       registryVersion: "",
       status: "error"
     };
@@ -79,9 +69,19 @@ function printRows(rows, registry) {
   }
 }
 
+/** 只读状态检查；预发布须先有就绪清单并全部目标尚未发布，不执行发布。 @lang en Read-only status checking; prepublication requires a ready inventory and all targets still unpublished, without performing publication. */
 function main() {
   const options = parseArgs(process.argv.slice(2));
-  const rows = loadReleasePackages().map((item) => ({
+  // <lang><zh-CN>源码候选尚未就绪时先拒绝，连只读npm查询都不执行；真正发布还需另行批准。</zh-CN><en>Refuse unready source candidates before even read-only npm queries; actual publication requires separate authorization.</en></lang>
+  const plan = JSON.parse(fs.readFileSync(path.join(__dirname, '../release-plan.json'), 'utf8'));
+  const packages = loadReleasePackages();
+  validateReleasePlan(plan, packages);
+  if (options.prepublish && plan.status !== 'publication-ready') {
+    console.error('Prepublish check failed: source candidates are not publication-ready.');
+    process.exitCode = 1;
+    return;
+  }
+  const rows = packages.map((item) => ({
     ...item,
     ...readRegistryVersion(item.name, item.version, options.registry)
   }));
@@ -106,4 +106,8 @@ function main() {
   }
 }
 
-main();
+try { main(); } catch {
+  // <lang><zh-CN>参数/清单错误也不回显原值或主机堆栈。</zh-CN><en>Argument/inventory errors also avoid echoing raw values or host stacks.</en></lang>
+  console.error('DotNetDoc registry verification rejected.');
+  process.exitCode = 1;
+}

@@ -103,3 +103,9 @@ records source ranges, syntax kind, server/client visibility and `<lang>` /
 Semantic metadata includes declaration facts for proven partial types and `hasUnresolvedSignatureTypes`; unresolved parameter or conversion types must not establish an exact documentation ID. Duplicate inputs and cross-compilation conflicts remain distinct.
 
 中文：补读显式元数据引用，不运行目标构建。XML旁目录约束同次构建副本，缺失/多配置冲突/越界/坏元数据有诊断；传统框架依赖本机已安装reference pack，不能承诺所有平台同样覆盖率。
+
+## API and migration
+
+See the [API reference](API.md), [migration guide](MIGRATION.md), and bundled ESM declarations for 1.0.0.
+
+中文：API、精确新旧读取和迁移规则随包提供；类型不替代运行时校验或公开权限。

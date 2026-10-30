@@ -87,3 +87,9 @@ permission. Existing source preview settings still require explicit publication 
 中文：XML是文档出处；代码定位来自已配置项目中的唯一真实Roslyn声明。缺失/歧义保持未定位，
 不会回退XML或按名称猜文件。需要现有.NET 8 SDK/helper；本轮不实现PDB读取，尤其不能把传统
 Windows PDB当作Portable PDB。范围与语言随真实声明输出，所有XML注释/本地化字段保持。
+
+## API and migration
+
+See the [API reference](API.md), [migration guide](MIGRATION.md), and bundled ESM declarations for 1.0.0.
+
+中文：API、精确新旧读取和迁移规则随包提供；类型不替代运行时校验或公开权限。

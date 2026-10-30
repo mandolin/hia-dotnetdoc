@@ -1,6 +1,6 @@
 {
   "name": "@hia-doc/dotnetdoc-runner",
-  "version": "0.1.12",
+  "version": "1.0.0",
   "description": "Standalone .NET XML documentation runner and CLI.",
   "type": "module",
   "license": "MIT",
@@ -24,7 +24,10 @@
   },
   "homepage": "https://github.com/mandolin/hia-dotnetdoc/tree/main/packages/dotnetdoc-runner#readme",
   "exports": {
-    ".": "./src/index.mjs",
+    ".": {
+      "types": "./src/index.d.mts",
+      "default": "./src/index.mjs"
+    },
     "./schemas/*": "./src/schemas/*"
   },
   "bin": {
@@ -32,18 +35,22 @@
     "dotnetdoc": "src/cli.mjs"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "provenance": true
   },
   "files": [
     "src",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "API.md",
+    "MIGRATION.md"
   ],
   "dependencies": {
-    "@hia-doc/dotnet-source-extractor": "0.1.12",
-    "@hia-doc/dotnet-xml-doc-extractor": "0.1.12",
-    "@hia-doc/dotnetdoc-adapter": "0.1.12",
-    "@hia-doc/dotnetdoc-spec": "0.1.12",
+    "@hia-doc/dotnet-source-extractor": "1.0.0",
+    "@hia-doc/dotnet-xml-doc-extractor": "1.0.0",
+    "@hia-doc/dotnetdoc-adapter": "1.0.0",
+    "@hia-doc/dotnetdoc-spec": "1.0.0",
     "ajv": "8.17.1"
-  }
+  },
+  "types": "./src/index.d.mts"
 }

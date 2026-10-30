@@ -41,7 +41,7 @@ export { createDotnetDocSourceMap, DOTNETDOC_DOC_SOURCE_MAP_CONTRACT_VERSION } f
  * @lang zh-CN DotNetDoc runner/producer公开包版本，与领域工件、配置及主SDK各自身份分开。
  * @lang en Public DotNetDoc runner/producer package version, independent from domain-artifact, config and main SDK identities.
  */
-export const DOTNETDOC_RUNNER_VERSION = "0.1.12";
+export const DOTNETDOC_RUNNER_VERSION = "1.0.0";
 export const DOTNETDOC_INPUT_KINDS = Object.freeze(["dotnet-xml-doc", "dotnet-csharp-source", "dotnet-aspnet-surface", "dotnet-markup-comments", "dotnet-project"]);
 export const DOTNETDOC_OUTPUT_KINDS = Object.freeze(["dotnetdoc-extraction", "hia-document", "doc-source-map", "dotnetdoc-source-relation", "dotnetdoc-aspnet-endpoint-extraction", "dotnetdoc-markup-comment-extraction", "dotnetdoc-project-discovery"]);
 export const DOTNETDOC_BUILD_WARNING_CLASSIFICATION_CONTRACT = "dotnetdoc-build-warning-classification";

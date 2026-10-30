@@ -155,3 +155,9 @@ Windows PDB当作Portable PDB。范围与语言随真实声明输出，所有XML
 Read `document.metadata.sourceLocationResolution` for coverage counts and reference-warning codes, and each `symbol.diagnostics` for `data.symbolId`, `memberName`, `reason` (`missing`/`ambiguous`) and detail. Proven partial types prefer a non-generated declaration, then stable path/start position; the selected rule and candidate count appear in `symbol.metadata.dotnetdoc.sourceLocationResolution`. Duplicate inputs are not silently collapsed. Re-extract artifacts after upgrading; source publication still requires the existing explicit authorization.
 
 中文：计数在metadata层；未定位成员逐项带诊断，合法partial记录主声明选择。升级后重新抽取，不改变公开授权。
+
+## API and migration
+
+See the [API reference](API.md), [migration guide](MIGRATION.md), and bundled ESM declarations for 1.0.0.
+
+中文：API、精确新旧读取和迁移规则随包提供；类型不替代运行时校验或公开权限。

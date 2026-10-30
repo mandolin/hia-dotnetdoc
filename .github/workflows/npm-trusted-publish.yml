@@ -37,6 +37,11 @@ jobs:
           registry-url: https://registry.npmjs.org/
           package-manager-cache: false
 
+      # 中文：local-candidate不能通过此门禁，源码候选验收不等于发布就绪。
+      # English: local-candidate cannot pass this guard; source-candidate acceptance is not publication readiness.
+      - name: Require explicit publication readiness
+        run: node scripts/check-release-plan.cjs --publication-ready
+
       - name: Set up .NET
         uses: actions/setup-dotnet@v5
         with:

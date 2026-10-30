@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- 六包与内部精确依赖协调为1.0.0源码候选，新增各包API/迁移指南和保守ESM类型声明；local-candidate清单与手动发布就绪门禁分离，本条不表示npm已发布。
+- Coordinates six 1.0.0 source candidates and permanent internal dependencies, shipping per-package API/migration guides and conservative ESM declarations. A local-candidate inventory is separate from publication readiness; this entry does not report npm publication.
+
 - 配置与七种.NET领域产物协调新增1.0.0，保留原配置schema、精确0.1.0-draft读取与纯显式无损迁移；新配置目录可省略但不接纳null，旧运行默认按旧语义读取。共享producer/result采用1.0.0，文档源码地图维持1.1.0。
 - Introduces coordinated 1.0.0 config/domain wires, exact legacy reading and explicit lossless migration. Original config schema/runtime differences remain documented; current omissions retain defaults while null is rejected. Shared producer/result uses 1.0.0; document source maps stay at 1.1.0.
 - 16份本地schema随包导出；JSON校验不执行getter/proxy、不加载远端schema，失败/CLI不回显底层私有路径或原始堆栈。新增Ajv闭包已逐官方归档/安装文件字节与宽松许可核对，补齐旧锁缺失来源/SRI，不升级原三依赖版本。
