@@ -62,7 +62,9 @@ const COMPILER_DIAGNOSTIC_PATTERN = /^(?<path>.+?)\((?<line>\d+),(?<column>\d+)\
  * Runs one .NET XML documentation build and returns a documentation producer result.
  *
  * @param {object} request <lang><en>DotNetDoc runner request with absolute workspace/output directories.</en><zh-CN>包含绝对工作区与输出目录的 DotNetDoc runner 请求。</zh-CN></lang>
- * @param {{ signal?: AbortSignal, reportProgress?: Function }} [context] <lang><en>Optional producer runtime context.</en><zh-CN>可选 producer 运行时上下文。</zh-CN></lang>
+ * @param {Object} [context] <lang><en>Optional producer runtime context.</en><zh-CN>可选 producer 运行时上下文。</zh-CN></lang>
+ * @param {AbortSignal} [context.signal] <lang><zh-CN>可选取消信号。</zh-CN><en>Optional cancellation signal.</en></lang>
+ * @param {Function} [context.reportProgress] <lang><zh-CN>可选进度回调。</zh-CN><en>Optional progress callback.</en></lang>
  * @returns {Promise<object>} <lang><en>Documentation producer result.</en><zh-CN>Documentation producer result。</zh-CN></lang>
  * @lang zh-CN 执行 .NET XML documentation 构建。
  */
@@ -228,7 +230,8 @@ export function classifyDotnetBuildDiagnostics(diagnostics) {
  * Loads a versioned DotNetDoc JSON config and converts it into a runner request.
  *
  * @param {string} configPath <lang><en>Config path relative to cwd or absolute.</en><zh-CN>相对当前目录或绝对的配置文件路径。</zh-CN></lang>
- * @param {{ cwd?: string }} [options] <lang><en>Config loading options.</en><zh-CN>配置加载选项。</zh-CN></lang>
+ * @param {Object} [options] <lang><en>Config loading options.</en><zh-CN>配置加载选项。</zh-CN></lang>
+ * @param {string} [options.cwd] <lang><zh-CN>相对路径基准；省略时使用当前工作目录。</zh-CN><en>Base for relative paths; defaults to the current working directory.</en></lang>
  * @returns {Promise<object>} <lang><en>Normalized runner request.</en><zh-CN>规范化后的 runner 请求。</zh-CN></lang>
  * @lang zh-CN 加载 DotNetDoc 配置。
  */

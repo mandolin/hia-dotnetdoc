@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- 将运行器的可选上下文和配置参数改为原生 JSDoc 可解析的逐属性注释，保留双语语义、运行行为及全部契约版本。
+- Document optional runner context/config properties using native JSDoc syntax, preserving bilingual semantics, runtime behavior and all contract versions.
+
 - 六包与内部精确依赖协调为1.0.0源码候选，新增各包API/迁移指南和保守ESM类型声明；local-candidate清单与手动发布就绪门禁分离，本条不表示npm已发布。
 - Coordinates six 1.0.0 source candidates and permanent internal dependencies, shipping per-package API/migration guides and conservative ESM declarations. A local-candidate inventory is separate from publication readiness; this entry does not report npm publication.
 
