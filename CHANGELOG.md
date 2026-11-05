@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- 历史配置别名逐项文档化并保留原对象引用及原身份/版本值；历史模块与schema不变。
+- Document legacy config aliases individually while retaining original object references and identity/version values; historical modules and schemas are unchanged.
+
+- 补齐输入种类、输出种类和告警分类契约名称的双语文档，不改变运行代码、值或契约身份。
+- Document input/output kinds and the warning-classification contract name bilingually without changing runtime code, values or contract identities.
+
 - 将运行器的可选上下文和配置参数改为原生 JSDoc 可解析的逐属性注释，保留双语语义、运行行为及全部契约版本。
 - Document optional runner context/config properties using native JSDoc syntax, preserving bilingual semantics, runtime behavior and all contract versions.
 

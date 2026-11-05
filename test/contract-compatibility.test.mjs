@@ -183,3 +183,10 @@ it('rejects legacy config values that cannot be represented in current configura
   assert.throws(() => runner.migrateDotnetDocConfig(value), TypeError);
   assert.throws(() => runner.readDotnetDocConfig({ ...oldConfig, schemaVersion: '1.0.0', inputs: [{ path: 'Sample.xml' }] }), TypeError);
 });
+
+import {test as legacyFacadeTest} from "node:test";
+/** @lang zh-CN 公开历史配置别名继续指向原档案，文档化不重建schema或替换身份。 @lang en Public legacy config aliases continue to reference the original archive; documentation neither rebuilds schemas nor replaces identities. */
+legacyFacadeTest("documented legacy configuration facade preserves original references",async()=>{
+  const archived=await import("../packages/dotnetdoc-runner/src/schema-legacy.mjs");
+  for(const suffix of ["JSON_SCHEMA","SCHEMA_ID","SCHEMA_VERSION"]) assert.strictEqual(runner[`DOTNETDOC_LEGACY_CONFIG_${suffix}`],archived[`DOTNETDOC_CONFIG_${suffix}`]);
+});

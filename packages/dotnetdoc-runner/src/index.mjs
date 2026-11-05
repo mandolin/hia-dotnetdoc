@@ -31,8 +31,13 @@ import { cloneDotnetDocJson } from '@hia-doc/dotnetdoc-spec';
 import { inspectDotnetDocConfig } from './config-compatibility.mjs';
 /** 两代配置schema的精确选择，不执行配置或读取schema URL。 @lang en Exact dual-generation config-schema selection without config execution or schema URL reads. */
 export { getDotnetDocConfigSchema } from './config-compatibility.mjs';
-/** 原始旧schema按字节档案导出，不以新版本替代其历史语义。 @lang en Exports the byte-preserved legacy schema without replacing its historical semantics with the new version. */
-export { DOTNETDOC_CONFIG_JSON_SCHEMA as DOTNETDOC_LEGACY_CONFIG_JSON_SCHEMA, DOTNETDOC_CONFIG_SCHEMA_ID as DOTNETDOC_LEGACY_CONFIG_SCHEMA_ID, DOTNETDOC_CONFIG_SCHEMA_VERSION as DOTNETDOC_LEGACY_CONFIG_SCHEMA_VERSION } from './schema-legacy.mjs';
+import * as legacyConfig from './schema-legacy.mjs';
+/** @lang zh-CN 原档案配置schema的同一对象，不克隆或改写旧规则。 @lang en The original archived config-schema object without cloning or rewriting historical rules. */
+export const DOTNETDOC_LEGACY_CONFIG_JSON_SCHEMA = legacyConfig.DOTNETDOC_CONFIG_JSON_SCHEMA;
+/** @lang zh-CN 原档案配置schema身份，不访问URL或替换为新版本。 @lang en Original archived config-schema identity, without URL access or substitution by a new version. */
+export const DOTNETDOC_LEGACY_CONFIG_SCHEMA_ID = legacyConfig.DOTNETDOC_CONFIG_SCHEMA_ID;
+/** @lang zh-CN 原档案配置版本，不重标历史工件。 @lang en Original archived config version, without relabeling historical artifacts. */
+export const DOTNETDOC_LEGACY_CONFIG_SCHEMA_VERSION = legacyConfig.DOTNETDOC_CONFIG_SCHEMA_VERSION;
 import { enrichXmlSourceLocations } from "./source-locations.mjs";
 import { createDotnetDocSourceMap, hasUnpairedSurrogate } from "./doc-source-map.mjs";
 export { createDotnetDocSourceMap, DOTNETDOC_DOC_SOURCE_MAP_CONTRACT_VERSION } from "./doc-source-map.mjs";
@@ -42,8 +47,11 @@ export { createDotnetDocSourceMap, DOTNETDOC_DOC_SOURCE_MAP_CONTRACT_VERSION } f
  * @lang en Public DotNetDoc runner/producer package version, independent from domain-artifact, config and main SDK identities.
  */
 export const DOTNETDOC_RUNNER_VERSION = "1.0.0";
+/** @lang zh-CN 显式.NET/XML/C#/ASP.NET/标记/项目输入种类；列出能力不授予执行目标项目的权限。 @lang en Explicit .NET/XML/C#/ASP.NET/markup/project input kinds; listing capabilities grants no permission to execute targets. */
 export const DOTNETDOC_INPUT_KINDS = Object.freeze(["dotnet-xml-doc", "dotnet-csharp-source", "dotnet-aspnet-surface", "dotnet-markup-comments", "dotnet-project"]);
+/** @lang zh-CN 运行器可能产出的工件种类；具体清单仅以每次成功构建的实际结果为准。 @lang en Artifact kinds the runner may produce; each successful build's actual result is authoritative for its concrete manifest. */
 export const DOTNETDOC_OUTPUT_KINDS = Object.freeze(["dotnetdoc-extraction", "hia-document", "doc-source-map", "dotnetdoc-source-relation", "dotnetdoc-aspnet-endpoint-extraction", "dotnetdoc-markup-comment-extraction", "dotnetdoc-project-discovery"]);
+/** @lang zh-CN 构建告警分类契约名称，与下方版本共同标识数据语义，不是发布或验收状态。 @lang en Build-warning classification contract name; together with its version it identifies data semantics, not release or acceptance status. */
 export const DOTNETDOC_BUILD_WARNING_CLASSIFICATION_CONTRACT = "dotnetdoc-build-warning-classification";
 /** 构建告警分类的新稳定wire，旧产物由spec精确读取。 @lang en Stable current build-warning wire with exact legacy reading in the spec package. */
 export const DOTNETDOC_BUILD_WARNING_CLASSIFICATION_CONTRACT_VERSION = "1.0.0";
