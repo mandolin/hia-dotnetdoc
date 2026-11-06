@@ -2,13 +2,9 @@
 import Ajv2020 from 'ajv/dist/2020.js';
 import { createRequire } from 'node:module';
 import { cloneDotnetDocJson } from './json-value.mjs';
-
-/** 七个自有身份闭集，与npm包版本及主SDK身份分开。 @lang en Closed set of seven owned identities, independent from npm package and main SDK identities. */
-export const DOTNETDOC_ARTIFACT_CONTRACTS = Object.freeze([
-  'dotnetdoc-xml-doc-extraction', 'dotnetdoc-csharp-source-extraction', 'dotnetdoc-source-relation',
-  'dotnetdoc-aspnet-endpoint-extraction', 'dotnetdoc-markup-comment-extraction', 'dotnetdoc-project-discovery',
-  'dotnetdoc-build-warning-classification'
-]);
+/** @lang zh-CN 复用包内纯数据定义的同一冻结对象。 @lang en Reuses the same frozen objects from owner-local plain-data definitions. */
+import {DOTNETDOC_ARTIFACT_CONTRACTS} from './artifact-contracts-arrays.mjs';
+export {DOTNETDOC_ARTIFACT_CONTRACTS};
 /** 旧身份精确保留，禁止把draft视为任意版本范围。 @lang en Exact legacy identity, never interpreted as a version range. */
 export const DOTNETDOC_LEGACY_ARTIFACT_VERSION = '0.1.0-draft';
 /** 已确认B新增的稳定wire/profile身份。 @lang en Stable wire/profile identity introduced by confirmed option B. */

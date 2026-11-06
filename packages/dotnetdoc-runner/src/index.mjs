@@ -47,10 +47,9 @@ export { createDotnetDocSourceMap, DOTNETDOC_DOC_SOURCE_MAP_CONTRACT_VERSION } f
  * @lang en Public DotNetDoc runner/producer package version, independent from domain-artifact, config and main SDK identities.
  */
 export const DOTNETDOC_RUNNER_VERSION = "1.0.0";
-/** @lang zh-CN 显式.NET/XML/C#/ASP.NET/标记/项目输入种类；列出能力不授予执行目标项目的权限。 @lang en Explicit .NET/XML/C#/ASP.NET/markup/project input kinds; listing capabilities grants no permission to execute targets. */
-export const DOTNETDOC_INPUT_KINDS = Object.freeze(["dotnet-xml-doc", "dotnet-csharp-source", "dotnet-aspnet-surface", "dotnet-markup-comments", "dotnet-project"]);
-/** @lang zh-CN 运行器可能产出的工件种类；具体清单仅以每次成功构建的实际结果为准。 @lang en Artifact kinds the runner may produce; each successful build's actual result is authoritative for its concrete manifest. */
-export const DOTNETDOC_OUTPUT_KINDS = Object.freeze(["dotnetdoc-extraction", "hia-document", "doc-source-map", "dotnetdoc-source-relation", "dotnetdoc-aspnet-endpoint-extraction", "dotnetdoc-markup-comment-extraction", "dotnetdoc-project-discovery"]);
+/** @lang zh-CN 复用包内纯数据定义的同一冻结对象。 @lang en Reuses the same frozen objects from owner-local plain-data definitions. */
+import {DOTNETDOC_INPUT_KINDS, DOTNETDOC_OUTPUT_KINDS} from './frozen-arrays.mjs';
+export {DOTNETDOC_INPUT_KINDS, DOTNETDOC_OUTPUT_KINDS};
 /** @lang zh-CN 构建告警分类契约名称，与下方版本共同标识数据语义，不是发布或验收状态。 @lang en Build-warning classification contract name; together with its version it identifies data semantics, not release or acceptance status. */
 export const DOTNETDOC_BUILD_WARNING_CLASSIFICATION_CONTRACT = "dotnetdoc-build-warning-classification";
 /** 构建告警分类的新稳定wire，旧产物由spec精确读取。 @lang en Stable current build-warning wire with exact legacy reading in the spec package. */

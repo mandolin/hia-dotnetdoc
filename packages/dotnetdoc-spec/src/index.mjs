@@ -95,37 +95,9 @@ export const DOTNETDOC_PROJECT_IDENTITY_POLICY = "project-relative-owner-resolve
  * @lang zh-CN metadata-only DotNetDoc discovery 与 relation 产物的源码内容隐私策略；产物不得嵌入 source body。
  */
 export const DOTNETDOC_SOURCES_CONTENT_POLICY = "none";
-
-/**
- * XML documentation tags accepted by the first DotNetDoc intake layer.
- *
- * @lang zh-CN 第一层 DotNetDoc intake 接受的 XML documentation tag。
- */
-export const DOTNETDOC_XML_DOCUMENTATION_TAGS = Object.freeze([
-  "summary",
-  "remarks",
-  "param",
-  "typeparam",
-  "returns",
-  "exception",
-  "see",
-  "seealso",
-  "lang",
-  "l",
-  "div",
-  "para"
-]);
-
-/**
- * Markup comment syntax kinds recognized by the first DotNetDoc markup intake layer.
- *
- * @lang zh-CN 第一层 DotNetDoc markup intake 识别的标记层注释语法类型。
- */
-export const DOTNETDOC_MARKUP_COMMENT_KINDS = Object.freeze([
-  "webforms-server-comment",
-  "razor-comment",
-  "html-comment"
-]);
+/** @lang zh-CN 复用包内纯数据定义的同一冻结对象。 @lang en Reuses the same frozen objects from owner-local plain-data definitions. */
+import {DOTNETDOC_MARKUP_COMMENT_KINDS, DOTNETDOC_XML_DOCUMENTATION_TAGS} from './frozen-arrays.mjs';
+export {DOTNETDOC_MARKUP_COMMENT_KINDS, DOTNETDOC_XML_DOCUMENTATION_TAGS};
 
 /**
  * Known .NET documentation member id prefixes.
