@@ -133,11 +133,35 @@ export const DOTNETDOC_MARKUP_COMMENT_KINDS = Object.freeze([
  * @lang zh-CN 已知的 .NET documentation member id 前缀。
  */
 export const DOTNETDOC_MEMBER_PREFIXES = Object.freeze({
+  /**
+   * @lang zh-CN XML文档成员标识中事件使用的前缀。
+   * @lang en Prefix used for an event in an XML documentation member ID.
+   */
   event: "E:",
+  /**
+   * @lang zh-CN XML文档成员标识中字段使用的前缀。
+   * @lang en Prefix used for a field in an XML documentation member ID.
+   */
   field: "F:",
+  /**
+   * @lang zh-CN XML文档成员标识中方法使用的前缀。
+   * @lang en Prefix used for a method in an XML documentation member ID.
+   */
   method: "M:",
+  /**
+   * @lang zh-CN XML文档成员标识中命名空间使用的前缀。
+   * @lang en Prefix used for a namespace in an XML documentation member ID.
+   */
   namespace: "N:",
+  /**
+   * @lang zh-CN XML文档成员标识中属性使用的前缀。
+   * @lang en Prefix used for a property in an XML documentation member ID.
+   */
   property: "P:",
+  /**
+   * @lang zh-CN XML文档成员标识中类型使用的前缀。
+   * @lang en Prefix used for a type in an XML documentation member ID.
+   */
   type: "T:"
 });
 

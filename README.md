@@ -254,6 +254,14 @@ permission. Existing source preview settings still require explicit publication 
 不会回退XML或按名称猜文件。需要现有.NET 8 SDK/helper；本轮不实现PDB读取，尤其不能把传统
 Windows PDB当作Portable PDB。范围与语言随真实声明输出，所有XML注释/本地化字段保持。
 
+## API property documentation
+
+Producer descriptor properties and `DOTNETDOC_MEMBER_PREFIXES` entries carry
+individual English and Simplified Chinese JSDoc descriptions. The prefix table
+documents the XML documentation member ID categories used by DotNetDoc.
+
+中文：生产器描述符和.NET成员前缀表逐属性提供中英文原生注释，前缀表说明DotNetDoc使用的XML文档成员标识类别。
+
 ## Source location coverage and diagnostics
 
 From version `0.1.12`, proven partial types from one Roslyn compilation select a primary declaration: non-generated source first, then normalized path and starting position. The choice is recorded at `symbol.metadata.dotnetdoc.sourceLocationResolution` (`selectionRule`, `candidateCount`). Duplicate registrations and genuine conflicting identities remain unresolved with a diagnostic.
