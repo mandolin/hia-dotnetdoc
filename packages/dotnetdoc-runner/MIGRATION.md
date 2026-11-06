@@ -23,3 +23,9 @@ The new `.d.mts` entry models actual ESM root exports. Compile with NodeNext and
 ## Verification before adoption
 
 Install original cohort archives with ordinary npm resolution, run your real config through the owned helper, validate SDK output through the SDK, and compare bilingual content and source-map reading. Do not treat XML file locations as code definitions; hosts still authorize source previews separately. See [API](API.md) and [README](README.md).
+
+## Metadata subpath
+
+Tools can import pure runner metadata from `@hia-doc/dotnetdoc-runner/metadata`. Existing root imports continue to expose the same version and array objects. Producer descriptors retain mutable shallow copies of the arrays; staged descriptors keep their existing shared references.
+
+中文说明。工具发现可采用metadata子入口；原根入口继续引用同一定义。生产器的数组副本仍可变，暂存描述符继续共享基础副本。

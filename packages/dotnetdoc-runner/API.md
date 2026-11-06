@@ -43,3 +43,9 @@ Both `hia-dotnetdoc` and `dotnetdoc` run the same CLI. Use `--config/-c`, `--out
 Node.js 22/24; source helper requires stable .NET SDK/runtime 10 and uses its bundled SDK policy. Target projects are read as static inputs, including older target frameworks; full MSBuild project compilation/runtime endpoint discovery is outside this API. Source ranges are provenance unless the dedicated map declares and validates their precision. Documentation text and arbitrary metadata still require host publication permission. Progress cancellation does not kill active helpers or roll back files already written.
 
 See [README](README.md) for examples and [migration](MIGRATION.md) for compatibility.
+
+## Pure metadata entry
+
+Subpath `./metadata` exports `DOTNETDOC_RUNNER_VERSION`, `DOTNETDOC_INPUT_KINDS` and `DOTNETDOC_OUTPUT_KINDS` from pure definitions. The arrays are frozen, and the root API exposes the same references. This entry performs no runner operations.
+
+中文说明。metadata子入口提供同一版本与冻结输入/输出种类，适用于发现和文档工具。声明分支与运行分支分别提供，构建使用原运行API。

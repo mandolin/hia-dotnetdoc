@@ -161,3 +161,13 @@ Read `document.metadata.sourceLocationResolution` for coverage counts and refere
 See the [API reference](API.md), [migration guide](MIGRATION.md), and bundled ESM declarations for 1.0.0.
 
 中文：API、精确新旧读取和迁移规则随包提供；类型不替代运行时校验或公开权限。
+
+## Pure metadata
+
+```js
+import { DOTNETDOC_RUNNER_VERSION, DOTNETDOC_INPUT_KINDS, DOTNETDOC_OUTPUT_KINDS } from "@hia-doc/dotnetdoc-runner/metadata";
+```
+
+This entry exposes the runner version and frozen input/output kind arrays from the same definitions used by the root API. It contains pure data definitions, with no runner execution dependencies.
+
+中文说明。metadata子入口提供版本及冻结的输入/输出种类，根入口与该入口引用同一定义。执行构建继续使用原运行API。

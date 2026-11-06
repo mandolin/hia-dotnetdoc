@@ -28,7 +28,11 @@
       "types": "./src/index.d.mts",
       "default": "./src/index.mjs"
     },
-    "./schemas/*": "./src/schemas/*"
+    "./schemas/*": "./src/schemas/*",
+    "./metadata": {
+      "types": "./src/metadata-types.d.mts",
+      "default": "./src/metadata.mjs"
+    }
   },
   "bin": {
     "hia-dotnetdoc": "src/cli.mjs",
