@@ -24,3 +24,16 @@ Import from `@hia-doc/dotnetdoc-adapter`; [ESM declarations](src/index.d.mts) pr
 Node.js 22/24; source helper requires stable .NET SDK/runtime 10 and uses its bundled SDK policy. Target projects are read as static inputs, including older target frameworks; full MSBuild project compilation/runtime endpoint discovery is outside this API. Source ranges are provenance unless the dedicated map declares and validates their precision. Documentation text and arbitrary metadata still require host publication permission. Progress cancellation does not kill active helpers or roll back files already written.
 
 See [README](README.md) for examples and [migration](MIGRATION.md) for compatibility.
+
+## Type-only declarations
+
+The declaration entry also exports these types. Their source comments retain
+English and Simplified Chinese descriptions for roots and explicit members.
+The [declaration source](src/index.d.mts) defines optionality, unions and generic defaults.
+
+| Type | Meaning |
+| --- | --- |
+| `DotnetDocAdapterOptions` | Optional document identity/title/locales, using each adapter's existing defaults when omitted. |
+
+中文说明。以上类型通过声明入口公开，根及显式成员的双语说明随源码维护。
+类型签名保留联合、交叉和可选性，具体运行时输入仍由相应reader及schema检查。

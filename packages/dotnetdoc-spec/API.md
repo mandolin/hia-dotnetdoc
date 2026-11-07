@@ -48,3 +48,33 @@ The existing `./schemas/*` subpath exposes local JSON resources: seven artifacts
 Node.js 22/24; source helper requires stable .NET SDK/runtime 10 and uses its bundled SDK policy. Target projects are read as static inputs, including older target frameworks; full MSBuild project compilation/runtime endpoint discovery is outside this API. Source ranges are provenance unless the dedicated map declares and validates their precision. Documentation text and arbitrary metadata still require host publication permission. Progress cancellation does not kill active helpers or roll back files already written.
 
 See [README](README.md) for examples and [migration](MIGRATION.md) for compatibility.
+
+## Type-only declarations
+
+The declaration entry also exports these types. Their source comments retain
+English and Simplified Chinese descriptions for roots and explicit members.
+The [declaration source](src/contracts.d.mts) defines optionality, unions and generic defaults.
+
+| Type | Meaning |
+| --- | --- |
+| `DotnetDocArtifact` | Exact union of seven artifact kinds across two generations, retaining collection discrimination. |
+| `DotnetDocArtifactBase` | Root identity and domain extensions; dedicated schemas validate concrete collections. |
+| `DotnetDocArtifactContract` | Seven permitted domain contracts, not arbitrary plugin identities. |
+| `DotnetDocArtifactProfile` | Static profile without I/O or authority to execute projects. |
+| `DotnetDocArtifactVersion` | Two exact domain identities accepted for compatibility reading. |
+| `DotnetDocCSharpArtifact` | Roslyn source-member extraction, not full project compilation. |
+| `DotnetDocEndpointArtifact` | Static ASP.NET endpoints without runtime-completeness guarantees. |
+| `DotnetDocHiaDocument` | Conservative HIA projection root; core readers must further validate node/symbol details. |
+| `DotnetDocJson` | Ordinary JSON values; runtime additionally rejects proxies, hidden fields and cycles. |
+| `DotnetDocMarkupArtifact` | Markup documentation comments; the host still owns publication permission. |
+| `DotnetDocPosition` | A transport position, without trusted-code-location or character-unit guarantees. |
+| `DotnetDocProjectArtifact` | Static project/solution metadata without executing a build. |
+| `DotnetDocRange` | A raw range may omit its end; independent source-map declarations govern precision. |
+| `DotnetDocRecord` | Extensible fields require narrowing before consumption; unknown does not mean arbitrary objects pass JSON reading. |
+| `DotnetDocRelationArtifact` | Metadata-only source relations with independently preserved nested provenance versions. |
+| `DotnetDocSource` | Domain provenance may omit range; XML positions do not automatically become code locations. |
+| `DotnetDocWarningArtifact` | Build-diagnostic classification does not automatically prove release readiness. |
+| `DotnetDocXmlArtifact` | XML member extraction; member extensions remain unknown and may be narrowed against the schema. |
+
+中文说明。以上类型通过声明入口公开，根及显式成员的双语说明随源码维护。
+类型签名保留联合、交叉和可选性，具体运行时输入仍由相应reader及schema检查。

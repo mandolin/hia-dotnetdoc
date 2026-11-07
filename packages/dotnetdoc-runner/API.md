@@ -49,3 +49,27 @@ See [README](README.md) for examples and [migration](MIGRATION.md) for compatibi
 Subpath `./metadata` exports `DOTNETDOC_RUNNER_VERSION`, `DOTNETDOC_INPUT_KINDS` and `DOTNETDOC_OUTPUT_KINDS` from pure definitions. The arrays are frozen, and the root API exposes the same references. This entry performs no runner operations.
 
 中文说明。metadata子入口提供同一版本与冻结输入/输出种类，适用于发现和文档工具。声明分支与运行分支分别提供，构建使用原运行API。
+
+## Type-only declarations
+
+The declaration entry also exports these types. Their source comments retain
+English and Simplified Chinese descriptions for roots and explicit members.
+The [declaration source](src/api-types.d.mts) defines optionality, unions and generic defaults.
+
+| Type | Meaning |
+| --- | --- |
+| `DotnetDocConfig` | Dual-generation reading union; explicit migration separately returns the current version. |
+| `DotnetDocContext` | Optional cancellation checks the aborted state without killing helpers or rolling back written files. |
+| `DotnetDocCurrentConfig` | Current config identity, with directory safety enforced by schema and loader. |
+| `DotnetDocDiagnostic` | Controlled runner diagnostics; arbitrary metadata still requires host publication review. |
+| `DotnetDocInput` | At least one locator; paths are relative expressions whose actual safety still requires runtime checks. |
+| `DotnetDocInputKind` | Five explicit inputs, with unknown kinds rejected at runtime. |
+| `DotnetDocLegacyConfig` | Legacy config retains null-default compatibility while still refusing behavioral inputs. |
+| `DotnetDocOptions` | Output controls default the first two to true and maps to false, without implicit source-body publication. |
+| `DotnetDocOutputArtifact` | Output-file declaration without content; path is relative to the output directory. |
+| `DotnetDocProgress` | Progress numbers count input items rather than percentages; callbacks may throw. |
+| `DotnetDocRequest` | In-memory requests may omit directories for cwd/dist defaults; host context paths must not be directly serialized as public wire data. |
+| `DotnetDocResult` | SDK 1.0.0 result; partial failures retain successful outputs without automatic rollback. |
+
+中文说明。以上类型通过声明入口公开，根及显式成员的双语说明随源码维护。
+类型签名保留联合、交叉和可选性，具体运行时输入仍由相应reader及schema检查。
