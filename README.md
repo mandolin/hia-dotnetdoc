@@ -273,3 +273,11 @@ The summary is at **`document.metadata.sourceLocationResolution`**, including `r
 Re-run DotNetDoc extraction and then rebuild the site after upgrading. The existing `@hia-doc/cli@0.1.11` and `@hia-doc/renderer-html@0.1.8` consume these artifacts; this release changes the DotNetDoc packages. Constructors keep canonical `#ctor`/`#cctor` IDs. Overloads still require full parameter identities; unresolved types are never matched by short name or parameter count.
 
 中文：0.1.12按同次编译的真实partial事实选择手写主声明，读已声明引用补完整重载/构造器类型。统计位于metadata层，未定位符号逐项带原因诊断。框架包/引用缺失或真实冲突仍如实报告；所有XML注释、本地化和成员身份保留，需重新抽取再重建。
+
+## Declaration-file API documentation
+
+The ESM declaration entries retain explicit function/constant signatures and canonical field-level English and Simplified Chinese documentation. Public functions document parameters, returns and applicable failures. Readonly descriptors and tuple registries retain their original declared types. These descriptions distinguish configuration reading, migration, static extraction, conversion and host-authorized execution.
+
+Declaration documentation describes the published type surface. Runtime implementation compatibility, source-location precision and execution authority retain their own validation. Rebuild generated API documents from the declaration sources to obtain updated fields and comment coordinates.
+
+中文说明。ESM声明入口的公开值、函数参数/返回与适用异常使用原生中英注释。原签名、只读描述符及登记元组保持，配置读取、显式迁移和实际执行分别说明。重新从原声明生成后可取得完整字段及更新后的注释范围。
