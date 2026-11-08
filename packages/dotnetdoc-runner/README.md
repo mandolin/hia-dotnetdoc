@@ -147,8 +147,15 @@ execute the target build, download source, parse Windows/Portable PDBs or grant 
 permission. Existing source preview settings still require explicit publication consent.
 
 中文：XML是文档出处；代码定位来自已配置项目中的唯一真实Roslyn声明。缺失/歧义保持未定位，
-不会回退XML或按名称猜文件。需要现有.NET 8 SDK/helper；本轮不实现PDB读取，尤其不能把传统
-Windows PDB当作Portable PDB。范围与语言随真实声明输出，所有XML注释/本地化字段保持。
+不会回退XML或按名称猜文件。C# 提取及 XML 的项目源码解析需要稳定的 .NET 10 SDK/runtime 和随包
+Roslyn helper（net10.0，SDK 基线 10.0.100、latestFeature、禁止预览版）；仅安装 runtime 无法构建 helper。
+纯 XML 提取及不调用 helper 的静态扫描无需该 SDK。输入项目可以使用更早的目标框架。
+不读取 PDB；范围与语言随真实声明输出，所有 XML 注释/本地化字段保持。
+
+English. C# extraction and XML project-source resolution require the bundled net10.0 Roslyn helper and a stable
+.NET 10 SDK/runtime (10.0.100 baseline, latestFeature roll-forward, prereleases disabled). A runtime-only install
+cannot build the helper. Plain XML extraction and static scans that do not invoke the helper need no SDK.
+Input projects may target older frameworks. PDB reading is unsupported.
 
 ### Coverage diagnostics (0.1.12)
 

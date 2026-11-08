@@ -36,7 +36,22 @@ The existing `./schemas/*` subpath exposes local JSON resources: seven artifacts
 
 ## Command line
 
-Both `hia-dotnetdoc` and `dotnetdoc` run the same CLI. Use `--config/-c`, `--out-dir/-o`, `--workspace-root`, `--title`, `--help/-h`, or `--version/-v`; positional XML paths are also supported. Success exits 0; partial/failed/request errors exit 1. Errors use controlled text without host paths/stacks. Config output defaults to `dist/dotnetdoc`; CLI options override loaded workspace/output/title as implemented.
+Both `hia-dotnetdoc` and `dotnetdoc` run the same CLI. Use `--config/-c`, `--out-dir/-o`, `--workspace-root`, `--title`, `--help/-h`, or `--version/-v`; positional XML paths are also supported. Success exits 0; partial/failed/request errors exit 1. Errors use controlled text without host paths/stacks.
+
+中文。配置模式和直接 XML 模式按下表处理参数。配置文件相对于调用目录定位，其 workspaceRoot 相对于配置目录解析，outputDirectory 相对于工作区解析。输出默认 `dist/dotnetdoc`。命令会写出产物，partial/failed 也可能已写出部分文件。
+
+English. Config and direct XML modes apply the options below. Resolve the config path from the invocation directory, its workspaceRoot from the config directory, and outputDirectory from the workspace. The default output is `dist/dotnetdoc`. Execution writes artifacts, and partial/failed runs may have written files.
+
+| Input | With `--config` / 配置模式 | Without `--config` / 直接模式 |
+| --- | --- | --- |
+| `--workspace-root` | Ignored; use configured root / 忽略，采用配置值 | Relative to cwd, default `.` / 相对调用目录，默认 `.` |
+| `--out-dir/-o` | Overrides output, relative to configured workspace / 覆盖输出，相对配置工作区 | Relative to selected workspace / 相对选定工作区 |
+| `--title` | Ignored; use each configured input title / 忽略，采用各输入配置标题 | Applies to every XML input / 应用于各 XML 输入 |
+| Positional XML paths / 位置参数 | Ignored; use configured inputs / 忽略，采用配置输入 | XML inputs relative to workspace / 相对工作区的 XML 输入 |
+
+例如在调用目录执行 `hia-dotnetdoc --config settings/config.json --out-dir reports --workspace-root ignored --title ignored extra.xml`，若配置的 workspaceRoot 为 `workspace`，则只读取配置输入，写入 `settings/workspace/reports`，标题保持配置值。
+
+For that command, a configured workspaceRoot of `workspace` selects configured inputs and titles and writes to `settings/workspace/reports`. The other three supplied values have no effect in config mode.
 
 ## Boundaries
 
