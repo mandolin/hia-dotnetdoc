@@ -4,7 +4,10 @@
  * @lang en Builds an independent documentation source map only from this DotNetDoc extraction and verified HIA declarations, without reading source bodies or inferring XML positions.
  */
 
-/** @lang zh-CN 独立映射产物身份，与 runner 包版本分离。 @lang en Independent map artifact identity, separate from the runner package version. */
+/**
+ * @lang zh-CN 独立映射产物身份，与 runner 包版本分离。
+ * @lang en Independent map artifact identity, separate from the runner package version.
+ */
 export const DOTNETDOC_DOC_SOURCE_MAP_CONTRACT_VERSION = '1.1.0';
 const XML_CONTRACT = 'dotnetdoc-xml-doc-extraction';
 const CSHARP_CONTRACT = 'dotnetdoc-csharp-source-extraction';
