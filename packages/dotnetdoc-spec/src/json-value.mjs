@@ -2,7 +2,7 @@
 import { types } from 'node:util';
 
 /**
- * 复制普通JSON数据，保留负零和重复非循环值；拒绝循环/访问器/隐藏字段/稀疏数组/特殊对象。
+ * @lang zh-CN 复制普通JSON数据，保留负零和重复非循环值；拒绝循环/访问器/隐藏字段/稀疏数组/特殊对象。
  * @lang en Copies ordinary JSON data while retaining negative zero and repeated acyclic values; rejects cycles, accessors, hidden fields, sparse arrays and special objects.
  * @param {unknown} value <lang><zh-CN>调用方拥有的候选JSON数据。</zh-CN><en>Caller-owned candidate JSON data.</en></lang>
  * @returns {unknown} <lang><zh-CN>独立普通数据副本，不读写文件或原输入。</zh-CN><en>Independent ordinary-data copy, without file I/O or input modification.</en></lang>

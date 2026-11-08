@@ -5,9 +5,15 @@ import { cloneDotnetDocJson } from './json-value.mjs';
 /** @lang zh-CN 复用包内纯数据定义的同一冻结对象。 @lang en Reuses the same frozen objects from owner-local plain-data definitions. */
 import {DOTNETDOC_ARTIFACT_CONTRACTS} from './artifact-contracts-arrays.mjs';
 export {DOTNETDOC_ARTIFACT_CONTRACTS};
-/** 旧身份精确保留，禁止把draft视为任意版本范围。 @lang en Exact legacy identity, never interpreted as a version range. */
+/**
+ * @lang zh-CN 旧身份精确保留，禁止把draft视为任意版本范围。
+ * @lang en Exact legacy identity, never interpreted as a version range.
+ */
 export const DOTNETDOC_LEGACY_ARTIFACT_VERSION = '0.1.0-draft';
-/** 已确认B新增的稳定wire/profile身份。 @lang en Stable wire/profile identity introduced by confirmed option B. */
+/**
+ * @lang zh-CN 当前.NET领域工件的稳定传输格式及能力规范身份。
+ * @lang en Stable wire-format and capability-profile identity for current .NET domain artifacts.
+ */
 export const DOTNETDOC_ARTIFACT_VERSION = '1.0.0';
 /** 每个已知身份只编译一次随包schema；不启用网络加载、coercion或defaults。 @lang en Compile bundled schemas once per known identity without network loading, coercion or defaults. */
 const validators = new Map();
@@ -81,7 +87,7 @@ for (const contract of DOTNETDOC_ARTIFACT_CONTRACTS) {
 }
 
 /**
- * 选择精确合同/版本或对应schema ID，不读取URL。
+ * @lang zh-CN 选择精确合同/版本或对应schema ID，不读取URL。
  * @lang en Selects an exact contract/version or matching schema ID without reading URLs.
  * @param {string} contract <lang><zh-CN>七种已知合同名称之一。</zh-CN><en>One of the seven known contract names.</en></lang>
  * @param {string} identity <lang><zh-CN>精确旧/新版本或该合同schema ID。</zh-CN><en>Exact old/new version or that contract's schema ID.</en></lang>
@@ -111,7 +117,7 @@ function freezeSchema(value) {
 }
 
 /**
- * 获取既有静态能力的版本化profile，不改变产物内容或授予执行能力。
+ * @lang zh-CN 获取既有静态能力的版本化profile，不改变产物内容或授予执行能力。
  * @lang en Gets a versioned profile for existing static capabilities without changing artifacts or granting execution.
  * @param {string} contract <lang><zh-CN>已知领域合同。</zh-CN><en>Known domain contract.</en></lang>
  * @param {string} identity <lang><zh-CN>精确版本或schema ID。</zh-CN><en>Exact version or schema ID.</en></lang>
@@ -124,7 +130,7 @@ export function getDotnetDocArtifactProfile(contract, identity) {
 }
 
 /**
- * 精确读取两代普通JSON产物并保留调用方对象身份，不迁移、不执行或读取源码。
+ * @lang zh-CN 精确读取两代普通JSON产物并保留调用方对象身份，不迁移、不执行或读取源码。
  * @lang en Reads two exact generations of ordinary-JSON artifacts while retaining caller object identity, without migration, execution or source reads.
  * @param {unknown} value <lang><zh-CN>普通JSON工件，扩展字段也不得含非JSON行为。</zh-CN><en>Ordinary-JSON artifact, including behavior-free JSON extensions.</en></lang>
  * @returns {object} <lang><zh-CN>原对象，不修改内容。</zh-CN><en>The original object with no content modifications.</en></lang>
@@ -144,7 +150,7 @@ export function readDotnetDocArtifact(value) {
 }
 
 /**
- * 将精确旧工件显式迁移成新对象，只更新根合同/schema身份，保留生成来源与其引用的旧工件版本。
+ * @lang zh-CN 将精确旧工件显式迁移成新对象，只更新根合同/schema身份，保留生成来源与其引用的旧工件版本。
  * @lang en Explicitly migrates an exact legacy artifact into a new object, updating only root contract/schema identity while retaining production provenance and referenced legacy artifact versions.
  * @param {unknown} value <lang><zh-CN>精确旧工件，不接受已迁移/未知版本。</zh-CN><en>Exact legacy artifact; already-migrated/unknown versions are rejected.</en></lang>
  * @returns {object} <lang><zh-CN>已通过新版读取的新对象，不改输入或执行I/O。</zh-CN><en>Fresh object accepted by current reading, without input mutation or I/O.</en></lang>

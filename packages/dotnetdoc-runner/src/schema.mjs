@@ -1,7 +1,13 @@
 /** @file 已确认B的新配置schema；原schema完整保留在schema-legacy.mjs，读取/迁移不原位放宽历史。 @lang en Confirmed B current config schema; the original remains intact in schema-legacy.mjs and reading/migration never loosens history in place. */
-/** 新配置精确版本，独立于npm与领域工件身份。 @lang en Exact current config version, independent from npm and domain-artifact identities. */
+/**
+ * @lang zh-CN 新配置精确版本，独立于npm与领域工件身份。
+ * @lang en Exact current config version, independent from npm and domain-artifact identities.
+ */
 export const DOTNETDOC_CONFIG_SCHEMA_VERSION = "1.0.0";
-/** 稳定资源ID，不代表已发布到网络，也不会被loader下载。 @lang en Stable resource ID, neither a claim of online publication nor a loader download target. */
+/**
+ * @lang zh-CN 稳定资源ID，不代表已发布到网络，也不会被loader下载。
+ * @lang en Stable resource ID, neither a claim of online publication nor a loader download target.
+ */
 export const DOTNETDOC_CONFIG_SCHEMA_ID = "https://mandolin.github.io/HIA-Documentation/schemas/dotnetdoc-config-1.0.0.schema.json";
 
 const relativePath = {
@@ -22,7 +28,10 @@ const relativePathArray = {
   items: relativePath
 };
 
-/** 保留五种显式输入和原目录默认；省略目录允许，显式null仍拒绝。 @lang en Retains five explicit input kinds and original directory defaults; omissions are allowed while explicit null is rejected. */
+/**
+ * @lang zh-CN 保留五种显式输入和原目录默认；省略目录允许，显式null仍拒绝。
+ * @lang en Retains five explicit input kinds and original directory defaults; omissions are allowed while explicit null is rejected.
+ */
 export const DOTNETDOC_CONFIG_JSON_SCHEMA = Object.freeze({
   $schema: "https://json-schema.org/draft/2020-12/schema",
   $id: DOTNETDOC_CONFIG_SCHEMA_ID,

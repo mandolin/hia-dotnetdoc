@@ -58,7 +58,10 @@ export {DOTNETDOC_RUNNER_VERSION, DOTNETDOC_INPUT_KINDS, DOTNETDOC_OUTPUT_KINDS}
  * @lang en Build-warning classification contract name; together with its version it identifies data semantics, not release or acceptance status.
  */
 export const DOTNETDOC_BUILD_WARNING_CLASSIFICATION_CONTRACT = "dotnetdoc-build-warning-classification";
-/** 构建告警分类的新稳定wire，旧产物由spec精确读取。 @lang en Stable current build-warning wire with exact legacy reading in the spec package. */
+/**
+ * @lang zh-CN 构建告警分类的新稳定wire，旧产物由spec精确读取。
+ * @lang en Stable current build-warning wire with exact legacy reading in the spec package.
+ */
 export const DOTNETDOC_BUILD_WARNING_CLASSIFICATION_CONTRACT_VERSION = "1.0.0";
 
 const RESULT_CONTRACT = "documentation-producer-result";
@@ -71,15 +74,13 @@ const GENERATED_CODE_PATTERN = /(?:^|[\\/])(?:obj|bin|generated|generatedcode)(?
 const COMPILER_DIAGNOSTIC_PATTERN = /^(?<path>.+?)\((?<line>\d+),(?<column>\d+)\):\s*(?<severity>warning|error)\s+(?<code>[A-Z]+\d+):\s*(?<message>.+)$/iu;
 
 /**
- * 执行一次 .NET XML documentation 文档构建，并返回 documentation producer result。
- * Runs one .NET XML documentation build and returns a documentation producer result.
- *
+ * @lang zh-CN 执行一次.NET XML文档构建，并返回文档生产器结果。
+ * @lang en Runs one .NET XML documentation build and returns a documentation producer result.
  * @param {object} request <lang><en>DotNetDoc runner request with absolute workspace/output directories.</en><zh-CN>包含绝对工作区与输出目录的 DotNetDoc runner 请求。</zh-CN></lang>
  * @param {Object} [context] <lang><en>Optional producer runtime context.</en><zh-CN>可选 producer 运行时上下文。</zh-CN></lang>
  * @param {AbortSignal} [context.signal] <lang><zh-CN>可选取消信号。</zh-CN><en>Optional cancellation signal.</en></lang>
  * @param {Function} [context.reportProgress] <lang><zh-CN>可选进度回调。</zh-CN><en>Optional progress callback.</en></lang>
  * @returns {Promise<object>} <lang><en>Documentation producer result.</en><zh-CN>Documentation producer result。</zh-CN></lang>
- * @lang zh-CN 执行 .NET XML documentation 构建。
  */
 export async function runDotnetDoc(request, context = {}) {
   const normalizedRequest = normalizeRequest(request);
@@ -205,12 +206,10 @@ export async function runDotnetDoc(request, context = {}) {
 
 
 /**
- * 将 .NET build / MSBuild 文本诊断分类为 manual、designer 或 generated 边界。
- * Classifies .NET build / MSBuild textual diagnostics into manual, designer or generated boundaries.
- *
+ * @lang zh-CN 将.NET构建与MSBuild文本诊断分类为手工编写、设计器或生成代码边界。
+ * @lang en Classifies .NET build and MSBuild textual diagnostics into manual, designer or generated-code boundaries.
  * @param {Array<string|object>} diagnostics <lang><en>Compiler diagnostic lines or normalized diagnostic objects.</en><zh-CN>编译器诊断文本行或规范化诊断对象。</zh-CN></lang>
  * @returns {object} <lang><en>Warning classification artifact that contains no source body.</en><zh-CN>不含源码正文的 warning 分类产物。</zh-CN></lang>
- * @lang zh-CN 对 .NET build warning 进行 generated/designer 边界分类。
  */
 export function classifyDotnetBuildDiagnostics(diagnostics) {
   if (!Array.isArray(diagnostics)) {
@@ -239,14 +238,12 @@ export function classifyDotnetBuildDiagnostics(diagnostics) {
 }
 
 /**
- * 读取 versioned DotNetDoc JSON config 并转成 runner request。
- * Loads a versioned DotNetDoc JSON config and converts it into a runner request.
- *
+ * @lang zh-CN 读取带版本的.NET文档JSON配置，并转换为运行器请求。
+ * @lang en Loads a versioned .NET documentation JSON config and converts it into a runner request.
  * @param {string} configPath <lang><en>Config path relative to cwd or absolute.</en><zh-CN>相对当前目录或绝对的配置文件路径。</zh-CN></lang>
  * @param {Object} [options] <lang><en>Config loading options.</en><zh-CN>配置加载选项。</zh-CN></lang>
  * @param {string} [options.cwd] <lang><zh-CN>相对路径基准；省略时使用当前工作目录。</zh-CN><en>Base for relative paths; defaults to the current working directory.</en></lang>
  * @returns {Promise<object>} <lang><en>Normalized runner request.</en><zh-CN>规范化后的 runner 请求。</zh-CN></lang>
- * @lang zh-CN 加载 DotNetDoc 配置。
  */
 export async function loadDotnetDocConfig(configPath, options = {}) {
   const absoluteConfigPath = path.resolve(options.cwd ?? process.cwd(), configPath);
@@ -268,7 +265,7 @@ export async function loadDotnetDocConfig(configPath, options = {}) {
 }
 
 /**
- * 精确读取两代配置并保留原对象；旧版保留原运行时省略/null默认，新版另受严格schema约束。
+ * @lang zh-CN 精确读取两代配置并保留原对象；旧版保留原运行时省略/null默认，新版另受严格schema约束。
  * @lang en Reads two exact config generations and retains the original object; legacy reading keeps omission/null defaults while current reading also enforces the strict schema.
  * @param {unknown} value <lang><zh-CN>普通JSON配置；不执行getter、抽取或I/O。</zh-CN><en>Ordinary-JSON config without getter, extraction or I/O execution.</en></lang>
  * @returns {object} <lang><zh-CN>原对象；相对目录未物化为绝对路径。</zh-CN><en>Original object without materializing relative directories into absolute paths.</en></lang>
@@ -289,7 +286,7 @@ export function readDotnetDocConfig(value) {
 }
 
 /**
- * 显式无损迁移旧配置，仅更新身份，不能把null/扩展/特殊JSON值静默改写成新默认。
+ * @lang zh-CN 显式无损迁移旧配置，仅更新身份，不能把null/扩展/特殊JSON值静默改写成新默认。
  * @lang en Explicitly migrates legacy config losslessly by updating identity only, never silently rewriting nulls, extensions or non-JSON values into current defaults.
  * @param {unknown} value <lang><zh-CN>精确旧配置，先按原运行语义验证。</zh-CN><en>Exact legacy config, first validated against original runtime semantics.</en></lang>
  * @returns {object} <lang><zh-CN>新对象，保持内容、字段省略和相对路径；不写盘或执行。</zh-CN><en>Fresh object retaining content, omitted fields and relative paths without file writes or execution.</en></lang>

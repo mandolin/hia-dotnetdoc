@@ -10,7 +10,7 @@ const failure = 'DotNetDoc config must match an exact supported identity and str
 const validateCurrent = new Ajv2020({ strict: false, allErrors: true }).compile(DOTNETDOC_CONFIG_JSON_SCHEMA);
 
 /**
- * 选择精确新/旧配置schema；旧schema原required保留，不宣称它覆盖运行时省略默认。
+ * @lang zh-CN 选择精确新/旧配置schema；旧schema原required保留，不宣称它覆盖运行时省略默认。
  * @lang en Selects exact current/legacy config schemas, preserving original legacy required fields without claiming they cover runtime omission defaults.
  * @param {string} identity <lang><zh-CN>精确版本或schema ID。</zh-CN><en>Exact version or schema ID.</en></lang>
  * @returns {object|undefined} <lang><zh-CN>对应schema，未知返回undefined；不访问网络。</zh-CN><en>Matching schema, or undefined for unknown identities; no network access.</en></lang>

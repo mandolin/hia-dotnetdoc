@@ -1,7 +1,10 @@
 /** @file @lang zh-CN 生产器描述符的纯数据定义，执行函数由原入口提供。 @lang en Pure producer descriptor definitions with execution functions supplied by the original entry. */
 import {DOTNETDOC_RUNNER_VERSION, DOTNETDOC_INPUT_KINDS, DOTNETDOC_OUTPUT_KINDS} from '@hia-doc/dotnetdoc-runner/metadata';
 
-/** .NET静态文档输入/输出描述，不支持watch/incremental；精确来源能力由实际产物声明。 @lang en Static .NET documentation input/output descriptor without watch/incremental support; actual artifacts declare exact source capabilities. */
+/**
+ * @lang zh-CN .NET静态文档输入/输出描述，不支持watch/incremental；精确来源能力由实际产物声明。
+ * @lang en Static .NET documentation input/output descriptor without watch/incremental support; actual artifacts declare exact source capabilities.
+ */
 export const dotnetdocProducerDescriptor = Object.freeze({
   /**
    * @lang zh-CN 生产器协议身份，用于宿主发现和校验。

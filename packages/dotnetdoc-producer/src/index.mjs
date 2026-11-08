@@ -4,11 +4,14 @@ import {runDotnetDoc} from '@hia-doc/dotnetdoc-runner';
 import {dotnetdocProducerDescriptor} from './descriptor.mjs';
 export {dotnetdocProducerDescriptor} from './descriptor.mjs';
 
-/** 委托相同公开runner并传递宿主上下文；不把descriptor当执行许可。 @lang en Delegates to the same public runner and forwards host context without treating the descriptor as execution permission. */
+/**
+ * @lang zh-CN 委托相同公开runner并传递宿主上下文；不把descriptor当执行许可。
+ * @lang en Delegates to the same public runner and forwards host context without treating the descriptor as execution permission.
+ */
 export const dotnetdocProducer = Object.freeze({
   descriptor: dotnetdocProducerDescriptor,
   /**
-   * 按runner既有边界处理输入并写配置输出，异步返回当前SDK结果。
+   * @lang zh-CN 按runner既有边界处理输入并写配置输出，异步返回当前SDK结果。
    * @lang en Processes inputs and writes configured output under existing runner boundaries, returning a current SDK result asynchronously.
    * @param {object} request <lang><zh-CN>显式工作区/输入/输出请求。</zh-CN><en>Explicit workspace/input/output request.</en></lang>
    * @param {object} [context] <lang><zh-CN>宿主进度与中止上下文，默认空对象。</zh-CN><en>Host progress/abort context, defaulting to an empty object.</en></lang>
