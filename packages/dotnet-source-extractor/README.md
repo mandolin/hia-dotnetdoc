@@ -20,6 +20,18 @@ C# 抽取工具需 Node.js 22/24 与受支持补丁的稳定 .NET 10 SDK/runtime
 无需 .NET 8 runtime。随包 global.json 从提取包目录选 SDK；不使用输入项目目录的
 SDK 规则，不运行其构建。静态项目/端点/标记扫描不启动 helper，旧框架输入保留原样。
 
+C# extraction builds the owned helper once per loaded module instance in an exclusive system-temporary directory.
+Concurrent calls share that build promise; other instances and Node processes use separate build/intermediate roots.
+Each extraction runs the compiled DLL and reads the requested inputs afresh. Build logs and application JSON use
+separate processes. Failed builds are cleaned and can be retried by a later request. Successful outputs are reused
+until the Node process exits, with best-effort cleanup. Abnormal termination or OS locks can leave temporary files.
+Restart a long-running host after updating the helper package or its SDK policy.
+
+中文。每个已加载模块实例在独占系统临时目录编译一次自有工具，同实例并发共享编译Promise，
+其它实例/Node进程使用不同编译与中间产物根。每次抽取执行DLL并重新读取请求输入，编译日志与应用JSON分进程处理。
+编译失败清理后允许下个请求重试，成功产物复用到Node退出并尽力清理。异常终止或OS文件占用可能留下临时目录。
+更新工具包或SDK策略后，请重启长驻调用进程。
+
 ```js
 import {
   extractAspNetEndpoints,

@@ -17,6 +17,16 @@ Import from `@hia-doc/dotnet-source-extractor`; [ESM declarations](src/index.d.m
 
 ## Boundaries
 
+中文。helper按已加载模块实例缓存编译Promise，使用独占系统临时根分离MSBuild产物与应用执行。
+并发请求不会共享跨进程obj/bin；编译失败清理并允许后续重试，运行JSON严格解析。每次请求仍重新读取输入。
+退出时尽力清理成功编译，异常终止可能留临时目录；工具或SDK策略更新后重启调用进程。
+
+English. The loaded module caches one build promise in an exclusive system-temporary root, separating MSBuild
+artifacts from application execution. Requests in different processes use independent obj/bin roots. Failed builds
+are cleaned and permit later retry, runtime JSON is parsed strictly, and inputs are read afresh per request.
+Successful builds are cleaned best-effort at exit. Abnormal termination may leave temporary files. Restart the
+calling process after helper or SDK-policy updates.
+
 Node.js 22/24; source helper requires stable .NET SDK/runtime 10 and uses its bundled SDK policy. Target projects are read as static inputs, including older target frameworks; full MSBuild project compilation/runtime endpoint discovery is outside this API. Source ranges are provenance unless the dedicated map declares and validates their precision. Documentation text and arbitrary metadata still require host publication permission. Progress cancellation does not kill active helpers or roll back files already written.
 
 See [README](README.md) for examples and [migration](MIGRATION.md) for compatibility.

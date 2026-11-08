@@ -3,7 +3,9 @@
  * @lang en Statically reads C#/ASP.NET/project metadata within a bounded workspace, running only the owned Roslyn helper and retaining original positions without executing business builds.
  */
 import { spawn } from "node:child_process";
-import { readdir, readFile } from "node:fs/promises";
+import { readdir, readFile, mkdtemp, rm } from "node:fs/promises";
+import { rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -26,6 +28,12 @@ import { resolveProjectMetadataReferences } from "./metadata-references.mjs";
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const helperProjectPath = path.join(packageRoot, "tools", "DotNetDoc.RoslynSourceExtractor", "DotNetDoc.RoslynSourceExtractor.csproj");
+/**
+ * @lang zh-CN 同一模块实例共享一次自有helper编译，失败时清空以允许后续请求重试；产物目录按实例独占。
+ * @lang en Shares one owned-helper build per module instance, clearing failures for later retries and exclusively owning its artifact directory.
+ * @type {Promise<string>|undefined}
+ */
+let helperBuild;
 const PRODUCER_NAME = "@hia-doc/dotnet-source-extractor";
 /**
  * @lang zh-CN 随发布包版本演进的源码抽取 producer identity；它不改变独立的 extraction contract version。
@@ -487,25 +495,83 @@ function normalizeProjectDiscoveryRequest(request) {
   };
 }
 
-function runRoslynHelper(request) {
+/**
+ * @lang zh-CN 等待独占目录中的编译完成，再运行只输出JSON的helper；各调用继续独立读取请求源码。
+ * @lang en Awaits a build in an exclusive directory before running the JSON-only helper; each call independently reads its requested sources.
+ * @param {object} request <lang><zh-CN>已规范化的源码路径与程序集/引用上下文。</zh-CN><en>Normalized source paths and assembly/reference context.</en></lang>
+ * @returns {Promise<object>} <lang><zh-CN>严格解析的helper JSON结果。</zh-CN><en>Strictly parsed helper JSON result.</en></lang>
+ * @throws {Error} <lang><zh-CN>编译、启动、执行或JSON解析失败；低层细节仅供受信本地调用者。</zh-CN><en>Build, spawn, execution or JSON failures; lower-level details are for trusted local callers.</en></lang>
+ */
+async function runRoslynHelper(request) {
+  // <lang><zh-CN>缓存编译Promise而非仅缓存结果，首次并发调用也只写一次产物。</zh-CN><en>Cache the build promise itself so concurrent first calls write artifacts only once.</en></lang>
+  helperBuild ??= buildRoslynHelper().catch((error) => {
+    helperBuild = undefined;
+    throw error;
+  });
+  // <lang><zh-CN>每个Node模块实例有独立DLL路径，跨进程执行与编译不会争写旧bin/obj。</zh-CN><en>Each Node module instance owns its DLL path, avoiding cross-process contention on shared bin/obj.</en></lang>
+  const helperPath = await helperBuild;
+  // <lang><zh-CN>只将应用进程的stdout作为协议正文，编译输出始终属于独立阶段。</zh-CN><en>Only application stdout is protocol data; compiler output belongs to a separate stage.</en></lang>
+  const stdout = await runDotnetProcess([
+    helperPath,
+    "--workspace-root", request.workspaceRoot,
+    ...(request.assemblyName ? ["--assembly-name", request.assemblyName] : []),
+    ...(request.targetFrameworkVersion ? ["--framework-version", request.targetFrameworkVersion] : []),
+    ...(request.metadataReferencePaths ?? []).flatMap(reference => ["--reference", reference]),
+    ...request.paths
+  ], "Roslyn source extractor");
+  try {
+    return JSON.parse(stdout);
+  } catch (error) {
+    throw new Error(`Roslyn source extractor returned invalid JSON.\n${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+/**
+ * @lang zh-CN 在系统临时目录编译自有工具，保留包目录SDK选择；失败立即清理，成功在进程退出时尽力清理。
+ * @lang en Builds the owned tool in a system temporary directory with package-local SDK selection, cleaning failures immediately and successful outputs best-effort at process exit.
+ * @returns {Promise<string>} <lang><zh-CN>该模块实例独占的可执行DLL路径。</zh-CN><en>Executable DLL path exclusively owned by this module instance.</en></lang>
+ * @throws {Error} <lang><zh-CN>临时目录创建或编译失败。</zh-CN><en>Temporary directory creation or build failure.</en></lang>
+ */
+async function buildRoslynHelper() {
+  // <lang><zh-CN>仅清理mkdtemp实际返回的自有根，不接受外部路径作为递归删除目标。</zh-CN><en>Cleanup owns only the root returned by mkdtemp and accepts no external recursive-deletion target.</en></lang>
+  const root = await mkdtemp(path.join(tmpdir(), "hia-dotnetdoc-helper-"));
+  // <lang><zh-CN>应用输出和MSBuild中间产物共同位于独占根，依赖文件随DLL保留至当前进程退出。</zh-CN><en>Application output and MSBuild intermediates share the exclusive root, retaining dependencies beside the DLL until process exit.</en></lang>
+  const output = path.join(root, "run");
+  try {
+    await runDotnetProcess([
+      "build", helperProjectPath,
+      "--artifacts-path", path.join(root, "artifacts"),
+      "--output", output,
+      "--nologo", "--verbosity", "quiet"
+    ], "Roslyn helper build");
+    // <lang><zh-CN>退出清理不能覆盖业务退出码；OS文件占用或非正常终止可能留下临时目录。</zh-CN><en>Exit cleanup must preserve the host exit code; OS locks or abnormal termination may leave temporary files.</en></lang>
+    process.once("exit", () => {
+      try { rmSync(root, { recursive: true, force: true }); } catch { /* <lang><zh-CN>退出时保留宿主结果。</zh-CN><en>Preserve the host outcome during exit.</en></lang> */ }
+    });
+    return path.join(output, "DotNetDoc.RoslynSourceExtractor.dll");
+  } catch (error) {
+    // <lang><zh-CN>清理失败不遮蔽原始编译/启动错误，缓存Promise由调用方重置。</zh-CN><en>Cleanup failures do not mask build/spawn errors; the caller resets the cached promise.</en></lang>
+    await rm(root, { recursive: true, force: true }).catch(() => {});
+    throw error;
+  }
+}
+
+/**
+ * @lang zh-CN 运行一个自有dotnet阶段并收集独立stdout/stderr，任何非零退出都拒绝。
+ * @lang en Runs one owned dotnet stage with separate stdout/stderr capture, rejecting every nonzero exit.
+ * @param {string[]} args <lang><zh-CN>显式编译或应用参数，无shell插值。</zh-CN><en>Explicit build or application arguments without shell interpolation.</en></lang>
+ * @param {string} label <lang><zh-CN>固定阶段名，用于受信本地错误诊断。</zh-CN><en>Fixed stage name for trusted local error diagnostics.</en></lang>
+ * @returns {Promise<string>} <lang><zh-CN>该阶段完整stdout。</zh-CN><en>Complete stdout for that stage.</en></lang>
+ */
+function runDotnetProcess(args, label) {
   return new Promise((resolve, reject) => {
-    const child = spawn("dotnet", [
-      "run",
-      "--project",
-      helperProjectPath,
-      "--no-launch-profile",
-      "--",
-      "--workspace-root",
-      request.workspaceRoot,
-      ...(request.assemblyName ? ["--assembly-name", request.assemblyName] : []),
-      ...(request.targetFrameworkVersion ? ["--framework-version", request.targetFrameworkVersion] : []),
-      ...(request.metadataReferencePaths ?? []).flatMap(reference=>["--reference", reference]),
-      ...request.paths
-    ], {
+    // <lang><zh-CN>包目录决定global.json，不采用输入项目的SDK规则，后台窗口保持隐藏。</zh-CN><en>The package directory selects global.json independently of input-project SDK rules and keeps background windows hidden.</en></lang>
+    const child = spawn("dotnet", args, {
       cwd: packageRoot,
       windowsHide: true
     });
 
+    // <lang><zh-CN>stdout为阶段数据，stderr为低层诊断；公共runner继续执行既有错误脱敏。</zh-CN><en>stdout carries stage data and stderr lower-level diagnostics; the public runner retains its existing sanitization.</en></lang>
     let stdout = "";
     let stderr = "";
     child.stdout.setEncoding("utf8");
@@ -519,14 +585,10 @@ function runRoslynHelper(request) {
     child.on("error", reject);
     child.on("close", (code) => {
       if (code !== 0) {
-        reject(new Error(`Roslyn source extractor failed with exit code ${code}.\n${stderr.trim()}`));
+        reject(new Error(`${label} failed with exit code ${code}.\n${stderr.trim()}\n${stdout.trim()}`));
         return;
       }
-      try {
-        resolve(JSON.parse(stdout));
-      } catch (error) {
-        reject(new Error(`Roslyn source extractor returned invalid JSON.\n${error instanceof Error ? error.message : String(error)}\n${stderr.trim()}`));
-      }
+      resolve(stdout);
     });
   });
 }
