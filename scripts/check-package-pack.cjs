@@ -4,6 +4,11 @@ const path = require("node:path");
 const { spawnSync } = require("node:child_process");
 
 const root = path.resolve(__dirname, "..");
+// <lang><zh-CN>运行器README必须随包覆盖两别名的全部选项、模式及安装范围；实际路径行为另测。</zh-CN><en>The bundled runner README covers both aliases, every option, modes and installation scope; actual path behavior is tested separately.</en></lang>
+const runnerReadme = fs.readFileSync(path.join(root, "packages/dotnetdoc-runner/README.md"), "utf8");
+for (const token of ["## Command reference", "### Config and direct modes", "### Installation and version routing", "hia-dotnetdoc", "dotnetdoc", "--config/-c", "--workspace-root", "--out-dir/-o", "--title", "--help/-h", "--version/-v"]) {
+  assert.ok(runnerReadme.includes(token), `Runner documentation is missing ${token}.`);
+}
 /**
  * @lang zh-CN 本轮六包必须共享的精确本地发布候选版本。
  * @lang en Exact local release-candidate version shared by all six packages in this train.

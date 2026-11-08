@@ -178,3 +178,44 @@ import { DOTNETDOC_RUNNER_VERSION, DOTNETDOC_INPUT_KINDS, DOTNETDOC_OUTPUT_KINDS
 This entry exposes the runner version and frozen input/output kind arrays from the same definitions used by the root API. It contains pure data definitions, with no runner execution dependencies.
 
 中文说明。metadata子入口提供版本及冻结的输入/输出种类，根入口与该入口引用同一定义。执行构建继续使用原运行API。
+
+## Command reference
+
+中文。本包同时提供hia-dotnetdoc和dotnetdoc，两者选项、输出和退出码相同。在本地npm脚本调用，或 `npm exec --offline -- hia-dotnetdoc --help`。帮助退出0，version输出运行器版本；构建仅success退出0，partial/failed或参数/配置错误退出1。未知参数拒绝，错误文本受控。
+
+English. The package provides hia-dotnetdoc and dotnetdoc with identical options, output, and exit codes. Invoke from a local npm script or `npm exec --offline -- hia-dotnetdoc --help`. Help exits 0 and version prints the runner version. Only successful builds exit 0; partial/failed builds and argument/config errors exit 1. Unknown options are rejected with controlled errors.
+
+| Option | 中文 | English |
+| --- | --- | --- |
+| `--config/-c <file>` | 调用目录下的JSON配置 | JSON config resolved from cwd |
+| `--workspace-root <dir>` | 仅直接XML模式，相对调用目录，默认`.` | Direct XML only, cwd-relative, default `.` |
+| `--out-dir/-o <dir>` | 两模式覆盖，相对有效工作区 | Override in both modes, relative to effective workspace |
+| `--title <text>` | 仅直接模式，应用于各XML输入 | Direct mode only, applies to every XML input |
+| `--help/-h` | 帮助，退出0 | Help, exit 0 |
+| `--version/-v` | 运行器实现版本 | Runner implementation version |
+| 位置XML / positional XML | 无配置时必填，相对工作区 | Required without config, workspace-relative |
+
+### Config and direct modes
+
+中文。配置模式仅out-dir可覆盖，workspace-root、title与位置输入均忽略。配置workspaceRoot相对配置目录，outputDirectory相对工作区，默认dist/dotnetdoc。详细矩阵与示例见API。以下配置保存为项目根dotnetdoc.config.json并准备获准sample.xml。
+
+English. Only out-dir overrides config mode; workspace-root, title, and positionals are ignored. Config workspaceRoot uses the config directory and outputDirectory the workspace, defaulting to dist/dotnetdoc. See the API matrix for detail. Save this as dotnetdoc.config.json at the project root and prepare authorized sample.xml.
+
+```json
+{"schemaVersion":"1.0.0","workspaceRoot":".","outputDirectory":"dist/dotnetdoc","inputs":[{"kind":"dotnet-xml-doc","path":"sample.xml","title":"Sample API"}]}
+```
+
+```sh
+npm exec --offline -- hia-dotnetdoc --config dotnetdoc.config.json
+npm exec --offline -- dotnetdoc --workspace-root . --out-dir dist/dotnet-direct --title "Sample API" sample.xml
+```
+
+中文。两条命令均会写出工件与结果清单，可能覆盖旧文件，失败或partial可留有写入。此纯XML示例无需Roslyn helper。C#提取与XML项目源码解析按前文要求稳定.NET10 SDK/helper，输入项目目标框架单独管理。
+
+English. Both commands write artifacts and a result manifest, may replace old files, and may leave writes after failure or partial success. This XML-only example needs no Roslyn helper. C# extraction and XML project-source resolution require the stable .NET10 SDK/helper described above, independently of the input project's target framework.
+
+### Installation and version routing
+
+中文。本页为1.0.0源码候选。候选归档须与配套内部依赖一起安装，离线安装另需第三方依赖缓存。注册表路线先用 `npm view @hia-doc/dotnetdoc-runner@1.0.0 version` 并核配套版本，再安装。`npm list @hia-doc/dotnetdoc-runner --depth=0` 核本地包。旧0.1.x快速指南及draft配置按旧包阅读，新配置身份1.0.0与源码地图等产物身份独立。
+
+English. This is the 1.0.0 source candidate. Install its archive with matching internal dependencies and prepare a third-party cache for offline installs. For registry installation, check `npm view @hia-doc/dotnetdoc-runner@1.0.0 version` and matching dependencies first. Use `npm list @hia-doc/dotnetdoc-runner --depth=0` for the installed package. Older 0.1.x quickstarts and draft configs retain their scope. Current config identity 1.0.0 is independent from source-map and other artifact versions.
