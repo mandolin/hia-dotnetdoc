@@ -88,3 +88,9 @@ The [declaration source](src/api-types.d.mts) defines optionality, unions and ge
 
 中文说明。以上类型通过声明入口公开，根及显式成员的双语说明随源码维护。
 类型签名保留联合、交叉和可选性，具体运行时输入仍由相应reader及schema检查。
+
+## Command artifacts
+
+The bundled `src/command-documentation/` directory describes both executable names, six switches and conditional XML positionals. It contains the original field-level locale data, source digests, actual parser observations, standard HiaDocument and self-contained schemas. `dotnetdoc` uses an explicit `aliasOf` link to `hia-dotnetdoc`. CLI execution and package root exports retain their documented entry points.
+
+中文。七份命令资产完整保留双名、六参数、条件位置输入与原字段语言/来源，别名使用既有aliasOf。真实执行及编程API继续由原入口裁决。

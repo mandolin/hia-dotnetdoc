@@ -1,0 +1,3067 @@
+{
+  "contract": "command-documentation",
+  "contractVersion": "0.1.0-draft",
+  "owner": {
+    "packageName": "@hia-doc/dotnetdoc-runner",
+    "packageVersion": "1.0.0"
+  },
+  "sources": [
+    {
+      "id": "src/cli.mjs",
+      "path": "src/cli.mjs",
+      "sha256": "98bbcbfc17e37feee2e243690ace48fc0f77d1e7c3fdbe6c850e9da83a38d1d7",
+      "language": "javascript"
+    },
+    {
+      "id": "src/command-content.mjs",
+      "path": "src/command-content.mjs",
+      "sha256": "3c7282a7503da5b6c99f3785e6390636a8fc6be4b8c126f84201e94211e9db43",
+      "language": "javascript"
+    },
+    {
+      "id": "src/metadata.mjs",
+      "path": "src/metadata.mjs",
+      "sha256": "6d27ddcfccfdac5e941cf983645b5fac76114383d5df566edbcec999eda37bfb",
+      "language": "javascript"
+    },
+    {
+      "id": "src/index.mjs",
+      "path": "src/index.mjs",
+      "sha256": "7bdec377cb2069878db55e7931898b0759b3f69ee7eea39afd052340db2da0a6",
+      "language": "javascript"
+    },
+    {
+      "id": "src/schema.mjs",
+      "path": "src/schema.mjs",
+      "sha256": "fc58dc8eff5312ce359b1bcad5550fa10b59310768c30558b19888b2e0ff5699",
+      "language": "javascript"
+    },
+    {
+      "id": "src/config-compatibility.mjs",
+      "path": "src/config-compatibility.mjs",
+      "sha256": "5d29bed6587ab1d2a430815e36264ed94e9332c38acbc002ae2437b7bdab79d6",
+      "language": "javascript"
+    },
+    {
+      "id": "src/schemas/dotnetdoc-config-0.1.0-draft.schema.json",
+      "path": "src/schemas/dotnetdoc-config-0.1.0-draft.schema.json",
+      "sha256": "1b97dc60616d2ea2c1215c1dcc04a6e9e396abcfc5d11f5cff6bae1e8559c0bf",
+      "language": "json"
+    },
+    {
+      "id": "src/schemas/dotnetdoc-config-1.0.0.schema.json",
+      "path": "src/schemas/dotnetdoc-config-1.0.0.schema.json",
+      "sha256": "2518b2807e9f5703526e8c32cd49826dd1adf50cbf7006ee323b40067d92019d",
+      "language": "json"
+    },
+    {
+      "id": "README.md",
+      "path": "README.md",
+      "sha256": "c62a8f8515e753d331822330cad02a4d5fcc968251800b0156b2f9a9d641ccd6",
+      "language": "markdown"
+    },
+    {
+      "id": "package.json",
+      "path": "package.json",
+      "sha256": "243e9b2bcbe5aaeabf4a11c276e1b687bb31be4754872e04457d2bcd1e4c28b2",
+      "language": "json"
+    }
+  ],
+  "commands": [
+    {
+      "id": "hia-dotnetdoc",
+      "executable": "hia-dotnetdoc",
+      "path": [],
+      "kind": "command",
+      "signature": "hia-dotnetdoc [options] <documentation.xml...>",
+      "i18n": {
+        "enabled": true,
+        "model": "hia-text-i18n",
+        "modelVersion": "1.0.0",
+        "defaultLocale": "zh-CN",
+        "locales": [
+          "zh-CN",
+          "en"
+        ],
+        "fields": {
+          "summary": {
+            "fieldPath": "summary",
+            "kind": "text",
+            "defaultLocale": "zh-CN",
+            "localizedText": {
+              "zh-CN": "生成.NET XML及配置驱动文档",
+              "en": "Generate .NET XML and configuration-driven documentation"
+            }
+          },
+          "description": {
+            "fieldPath": "description",
+            "kind": "text",
+            "defaultLocale": "zh-CN",
+            "localizedText": {
+              "zh-CN": "从显式XML输入或JSON配置生成.NET文档工件及结果清单。",
+              "en": "Generate .NET documentation artifacts and a result manifest from explicit XML inputs or JSON configuration."
+            }
+          },
+          "configUsage": {
+            "fieldPath": "configUsage",
+            "kind": "text",
+            "defaultLocale": "zh-CN",
+            "localizedText": {
+              "zh-CN": "hia-dotnetdoc --config dotnetdoc.config.json",
+              "en": "hia-dotnetdoc --config dotnetdoc.config.json"
+            }
+          },
+          "aliases": {
+            "fieldPath": "aliases",
+            "kind": "text",
+            "defaultLocale": "zh-CN",
+            "localizedText": {
+              "zh-CN": "dotnetdoc与hia-dotnetdoc是同一实现的等价调用名，帮助展示规范入口。",
+              "en": "dotnetdoc and hia-dotnetdoc are equivalent names for one implementation; help displays the canonical entry."
+            }
+          },
+          "configOverrides": {
+            "fieldPath": "configOverrides",
+            "kind": "text",
+            "defaultLocale": "zh-CN",
+            "localizedText": {
+              "zh-CN": "配置模式仅非空out-dir覆盖输出；空字符串保留配置。",
+              "en": "In config mode only a nonempty out-dir overrides output; an empty string retains the configuration."
+            }
+          },
+          "directOnly": {
+            "fieldPath": "directOnly",
+            "kind": "text",
+            "defaultLocale": "zh-CN",
+            "localizedText": {
+              "zh-CN": "workspace-root、title及XML位置输入仅用于直接模式，配置模式忽略。",
+              "en": "workspace-root, title and positional XML inputs apply only to direct mode and are ignored in config mode."
+            }
+          },
+          "paths": {
+            "fieldPath": "paths",
+            "kind": "text",
+            "defaultLocale": "zh-CN",
+            "localizedText": {
+              "zh-CN": "配置路径相对调用目录，配置工作区相对配置目录；直接工作区相对调用目录，输出相对工作区。",
+              "en": "Config paths use cwd and configured workspaces use the config directory; direct workspaces use cwd and output uses the workspace."
+            }
+          },
+          "writes": {
+            "fieldPath": "writes",
+            "kind": "text",
+            "defaultLocale": "zh-CN",
+            "localizedText": {
+              "zh-CN": "运行会创建目录、覆盖工件并写结果清单；partial或failed可能保留已成功写入。",
+              "en": "Runs create directories, replace artifacts and write a result manifest; partial or failed results may retain successful writes."
+            }
+          },
+          "parsing": {
+            "fieldPath": "parsing",
+            "kind": "text",
+            "defaultLocale": "zh-CN",
+            "localizedText": {
+              "zh-CN": "Node严格解析先于帮助，未知开关或缺值返回1；重复带值选项取末值，--后作为XML位置输入。",
+              "en": "Node strict parsing precedes help; unknown switches or missing values exit 1. Repeated value options use the last value, and tokens after -- are positional XML inputs."
+            }
+          },
+          "prerequisites": {
+            "fieldPath": "prerequisites",
+            "kind": "text",
+            "defaultLocale": "zh-CN",
+            "localizedText": {
+              "zh-CN": "纯XML抽取无需SDK。配置中的C#抽取或项目源码解析使用.NET10 SDK/helper，其构建可能按SDK设置进行还原及工作负载清单下载。",
+              "en": "Plain XML extraction needs no SDK. Configured C# extraction or project source resolution uses the .NET 10 SDK/helper; its build may restore dependencies or download workload manifests according to SDK settings."
+            }
+          },
+          "offline": {
+            "fieldPath": "offline",
+            "kind": "text",
+            "defaultLocale": "zh-CN",
+            "localizedText": {
+              "zh-CN": "@hia-doc/dotnetdoc-runner/README.md",
+              "en": "@hia-doc/dotnetdoc-runner/README.md"
+            }
+          }
+        }
+      },
+      "displayVersion": {
+        "kind": "runner",
+        "value": "1.0.0"
+      },
+      "parsing": {
+        "helpOrder": "after-argument-validation",
+        "unknownOptions": "reject"
+      },
+      "options": [
+        {
+          "id": "config",
+          "kind": "option",
+          "name": "config",
+          "short": "c",
+          "valueType": "string",
+          "required": false,
+          "multiple": false,
+          "defaultRule": {
+            "kind": "not-applicable"
+          },
+          "i18n": {
+            "enabled": true,
+            "model": "hia-text-i18n",
+            "modelVersion": "1.0.0",
+            "defaultLocale": "zh-CN",
+            "locales": [
+              "zh-CN",
+              "en"
+            ],
+            "fields": {
+              "summary": {
+                "fieldPath": "summary",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "从JSON配置构造请求。",
+                  "en": "Build a request from JSON configuration."
+                }
+              },
+              "description": {
+                "fieldPath": "description",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "从JSON配置构造请求。",
+                  "en": "Build a request from JSON configuration."
+                }
+              },
+              "metavar": {
+                "fieldPath": "metavar",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "path",
+                  "en": "path"
+                }
+              }
+            }
+          },
+          "evidence": [
+            {
+              "fieldPath": "name",
+              "sourceId": "src/cli.mjs",
+              "range": {
+                "start": {
+                  "line": 19
+                },
+                "end": {
+                  "line": 19
+                }
+              },
+              "rangeConvention": {
+                "endBoundary": "unknown",
+                "columnUnit": "unknown"
+              }
+            },
+            {
+              "fieldPath": "kind",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "kind",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "name",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "name",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "short",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "short",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "valueType",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "valueType",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "required",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "required",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "multiple",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "multiple",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.summary",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.summary",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "i18n.fields.description",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.description",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "i18n.fields.metavar",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.metavar",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/index.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/config-compatibility.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/schemas/dotnetdoc-config-1.0.0.schema.json"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/schemas/dotnetdoc-config-0.1.0-draft.schema.json"
+            }
+          ]
+        },
+        {
+          "id": "out-dir",
+          "kind": "option",
+          "name": "out-dir",
+          "short": "o",
+          "valueType": "string",
+          "required": false,
+          "multiple": false,
+          "defaultRule": {
+            "kind": "conditional",
+            "conditions": [
+              "description"
+            ]
+          },
+          "i18n": {
+            "enabled": true,
+            "model": "hia-text-i18n",
+            "modelVersion": "1.0.0",
+            "defaultLocale": "zh-CN",
+            "locales": [
+              "zh-CN",
+              "en"
+            ],
+            "fields": {
+              "summary": {
+                "fieldPath": "summary",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "输出相对工作区，直接模式缺省dist/dotnetdoc；直接空字符串指向工作区根。",
+                  "en": "Output is workspace-relative and defaults to dist/dotnetdoc in direct mode; an empty direct-mode string selects the workspace root."
+                }
+              },
+              "description": {
+                "fieldPath": "description",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "输出相对工作区，直接模式缺省dist/dotnetdoc；直接空字符串指向工作区根。",
+                  "en": "Output is workspace-relative and defaults to dist/dotnetdoc in direct mode; an empty direct-mode string selects the workspace root."
+                }
+              },
+              "metavar": {
+                "fieldPath": "metavar",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "path",
+                  "en": "path"
+                }
+              }
+            }
+          },
+          "evidence": [
+            {
+              "fieldPath": "name",
+              "sourceId": "src/cli.mjs",
+              "range": {
+                "start": {
+                  "line": 19
+                },
+                "end": {
+                  "line": 19
+                }
+              },
+              "rangeConvention": {
+                "endBoundary": "unknown",
+                "columnUnit": "unknown"
+              }
+            },
+            {
+              "fieldPath": "kind",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "kind",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "name",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "name",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "short",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "short",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "valueType",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "valueType",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "required",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "required",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "multiple",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "multiple",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.summary",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.summary",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "i18n.fields.description",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.description",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "i18n.fields.metavar",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.metavar",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/index.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/config-compatibility.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/schemas/dotnetdoc-config-1.0.0.schema.json"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/schemas/dotnetdoc-config-0.1.0-draft.schema.json"
+            }
+          ]
+        },
+        {
+          "id": "workspace-root",
+          "kind": "option",
+          "name": "workspace-root",
+          "valueType": "string",
+          "required": false,
+          "multiple": false,
+          "defaultRule": {
+            "kind": "conditional",
+            "conditions": [
+              "description"
+            ]
+          },
+          "i18n": {
+            "enabled": true,
+            "model": "hia-text-i18n",
+            "modelVersion": "1.0.0",
+            "defaultLocale": "zh-CN",
+            "locales": [
+              "zh-CN",
+              "en"
+            ],
+            "fields": {
+              "summary": {
+                "fieldPath": "summary",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "直接模式相对调用目录，省略时为当前目录；配置模式忽略。",
+                  "en": "Direct mode resolves from cwd and defaults to cwd; ignored in config mode."
+                }
+              },
+              "description": {
+                "fieldPath": "description",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "直接模式相对调用目录，省略时为当前目录；配置模式忽略。",
+                  "en": "Direct mode resolves from cwd and defaults to cwd; ignored in config mode."
+                }
+              },
+              "metavar": {
+                "fieldPath": "metavar",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "path",
+                  "en": "path"
+                }
+              }
+            }
+          },
+          "evidence": [
+            {
+              "fieldPath": "name",
+              "sourceId": "src/cli.mjs",
+              "range": {
+                "start": {
+                  "line": 19
+                },
+                "end": {
+                  "line": 19
+                }
+              },
+              "rangeConvention": {
+                "endBoundary": "unknown",
+                "columnUnit": "unknown"
+              }
+            },
+            {
+              "fieldPath": "kind",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "kind",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "name",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "name",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "valueType",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "valueType",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "required",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "required",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "multiple",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "multiple",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.summary",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.summary",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "i18n.fields.description",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.description",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "i18n.fields.metavar",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.metavar",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/index.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/config-compatibility.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/schemas/dotnetdoc-config-1.0.0.schema.json"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/schemas/dotnetdoc-config-0.1.0-draft.schema.json"
+            }
+          ]
+        },
+        {
+          "id": "title",
+          "kind": "option",
+          "name": "title",
+          "valueType": "string",
+          "required": false,
+          "multiple": false,
+          "defaultRule": {
+            "kind": "conditional",
+            "conditions": [
+              "description"
+            ]
+          },
+          "i18n": {
+            "enabled": true,
+            "model": "hia-text-i18n",
+            "modelVersion": "1.0.0",
+            "defaultLocale": "zh-CN",
+            "locales": [
+              "zh-CN",
+              "en"
+            ],
+            "fields": {
+              "summary": {
+                "fieldPath": "summary",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "仅直接模式，为每个XML输入提供同一标题；省略时沿适配器默认，配置模式忽略。",
+                  "en": "Direct mode only, giving every XML input the same title; omission uses adapter defaults and config mode ignores it."
+                }
+              },
+              "description": {
+                "fieldPath": "description",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "仅直接模式，为每个XML输入提供同一标题；省略时沿适配器默认，配置模式忽略。",
+                  "en": "Direct mode only, giving every XML input the same title; omission uses adapter defaults and config mode ignores it."
+                }
+              },
+              "metavar": {
+                "fieldPath": "metavar",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "title",
+                  "en": "title"
+                }
+              }
+            }
+          },
+          "evidence": [
+            {
+              "fieldPath": "name",
+              "sourceId": "src/cli.mjs",
+              "range": {
+                "start": {
+                  "line": 19
+                },
+                "end": {
+                  "line": 19
+                }
+              },
+              "rangeConvention": {
+                "endBoundary": "unknown",
+                "columnUnit": "unknown"
+              }
+            },
+            {
+              "fieldPath": "kind",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "kind",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "name",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "name",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "valueType",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "valueType",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "required",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "required",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "multiple",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "multiple",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.summary",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.summary",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "i18n.fields.description",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.description",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "i18n.fields.metavar",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.metavar",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/index.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/config-compatibility.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/schemas/dotnetdoc-config-1.0.0.schema.json"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/schemas/dotnetdoc-config-0.1.0-draft.schema.json"
+            }
+          ]
+        },
+        {
+          "id": "help",
+          "kind": "option",
+          "name": "help",
+          "short": "h",
+          "valueType": "boolean",
+          "required": false,
+          "multiple": false,
+          "defaultRule": {
+            "kind": "not-applicable"
+          },
+          "i18n": {
+            "enabled": true,
+            "model": "hia-text-i18n",
+            "modelVersion": "1.0.0",
+            "defaultLocale": "zh-CN",
+            "locales": [
+              "zh-CN",
+              "en"
+            ],
+            "fields": {
+              "summary": {
+                "fieldPath": "summary",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "输出帮助并退出0。",
+                  "en": "Print help and exit 0."
+                }
+              },
+              "description": {
+                "fieldPath": "description",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "输出帮助并退出0。",
+                  "en": "Print help and exit 0."
+                }
+              }
+            }
+          },
+          "evidence": [
+            {
+              "fieldPath": "name",
+              "sourceId": "src/cli.mjs",
+              "range": {
+                "start": {
+                  "line": 19
+                },
+                "end": {
+                  "line": 19
+                }
+              },
+              "rangeConvention": {
+                "endBoundary": "unknown",
+                "columnUnit": "unknown"
+              }
+            },
+            {
+              "fieldPath": "kind",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "kind",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "name",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "name",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "short",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "short",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "valueType",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "valueType",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "required",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "required",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "multiple",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "multiple",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.summary",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.summary",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "i18n.fields.description",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.description",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/index.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/config-compatibility.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/schemas/dotnetdoc-config-1.0.0.schema.json"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/schemas/dotnetdoc-config-0.1.0-draft.schema.json"
+            }
+          ]
+        },
+        {
+          "id": "version",
+          "kind": "option",
+          "name": "version",
+          "short": "v",
+          "valueType": "boolean",
+          "required": false,
+          "multiple": false,
+          "defaultRule": {
+            "kind": "not-applicable"
+          },
+          "i18n": {
+            "enabled": true,
+            "model": "hia-text-i18n",
+            "modelVersion": "1.0.0",
+            "defaultLocale": "zh-CN",
+            "locales": [
+              "zh-CN",
+              "en"
+            ],
+            "fields": {
+              "summary": {
+                "fieldPath": "summary",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "输出运行器版本并退出0。",
+                  "en": "Print runner version and exit 0."
+                }
+              },
+              "description": {
+                "fieldPath": "description",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "输出运行器版本并退出0。",
+                  "en": "Print runner version and exit 0."
+                }
+              }
+            }
+          },
+          "evidence": [
+            {
+              "fieldPath": "name",
+              "sourceId": "src/cli.mjs",
+              "range": {
+                "start": {
+                  "line": 19
+                },
+                "end": {
+                  "line": 19
+                }
+              },
+              "rangeConvention": {
+                "endBoundary": "unknown",
+                "columnUnit": "unknown"
+              }
+            },
+            {
+              "fieldPath": "kind",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "kind",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "name",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "name",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "short",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "short",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "valueType",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "valueType",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "required",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "required",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "multiple",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "multiple",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.summary",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.summary",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "i18n.fields.description",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.description",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/index.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/config-compatibility.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/schemas/dotnetdoc-config-1.0.0.schema.json"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/schemas/dotnetdoc-config-0.1.0-draft.schema.json"
+            }
+          ]
+        }
+      ],
+      "positionals": [
+        {
+          "id": "positionals",
+          "kind": "positional",
+          "name": "positionals",
+          "valueType": "string",
+          "required": false,
+          "multiple": true,
+          "defaultRule": {
+            "kind": "not-applicable"
+          },
+          "i18n": {
+            "enabled": true,
+            "model": "hia-text-i18n",
+            "modelVersion": "1.0.0",
+            "defaultLocale": "zh-CN",
+            "locales": [
+              "zh-CN",
+              "en"
+            ],
+            "fields": {
+              "summary": {
+                "fieldPath": "summary",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "直接模式至少一个相对工作区的XML输入；配置模式忽略。",
+                  "en": "Direct mode requires at least one workspace-relative XML input; ignored in config mode."
+                }
+              },
+              "description": {
+                "fieldPath": "description",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "直接模式至少一个相对工作区的XML输入；配置模式忽略。",
+                  "en": "Direct mode requires at least one workspace-relative XML input; ignored in config mode."
+                }
+              },
+              "metavar": {
+                "fieldPath": "metavar",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "documentation.xml...",
+                  "en": "documentation.xml..."
+                }
+              }
+            }
+          },
+          "evidence": [
+            {
+              "fieldPath": "name",
+              "sourceId": "src/cli.mjs",
+              "range": {
+                "start": {
+                  "line": 19
+                },
+                "end": {
+                  "line": 19
+                }
+              },
+              "rangeConvention": {
+                "endBoundary": "unknown",
+                "columnUnit": "unknown"
+              }
+            },
+            {
+              "fieldPath": "kind",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "kind",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "name",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "name",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "valueType",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "valueType",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "required",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "required",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "multiple",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "multiple",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.summary",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.summary",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "i18n.fields.description",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.description",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "i18n.fields.metavar",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.metavar",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/index.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/config-compatibility.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/schemas/dotnetdoc-config-1.0.0.schema.json"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/schemas/dotnetdoc-config-0.1.0-draft.schema.json"
+            }
+          ]
+        }
+      ],
+      "examples": [
+        "hia-dotnetdoc --config dotnetdoc.config.json",
+        "dotnetdoc --title SampleAPI sample.xml"
+      ],
+      "effects": {
+        "filesystem": "read-write",
+        "network": "explicit"
+      },
+      "exitCodes": [
+        {
+          "code": 0,
+          "i18n": {
+            "enabled": true,
+            "model": "hia-text-i18n",
+            "modelVersion": "1.0.0",
+            "defaultLocale": "zh-CN",
+            "locales": [
+              "zh-CN",
+              "en"
+            ],
+            "fields": {
+              "summary": {
+                "fieldPath": "summary",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "成功、帮助或版本",
+                  "en": "Success, help or version"
+                }
+              },
+              "description": {
+                "fieldPath": "description",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "成功、帮助或版本",
+                  "en": "Success, help or version"
+                }
+              }
+            }
+          }
+        },
+        {
+          "code": 1,
+          "i18n": {
+            "enabled": true,
+            "model": "hia-text-i18n",
+            "modelVersion": "1.0.0",
+            "defaultLocale": "zh-CN",
+            "locales": [
+              "zh-CN",
+              "en"
+            ],
+            "fields": {
+              "summary": {
+                "fieldPath": "summary",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "参数、配置或构建失败",
+                  "en": "Argument, configuration or build failure"
+                }
+              },
+              "description": {
+                "fieldPath": "description",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "参数/配置错误或partial/failed构建",
+                  "en": "Argument/configuration errors or partial/failed builds"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "evidence": [
+        {
+          "fieldPath": "signature",
+          "sourceId": "src/cli.mjs",
+          "range": {
+            "start": {
+              "line": 19
+            },
+            "end": {
+              "line": 19
+            }
+          },
+          "rangeConvention": {
+            "endBoundary": "unknown",
+            "columnUnit": "unknown"
+          }
+        },
+        {
+          "fieldPath": "executable",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "executable",
+          "sourceId": "src/cli.mjs"
+        },
+        {
+          "fieldPath": "path",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "path",
+          "sourceId": "src/cli.mjs"
+        },
+        {
+          "fieldPath": "kind",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "kind",
+          "sourceId": "src/cli.mjs"
+        },
+        {
+          "fieldPath": "signature",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "signature",
+          "sourceId": "src/cli.mjs"
+        },
+        {
+          "fieldPath": "displayVersion",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "displayVersion",
+          "sourceId": "src/cli.mjs"
+        },
+        {
+          "fieldPath": "parsing",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "parsing",
+          "sourceId": "src/cli.mjs"
+        },
+        {
+          "fieldPath": "examples",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "examples",
+          "sourceId": "src/cli.mjs"
+        },
+        {
+          "fieldPath": "effects",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "effects",
+          "sourceId": "src/cli.mjs"
+        },
+        {
+          "fieldPath": "exitCodes",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "exitCodes",
+          "sourceId": "src/cli.mjs"
+        },
+        {
+          "fieldPath": "i18n.fields.summary",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "i18n.fields.summary",
+          "sourceId": "README.md"
+        },
+        {
+          "fieldPath": "i18n.fields.description",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "i18n.fields.description",
+          "sourceId": "README.md"
+        },
+        {
+          "fieldPath": "i18n.fields.configUsage",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "i18n.fields.configUsage",
+          "sourceId": "README.md"
+        },
+        {
+          "fieldPath": "i18n.fields.aliases",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "i18n.fields.aliases",
+          "sourceId": "README.md"
+        },
+        {
+          "fieldPath": "i18n.fields.configOverrides",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "i18n.fields.configOverrides",
+          "sourceId": "README.md"
+        },
+        {
+          "fieldPath": "i18n.fields.directOnly",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "i18n.fields.directOnly",
+          "sourceId": "README.md"
+        },
+        {
+          "fieldPath": "i18n.fields.paths",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "i18n.fields.paths",
+          "sourceId": "README.md"
+        },
+        {
+          "fieldPath": "i18n.fields.writes",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "i18n.fields.writes",
+          "sourceId": "README.md"
+        },
+        {
+          "fieldPath": "i18n.fields.parsing",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "i18n.fields.parsing",
+          "sourceId": "README.md"
+        },
+        {
+          "fieldPath": "i18n.fields.prerequisites",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "i18n.fields.prerequisites",
+          "sourceId": "README.md"
+        },
+        {
+          "fieldPath": "i18n.fields.offline",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "i18n.fields.offline",
+          "sourceId": "README.md"
+        },
+        {
+          "fieldPath": "executable",
+          "sourceId": "package.json"
+        }
+      ]
+    },
+    {
+      "id": "dotnetdoc",
+      "executable": "dotnetdoc",
+      "path": [],
+      "kind": "command",
+      "signature": "dotnetdoc [options] <documentation.xml...>",
+      "i18n": {
+        "enabled": true,
+        "model": "hia-text-i18n",
+        "modelVersion": "1.0.0",
+        "defaultLocale": "zh-CN",
+        "locales": [
+          "zh-CN",
+          "en"
+        ],
+        "fields": {
+          "summary": {
+            "fieldPath": "summary",
+            "kind": "text",
+            "defaultLocale": "zh-CN",
+            "localizedText": {
+              "zh-CN": "生成.NET XML及配置驱动文档",
+              "en": "Generate .NET XML and configuration-driven documentation"
+            }
+          },
+          "description": {
+            "fieldPath": "description",
+            "kind": "text",
+            "defaultLocale": "zh-CN",
+            "localizedText": {
+              "zh-CN": "从显式XML输入或JSON配置生成.NET文档工件及结果清单。",
+              "en": "Generate .NET documentation artifacts and a result manifest from explicit XML inputs or JSON configuration."
+            }
+          },
+          "configUsage": {
+            "fieldPath": "configUsage",
+            "kind": "text",
+            "defaultLocale": "zh-CN",
+            "localizedText": {
+              "zh-CN": "hia-dotnetdoc --config dotnetdoc.config.json",
+              "en": "hia-dotnetdoc --config dotnetdoc.config.json"
+            }
+          },
+          "aliases": {
+            "fieldPath": "aliases",
+            "kind": "text",
+            "defaultLocale": "zh-CN",
+            "localizedText": {
+              "zh-CN": "dotnetdoc与hia-dotnetdoc是同一实现的等价调用名，帮助展示规范入口。",
+              "en": "dotnetdoc and hia-dotnetdoc are equivalent names for one implementation; help displays the canonical entry."
+            }
+          },
+          "configOverrides": {
+            "fieldPath": "configOverrides",
+            "kind": "text",
+            "defaultLocale": "zh-CN",
+            "localizedText": {
+              "zh-CN": "配置模式仅非空out-dir覆盖输出；空字符串保留配置。",
+              "en": "In config mode only a nonempty out-dir overrides output; an empty string retains the configuration."
+            }
+          },
+          "directOnly": {
+            "fieldPath": "directOnly",
+            "kind": "text",
+            "defaultLocale": "zh-CN",
+            "localizedText": {
+              "zh-CN": "workspace-root、title及XML位置输入仅用于直接模式，配置模式忽略。",
+              "en": "workspace-root, title and positional XML inputs apply only to direct mode and are ignored in config mode."
+            }
+          },
+          "paths": {
+            "fieldPath": "paths",
+            "kind": "text",
+            "defaultLocale": "zh-CN",
+            "localizedText": {
+              "zh-CN": "配置路径相对调用目录，配置工作区相对配置目录；直接工作区相对调用目录，输出相对工作区。",
+              "en": "Config paths use cwd and configured workspaces use the config directory; direct workspaces use cwd and output uses the workspace."
+            }
+          },
+          "writes": {
+            "fieldPath": "writes",
+            "kind": "text",
+            "defaultLocale": "zh-CN",
+            "localizedText": {
+              "zh-CN": "运行会创建目录、覆盖工件并写结果清单；partial或failed可能保留已成功写入。",
+              "en": "Runs create directories, replace artifacts and write a result manifest; partial or failed results may retain successful writes."
+            }
+          },
+          "parsing": {
+            "fieldPath": "parsing",
+            "kind": "text",
+            "defaultLocale": "zh-CN",
+            "localizedText": {
+              "zh-CN": "Node严格解析先于帮助，未知开关或缺值返回1；重复带值选项取末值，--后作为XML位置输入。",
+              "en": "Node strict parsing precedes help; unknown switches or missing values exit 1. Repeated value options use the last value, and tokens after -- are positional XML inputs."
+            }
+          },
+          "prerequisites": {
+            "fieldPath": "prerequisites",
+            "kind": "text",
+            "defaultLocale": "zh-CN",
+            "localizedText": {
+              "zh-CN": "纯XML抽取无需SDK。配置中的C#抽取或项目源码解析使用.NET10 SDK/helper，其构建可能按SDK设置进行还原及工作负载清单下载。",
+              "en": "Plain XML extraction needs no SDK. Configured C# extraction or project source resolution uses the .NET 10 SDK/helper; its build may restore dependencies or download workload manifests according to SDK settings."
+            }
+          },
+          "offline": {
+            "fieldPath": "offline",
+            "kind": "text",
+            "defaultLocale": "zh-CN",
+            "localizedText": {
+              "zh-CN": "@hia-doc/dotnetdoc-runner/README.md",
+              "en": "@hia-doc/dotnetdoc-runner/README.md"
+            }
+          }
+        }
+      },
+      "displayVersion": {
+        "kind": "runner",
+        "value": "1.0.0"
+      },
+      "parsing": {
+        "helpOrder": "after-argument-validation",
+        "unknownOptions": "reject"
+      },
+      "options": [
+        {
+          "id": "dotnetdoc.config",
+          "kind": "option",
+          "name": "config",
+          "short": "c",
+          "valueType": "string",
+          "required": false,
+          "multiple": false,
+          "defaultRule": {
+            "kind": "not-applicable"
+          },
+          "i18n": {
+            "enabled": true,
+            "model": "hia-text-i18n",
+            "modelVersion": "1.0.0",
+            "defaultLocale": "zh-CN",
+            "locales": [
+              "zh-CN",
+              "en"
+            ],
+            "fields": {
+              "summary": {
+                "fieldPath": "summary",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "从JSON配置构造请求。",
+                  "en": "Build a request from JSON configuration."
+                }
+              },
+              "description": {
+                "fieldPath": "description",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "从JSON配置构造请求。",
+                  "en": "Build a request from JSON configuration."
+                }
+              },
+              "metavar": {
+                "fieldPath": "metavar",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "path",
+                  "en": "path"
+                }
+              }
+            }
+          },
+          "evidence": [
+            {
+              "fieldPath": "name",
+              "sourceId": "src/cli.mjs",
+              "range": {
+                "start": {
+                  "line": 19
+                },
+                "end": {
+                  "line": 19
+                }
+              },
+              "rangeConvention": {
+                "endBoundary": "unknown",
+                "columnUnit": "unknown"
+              }
+            },
+            {
+              "fieldPath": "kind",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "kind",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "name",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "name",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "short",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "short",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "valueType",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "valueType",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "required",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "required",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "multiple",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "multiple",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.summary",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.summary",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "i18n.fields.description",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.description",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "i18n.fields.metavar",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.metavar",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/index.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/config-compatibility.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/schemas/dotnetdoc-config-1.0.0.schema.json"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/schemas/dotnetdoc-config-0.1.0-draft.schema.json"
+            }
+          ]
+        },
+        {
+          "id": "dotnetdoc.out-dir",
+          "kind": "option",
+          "name": "out-dir",
+          "short": "o",
+          "valueType": "string",
+          "required": false,
+          "multiple": false,
+          "defaultRule": {
+            "kind": "conditional",
+            "conditions": [
+              "description"
+            ]
+          },
+          "i18n": {
+            "enabled": true,
+            "model": "hia-text-i18n",
+            "modelVersion": "1.0.0",
+            "defaultLocale": "zh-CN",
+            "locales": [
+              "zh-CN",
+              "en"
+            ],
+            "fields": {
+              "summary": {
+                "fieldPath": "summary",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "输出相对工作区，直接模式缺省dist/dotnetdoc；直接空字符串指向工作区根。",
+                  "en": "Output is workspace-relative and defaults to dist/dotnetdoc in direct mode; an empty direct-mode string selects the workspace root."
+                }
+              },
+              "description": {
+                "fieldPath": "description",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "输出相对工作区，直接模式缺省dist/dotnetdoc；直接空字符串指向工作区根。",
+                  "en": "Output is workspace-relative and defaults to dist/dotnetdoc in direct mode; an empty direct-mode string selects the workspace root."
+                }
+              },
+              "metavar": {
+                "fieldPath": "metavar",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "path",
+                  "en": "path"
+                }
+              }
+            }
+          },
+          "evidence": [
+            {
+              "fieldPath": "name",
+              "sourceId": "src/cli.mjs",
+              "range": {
+                "start": {
+                  "line": 19
+                },
+                "end": {
+                  "line": 19
+                }
+              },
+              "rangeConvention": {
+                "endBoundary": "unknown",
+                "columnUnit": "unknown"
+              }
+            },
+            {
+              "fieldPath": "kind",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "kind",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "name",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "name",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "short",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "short",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "valueType",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "valueType",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "required",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "required",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "multiple",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "multiple",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.summary",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.summary",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "i18n.fields.description",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.description",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "i18n.fields.metavar",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.metavar",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/index.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/config-compatibility.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/schemas/dotnetdoc-config-1.0.0.schema.json"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/schemas/dotnetdoc-config-0.1.0-draft.schema.json"
+            }
+          ]
+        },
+        {
+          "id": "dotnetdoc.workspace-root",
+          "kind": "option",
+          "name": "workspace-root",
+          "valueType": "string",
+          "required": false,
+          "multiple": false,
+          "defaultRule": {
+            "kind": "conditional",
+            "conditions": [
+              "description"
+            ]
+          },
+          "i18n": {
+            "enabled": true,
+            "model": "hia-text-i18n",
+            "modelVersion": "1.0.0",
+            "defaultLocale": "zh-CN",
+            "locales": [
+              "zh-CN",
+              "en"
+            ],
+            "fields": {
+              "summary": {
+                "fieldPath": "summary",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "直接模式相对调用目录，省略时为当前目录；配置模式忽略。",
+                  "en": "Direct mode resolves from cwd and defaults to cwd; ignored in config mode."
+                }
+              },
+              "description": {
+                "fieldPath": "description",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "直接模式相对调用目录，省略时为当前目录；配置模式忽略。",
+                  "en": "Direct mode resolves from cwd and defaults to cwd; ignored in config mode."
+                }
+              },
+              "metavar": {
+                "fieldPath": "metavar",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "path",
+                  "en": "path"
+                }
+              }
+            }
+          },
+          "evidence": [
+            {
+              "fieldPath": "name",
+              "sourceId": "src/cli.mjs",
+              "range": {
+                "start": {
+                  "line": 19
+                },
+                "end": {
+                  "line": 19
+                }
+              },
+              "rangeConvention": {
+                "endBoundary": "unknown",
+                "columnUnit": "unknown"
+              }
+            },
+            {
+              "fieldPath": "kind",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "kind",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "name",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "name",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "valueType",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "valueType",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "required",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "required",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "multiple",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "multiple",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.summary",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.summary",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "i18n.fields.description",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.description",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "i18n.fields.metavar",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.metavar",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/index.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/config-compatibility.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/schemas/dotnetdoc-config-1.0.0.schema.json"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/schemas/dotnetdoc-config-0.1.0-draft.schema.json"
+            }
+          ]
+        },
+        {
+          "id": "dotnetdoc.title",
+          "kind": "option",
+          "name": "title",
+          "valueType": "string",
+          "required": false,
+          "multiple": false,
+          "defaultRule": {
+            "kind": "conditional",
+            "conditions": [
+              "description"
+            ]
+          },
+          "i18n": {
+            "enabled": true,
+            "model": "hia-text-i18n",
+            "modelVersion": "1.0.0",
+            "defaultLocale": "zh-CN",
+            "locales": [
+              "zh-CN",
+              "en"
+            ],
+            "fields": {
+              "summary": {
+                "fieldPath": "summary",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "仅直接模式，为每个XML输入提供同一标题；省略时沿适配器默认，配置模式忽略。",
+                  "en": "Direct mode only, giving every XML input the same title; omission uses adapter defaults and config mode ignores it."
+                }
+              },
+              "description": {
+                "fieldPath": "description",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "仅直接模式，为每个XML输入提供同一标题；省略时沿适配器默认，配置模式忽略。",
+                  "en": "Direct mode only, giving every XML input the same title; omission uses adapter defaults and config mode ignores it."
+                }
+              },
+              "metavar": {
+                "fieldPath": "metavar",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "title",
+                  "en": "title"
+                }
+              }
+            }
+          },
+          "evidence": [
+            {
+              "fieldPath": "name",
+              "sourceId": "src/cli.mjs",
+              "range": {
+                "start": {
+                  "line": 19
+                },
+                "end": {
+                  "line": 19
+                }
+              },
+              "rangeConvention": {
+                "endBoundary": "unknown",
+                "columnUnit": "unknown"
+              }
+            },
+            {
+              "fieldPath": "kind",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "kind",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "name",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "name",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "valueType",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "valueType",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "required",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "required",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "multiple",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "multiple",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.summary",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.summary",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "i18n.fields.description",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.description",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "i18n.fields.metavar",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.metavar",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/index.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/config-compatibility.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/schemas/dotnetdoc-config-1.0.0.schema.json"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/schemas/dotnetdoc-config-0.1.0-draft.schema.json"
+            }
+          ]
+        },
+        {
+          "id": "dotnetdoc.help",
+          "kind": "option",
+          "name": "help",
+          "short": "h",
+          "valueType": "boolean",
+          "required": false,
+          "multiple": false,
+          "defaultRule": {
+            "kind": "not-applicable"
+          },
+          "i18n": {
+            "enabled": true,
+            "model": "hia-text-i18n",
+            "modelVersion": "1.0.0",
+            "defaultLocale": "zh-CN",
+            "locales": [
+              "zh-CN",
+              "en"
+            ],
+            "fields": {
+              "summary": {
+                "fieldPath": "summary",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "输出帮助并退出0。",
+                  "en": "Print help and exit 0."
+                }
+              },
+              "description": {
+                "fieldPath": "description",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "输出帮助并退出0。",
+                  "en": "Print help and exit 0."
+                }
+              }
+            }
+          },
+          "evidence": [
+            {
+              "fieldPath": "name",
+              "sourceId": "src/cli.mjs",
+              "range": {
+                "start": {
+                  "line": 19
+                },
+                "end": {
+                  "line": 19
+                }
+              },
+              "rangeConvention": {
+                "endBoundary": "unknown",
+                "columnUnit": "unknown"
+              }
+            },
+            {
+              "fieldPath": "kind",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "kind",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "name",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "name",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "short",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "short",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "valueType",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "valueType",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "required",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "required",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "multiple",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "multiple",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.summary",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.summary",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "i18n.fields.description",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.description",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/index.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/config-compatibility.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/schemas/dotnetdoc-config-1.0.0.schema.json"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/schemas/dotnetdoc-config-0.1.0-draft.schema.json"
+            }
+          ]
+        },
+        {
+          "id": "dotnetdoc.version",
+          "kind": "option",
+          "name": "version",
+          "short": "v",
+          "valueType": "boolean",
+          "required": false,
+          "multiple": false,
+          "defaultRule": {
+            "kind": "not-applicable"
+          },
+          "i18n": {
+            "enabled": true,
+            "model": "hia-text-i18n",
+            "modelVersion": "1.0.0",
+            "defaultLocale": "zh-CN",
+            "locales": [
+              "zh-CN",
+              "en"
+            ],
+            "fields": {
+              "summary": {
+                "fieldPath": "summary",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "输出运行器版本并退出0。",
+                  "en": "Print runner version and exit 0."
+                }
+              },
+              "description": {
+                "fieldPath": "description",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "输出运行器版本并退出0。",
+                  "en": "Print runner version and exit 0."
+                }
+              }
+            }
+          },
+          "evidence": [
+            {
+              "fieldPath": "name",
+              "sourceId": "src/cli.mjs",
+              "range": {
+                "start": {
+                  "line": 19
+                },
+                "end": {
+                  "line": 19
+                }
+              },
+              "rangeConvention": {
+                "endBoundary": "unknown",
+                "columnUnit": "unknown"
+              }
+            },
+            {
+              "fieldPath": "kind",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "kind",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "name",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "name",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "short",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "short",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "valueType",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "valueType",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "required",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "required",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "multiple",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "multiple",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.summary",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.summary",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "i18n.fields.description",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.description",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/index.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/config-compatibility.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/schemas/dotnetdoc-config-1.0.0.schema.json"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/schemas/dotnetdoc-config-0.1.0-draft.schema.json"
+            }
+          ]
+        }
+      ],
+      "positionals": [
+        {
+          "id": "dotnetdoc.positionals",
+          "kind": "positional",
+          "name": "positionals",
+          "valueType": "string",
+          "required": false,
+          "multiple": true,
+          "defaultRule": {
+            "kind": "not-applicable"
+          },
+          "i18n": {
+            "enabled": true,
+            "model": "hia-text-i18n",
+            "modelVersion": "1.0.0",
+            "defaultLocale": "zh-CN",
+            "locales": [
+              "zh-CN",
+              "en"
+            ],
+            "fields": {
+              "summary": {
+                "fieldPath": "summary",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "直接模式至少一个相对工作区的XML输入；配置模式忽略。",
+                  "en": "Direct mode requires at least one workspace-relative XML input; ignored in config mode."
+                }
+              },
+              "description": {
+                "fieldPath": "description",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "直接模式至少一个相对工作区的XML输入；配置模式忽略。",
+                  "en": "Direct mode requires at least one workspace-relative XML input; ignored in config mode."
+                }
+              },
+              "metavar": {
+                "fieldPath": "metavar",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "documentation.xml...",
+                  "en": "documentation.xml..."
+                }
+              }
+            }
+          },
+          "evidence": [
+            {
+              "fieldPath": "name",
+              "sourceId": "src/cli.mjs",
+              "range": {
+                "start": {
+                  "line": 19
+                },
+                "end": {
+                  "line": 19
+                }
+              },
+              "rangeConvention": {
+                "endBoundary": "unknown",
+                "columnUnit": "unknown"
+              }
+            },
+            {
+              "fieldPath": "kind",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "kind",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "name",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "name",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "valueType",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "valueType",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "required",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "required",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "multiple",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "multiple",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/cli.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.summary",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.summary",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "i18n.fields.description",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.description",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "i18n.fields.metavar",
+              "sourceId": "src/command-content.mjs"
+            },
+            {
+              "fieldPath": "i18n.fields.metavar",
+              "sourceId": "README.md"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/index.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/config-compatibility.mjs"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/schemas/dotnetdoc-config-1.0.0.schema.json"
+            },
+            {
+              "fieldPath": "defaultRule",
+              "sourceId": "src/schemas/dotnetdoc-config-0.1.0-draft.schema.json"
+            }
+          ]
+        }
+      ],
+      "examples": [
+        "hia-dotnetdoc --config dotnetdoc.config.json",
+        "dotnetdoc --title SampleAPI sample.xml"
+      ],
+      "effects": {
+        "filesystem": "read-write",
+        "network": "explicit"
+      },
+      "exitCodes": [
+        {
+          "code": 0,
+          "i18n": {
+            "enabled": true,
+            "model": "hia-text-i18n",
+            "modelVersion": "1.0.0",
+            "defaultLocale": "zh-CN",
+            "locales": [
+              "zh-CN",
+              "en"
+            ],
+            "fields": {
+              "summary": {
+                "fieldPath": "summary",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "成功、帮助或版本",
+                  "en": "Success, help or version"
+                }
+              },
+              "description": {
+                "fieldPath": "description",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "成功、帮助或版本",
+                  "en": "Success, help or version"
+                }
+              }
+            }
+          }
+        },
+        {
+          "code": 1,
+          "i18n": {
+            "enabled": true,
+            "model": "hia-text-i18n",
+            "modelVersion": "1.0.0",
+            "defaultLocale": "zh-CN",
+            "locales": [
+              "zh-CN",
+              "en"
+            ],
+            "fields": {
+              "summary": {
+                "fieldPath": "summary",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "参数、配置或构建失败",
+                  "en": "Argument, configuration or build failure"
+                }
+              },
+              "description": {
+                "fieldPath": "description",
+                "kind": "text",
+                "defaultLocale": "zh-CN",
+                "localizedText": {
+                  "zh-CN": "参数/配置错误或partial/failed构建",
+                  "en": "Argument/configuration errors or partial/failed builds"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "evidence": [
+        {
+          "fieldPath": "signature",
+          "sourceId": "src/cli.mjs",
+          "range": {
+            "start": {
+              "line": 19
+            },
+            "end": {
+              "line": 19
+            }
+          },
+          "rangeConvention": {
+            "endBoundary": "unknown",
+            "columnUnit": "unknown"
+          }
+        },
+        {
+          "fieldPath": "executable",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "executable",
+          "sourceId": "src/cli.mjs"
+        },
+        {
+          "fieldPath": "path",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "path",
+          "sourceId": "src/cli.mjs"
+        },
+        {
+          "fieldPath": "kind",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "kind",
+          "sourceId": "src/cli.mjs"
+        },
+        {
+          "fieldPath": "signature",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "signature",
+          "sourceId": "src/cli.mjs"
+        },
+        {
+          "fieldPath": "displayVersion",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "displayVersion",
+          "sourceId": "src/cli.mjs"
+        },
+        {
+          "fieldPath": "parsing",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "parsing",
+          "sourceId": "src/cli.mjs"
+        },
+        {
+          "fieldPath": "examples",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "examples",
+          "sourceId": "src/cli.mjs"
+        },
+        {
+          "fieldPath": "effects",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "effects",
+          "sourceId": "src/cli.mjs"
+        },
+        {
+          "fieldPath": "exitCodes",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "exitCodes",
+          "sourceId": "src/cli.mjs"
+        },
+        {
+          "fieldPath": "aliasOf",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "aliasOf",
+          "sourceId": "src/cli.mjs"
+        },
+        {
+          "fieldPath": "i18n.fields.summary",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "i18n.fields.summary",
+          "sourceId": "README.md"
+        },
+        {
+          "fieldPath": "i18n.fields.description",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "i18n.fields.description",
+          "sourceId": "README.md"
+        },
+        {
+          "fieldPath": "i18n.fields.configUsage",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "i18n.fields.configUsage",
+          "sourceId": "README.md"
+        },
+        {
+          "fieldPath": "i18n.fields.aliases",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "i18n.fields.aliases",
+          "sourceId": "README.md"
+        },
+        {
+          "fieldPath": "i18n.fields.configOverrides",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "i18n.fields.configOverrides",
+          "sourceId": "README.md"
+        },
+        {
+          "fieldPath": "i18n.fields.directOnly",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "i18n.fields.directOnly",
+          "sourceId": "README.md"
+        },
+        {
+          "fieldPath": "i18n.fields.paths",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "i18n.fields.paths",
+          "sourceId": "README.md"
+        },
+        {
+          "fieldPath": "i18n.fields.writes",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "i18n.fields.writes",
+          "sourceId": "README.md"
+        },
+        {
+          "fieldPath": "i18n.fields.parsing",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "i18n.fields.parsing",
+          "sourceId": "README.md"
+        },
+        {
+          "fieldPath": "i18n.fields.prerequisites",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "i18n.fields.prerequisites",
+          "sourceId": "README.md"
+        },
+        {
+          "fieldPath": "i18n.fields.offline",
+          "sourceId": "src/command-content.mjs"
+        },
+        {
+          "fieldPath": "i18n.fields.offline",
+          "sourceId": "README.md"
+        },
+        {
+          "fieldPath": "executable",
+          "sourceId": "package.json"
+        },
+        {
+          "fieldPath": "aliasOf",
+          "sourceId": "package.json"
+        }
+      ],
+      "aliasOf": "hia-dotnetdoc"
+    }
+  ]
+}

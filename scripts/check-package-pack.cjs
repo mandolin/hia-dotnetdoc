@@ -1,7 +1,13 @@
+/**
+ * @file
+ * @lang zh-CN 核六包真实归档的许可证、入口、原契约和候选身份，采用本机npm实际入口。
+ * @lang en Check six real package archives for licenses, entries, original contracts and candidate identities using npm's actual local entry.
+ */
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
+const {resolveNpmInvocation} = require("./npm-invocation.cjs");
 
 const root = path.resolve(__dirname, "..");
 // <lang><zh-CN>运行器README必须随包覆盖两别名的全部选项、模式及安装范围；实际路径行为另测。</zh-CN><en>The bundled runner README covers both aliases, every option, modes and installation scope; actual path behavior is tested separately.</en></lang>
@@ -20,7 +26,6 @@ const releaseVersion = "1.0.0";
  */
 const previousReleaseVersion = "0.1.12";
 const repositoryUrl = "git+https://github.com/mandolin/hia-dotnetdoc.git";
-const npmCliPath = path.join(path.dirname(process.execPath), "node_modules", "npm", "bin", "npm-cli.js");
 
 const packages = [
   {
@@ -65,7 +70,7 @@ const packages = [
       "@hia-doc/dotnetdoc-adapter",
       "@hia-doc/dotnetdoc-spec"
     ],
-    requiredFiles: ["package.json", "README.md", "LICENSE", "src/cli.mjs", "src/index.mjs", "src/schema.mjs", "src/schema-legacy.mjs", "src/config-compatibility.mjs", "src/doc-source-map.mjs", "src/schemas/dotnetdoc-config-0.1.0-draft.schema.json", "src/schemas/dotnetdoc-config-1.0.0.schema.json"]
+    requiredFiles: ["package.json", "README.md", "LICENSE", "src/cli.mjs", "src/command-documentation/description.json", "src/command-documentation/observations.json", "src/command-documentation/document.hia.json", "src/command-documentation/command.schema.json", "src/command-documentation/document.schema.json", "src/command-documentation/help.mjs", "src/command-documentation/generation.json", "src/index.mjs", "src/schema.mjs", "src/schema-legacy.mjs", "src/config-compatibility.mjs", "src/doc-source-map.mjs", "src/schemas/dotnetdoc-config-0.1.0-draft.schema.json", "src/schemas/dotnetdoc-config-1.0.0.schema.json"]
   },
   {
     name: "@hia-doc/dotnetdoc-producer",
@@ -143,11 +148,16 @@ function readPackageJson(relativeDirectory) {
   return JSON.parse(fs.readFileSync(path.join(root, relativeDirectory, "package.json"), "utf8"));
 }
 
+/**
+ * @lang zh-CN 以正常npm dry-run查询实际归档清单，失败保留本地检查上下文。
+ * @lang en Query actual archive inventory with normal npm dry-run, retaining local-check context on failure.
+ * @param {string} packageRoot <lang><zh-CN>本次检查的包根。</zh-CN><en>Package root under inspection.</en></lang>
+ * @param {string} packageName <lang><zh-CN>受信包名，用于本地错误上下文。</zh-CN><en>Trusted package name for local error context.</en></lang>
+ * @returns {string[]} <lang><zh-CN>排序后的包相对文件路径。</zh-CN><en>Sorted package-relative file paths.</en></lang>
+ */
 function dryRunPack(packageRoot, packageName) {
-  const command = fs.existsSync(npmCliPath) ? process.execPath : process.platform === "win32" ? "npm.cmd" : "npm";
-  const args = fs.existsSync(npmCliPath)
-    ? [npmCliPath, "pack", "--dry-run", "--json"]
-    : ["pack", "--dry-run", "--json"];
+  // <lang><zh-CN>Node与npm可能分离安装，优先使用npm传入的真实JS入口。</zh-CN><en>Node and npm may be installed separately, so prefer the actual JavaScript entry supplied by npm.</en></lang>
+  const {command, args} = resolveNpmInvocation(process.execPath, process.env.npm_execpath, process.platform);
 
   const result = spawnSync(command, args, {
     cwd: packageRoot,

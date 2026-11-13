@@ -5,3 +5,6 @@ dist/
 packages/dotnet-source-extractor/tools/**/bin/
 packages/dotnet-source-extractor/tools/**/obj/
 .DS_Store
+
+packages/dotnetdoc-runner/src/.command-documentation-*
+packages/dotnetdoc-runner/src/command-documentation.lock

@@ -1,5 +1,12 @@
 # 变更日志 / Changelog
 
+## Command documentation and bilingual help
+
+- Generate canonical 80/120-column help and standard documentation for both invocation names, preserving explicit alias identity.
+- Verify actual parseArgs declarations, original source bytes and seven bundled assets during release checks.
+- Resolve the actual npm JavaScript entry for archive checks, supporting separated Node/npm installations.
+- 中文。双入口共用描述和执行实现，六开关及XML位置输入、配置覆盖和helper效果完整记录，归档检查兼容Node/npm分离安装。
+
 ## Unreleased
 
 - 历史配置别名逐项文档化并保留原对象引用及原身份/版本值；历史模块与schema不变。

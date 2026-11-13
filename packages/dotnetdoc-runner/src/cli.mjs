@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 
-/** @file .NET文档CLI统一处理参数/配置/执行失败，不回显私有参数或堆栈。 @lang en The .NET documentation CLI controls argument/config/execution failures without echoing private arguments or stacks. */
+/**
+ * @file
+ * @lang zh-CN .NET文档CLI统一处理参数、配置和执行失败，公开消息不回显私有原值。
+ * @lang en The .NET documentation CLI controls argument, configuration and execution failures, keeping private values out of public messages.
+ */
 import path from "node:path";
 import { parseArgs } from "node:util";
 
@@ -26,7 +30,10 @@ try {
   });
 
   if (values.help) {
-    process.stdout.write(`HIA DotNetDoc ${DOTNETDOC_RUNNER_VERSION}\n\nUsage:\n  hia-dotnetdoc --config dotnetdoc.config.json\n  hia-dotnetdoc [options] <documentation.xml...>\n\nOptions:\n  -c, --config <path>\n  -o, --out-dir <path>\n      --workspace-root <path>\n      --title <title>\n  -v, --version\n`);
+    // <lang><zh-CN>两调用名共用规范帮助，真实宽TTY用120列，其余及重定向用80列。</zh-CN><en>Both invocation names share canonical help, using 120 columns on actual wide TTYs and 80 elsewhere and for redirection.</en></lang>
+    const help = await import("./command-documentation/help.mjs");
+    process.stdout.write(process.stdout.isTTY && process.stdout.columns >= 120
+      ? help.DOTNETDOC_HELP_120 : help.DOTNETDOC_HELP_80);
     process.exit(0);
   }
 
@@ -55,7 +62,7 @@ try {
 }
 
 /**
- * 为位置参数建立既有XML请求；不在解析阶段读取文件或启动helper。
+ * @lang zh-CN 为位置参数建立既有XML请求；不在解析阶段读取文件或启动helper。
  * @lang en Builds an existing XML request from positionals without file reads or helper execution during parsing.
  * @param {object} cliValues <lang><zh-CN>已由Node parseArgs解析的选项。</zh-CN><en>Options already parsed by Node parseArgs.</en></lang>
  * @param {string[]} inputs <lang><zh-CN>显式XML相对路径列表。</zh-CN><en>Explicit relative XML paths.</en></lang>

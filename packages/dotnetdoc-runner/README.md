@@ -219,3 +219,17 @@ English. Both commands write artifacts and a result manifest, may replace old fi
 中文。本页为1.0.0源码候选。候选归档须与配套内部依赖一起安装，离线安装另需第三方依赖缓存。注册表路线先用 `npm view @hia-doc/dotnetdoc-runner@1.0.0 version` 并核配套版本，再安装。`npm list @hia-doc/dotnetdoc-runner --depth=0` 核本地包。旧0.1.x快速指南及draft配置按旧包阅读，新配置身份1.0.0与源码地图等产物身份独立。
 
 English. This is the 1.0.0 source candidate. Install its archive with matching internal dependencies and prepare a third-party cache for offline installs. For registry installation, check `npm view @hia-doc/dotnetdoc-runner@1.0.0 version` and matching dependencies first. Use `npm list @hia-doc/dotnetdoc-runner --depth=0` for the installed package. Older 0.1.x quickstarts and draft configs retain their scope. Current config identity 1.0.0 is independent from source-map and other artifact versions.
+
+## Generated command documentation and help
+
+中文。hia-dotnetdoc与dotnetdoc的完整参数和别名关系采用同一字段级双语描述，输出16个标准HiaDocument符号。两个正常入口共用规范帮助，真实宽TTY使用120列，其余及重定向使用80列。Node严格解析先于帮助，未知开关/缺值返回固定stderr/1；重复带值选项取最后值，--后均作XML位置输入。合法help跳过配置读取、文件处理及helper启动。
+
+English. hia-dotnetdoc and dotnetdoc share field-level bilingual content for complete parameters and their alias relationship, producing 16 standard HiaDocument symbols. Both normal entries use canonical help, at 120 columns on wide TTYs and 80 elsewhere and for redirection. Strict Node parsing precedes help, with unknown switches and missing values producing fixed stderr/1. Repeated value options use the last value, and tokens after -- are positional XML inputs. Valid help skips configuration loading, file processing and helper startup.
+
+中文。配置模式仅非空out-dir覆盖输出，空值保留原配置，workspace-root/title/位置输入忽略。直接模式空输出选择工作区根，实际写入继续遵守运行器边界；省略title由适配器默认规则生成。运行可覆盖已有工件，partial/failed可能保留成功写入。
+
+English. Config mode accepts only nonempty out-dir overrides; empty values retain configured output, and workspace-root/title/positionals are ignored. An empty direct-mode output selects the workspace root, with actual writes governed by runner boundaries. Omitted title uses adapter defaults. Runs may replace existing artifacts and retain successful writes after partial or failed results.
+
+Seven files ship in `src/command-documentation/`: `description.json`, `observations.json`, `document.hia.json`, `command.schema.json`, `document.schema.json`, `help.mjs` and `generation.json`. Maintainers run `npm run commands:check` to verify current sources, actual parser declarations, schemas and snapshots offline. Regeneration uses `npm run commands:build -- --core-module <core-entry>` with an explicitly selected compatible core. Each invocation has its own declaration observation and the alias uses the existing `aliasOf` relation. Source digests use original package-relative bytes under scoped LF attributes. Line anchors identify only the actual parser call, with unknown endpoint and column units.
+
+中文。运行时只加载随包静态帮助，开发期显式选择core投影并复用现有Ajv校验。两个调用名各有真实声明观察与来源，列单位和终点未知。纯XML无需SDK，配置选择C#或项目来源解析时使用既有.NET10 SDK/helper；dotnet build可能按SDK设置隐式还原并下载工作负载清单。

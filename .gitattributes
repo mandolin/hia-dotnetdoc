@@ -4,3 +4,17 @@
 /packages/dotnetdoc-runner/src/schema-legacy.mjs text eol=lf
 /packages/dotnetdoc-spec/src/schemas/*.json text eol=lf
 /packages/dotnetdoc-runner/src/schemas/*.json text eol=lf
+
+# 中文：命令来源与生成资产固定LF以保持跨平台原字节摘要。
+# English: Pin command sources and generated assets to LF for cross-platform original-byte digests.
+/packages/dotnetdoc-runner/src/cli.mjs text eol=lf
+/packages/dotnetdoc-runner/src/command-content.mjs text eol=lf
+/packages/dotnetdoc-runner/src/metadata.mjs text eol=lf
+/packages/dotnetdoc-runner/src/index.mjs text eol=lf
+/packages/dotnetdoc-runner/src/schema.mjs text eol=lf
+/packages/dotnetdoc-runner/src/config-compatibility.mjs text eol=lf
+/packages/dotnetdoc-runner/src/schemas/dotnetdoc-config-0.1.0-draft.schema.json text eol=lf
+/packages/dotnetdoc-runner/src/schemas/dotnetdoc-config-1.0.0.schema.json text eol=lf
+/packages/dotnetdoc-runner/README.md text eol=lf
+/packages/dotnetdoc-runner/package.json text eol=lf
+/packages/dotnetdoc-runner/src/command-documentation/* text eol=lf

@@ -1,0 +1,104 @@
+[
+  {
+    "commandId": "hia-dotnetdoc",
+    "sourceDigests": {
+      "src/cli.mjs": "98bbcbfc17e37feee2e243690ace48fc0f77d1e7c3fdbe6c850e9da83a38d1d7",
+      "src/command-content.mjs": "3c7282a7503da5b6c99f3785e6390636a8fc6be4b8c126f84201e94211e9db43",
+      "src/metadata.mjs": "6d27ddcfccfdac5e941cf983645b5fac76114383d5df566edbcec999eda37bfb",
+      "src/index.mjs": "7bdec377cb2069878db55e7931898b0759b3f69ee7eea39afd052340db2da0a6",
+      "src/schema.mjs": "fc58dc8eff5312ce359b1bcad5550fa10b59310768c30558b19888b2e0ff5699",
+      "src/config-compatibility.mjs": "5d29bed6587ab1d2a430815e36264ed94e9332c38acbc002ae2437b7bdab79d6",
+      "src/schemas/dotnetdoc-config-0.1.0-draft.schema.json": "1b97dc60616d2ea2c1215c1dcc04a6e9e396abcfc5d11f5cff6bae1e8559c0bf",
+      "src/schemas/dotnetdoc-config-1.0.0.schema.json": "2518b2807e9f5703526e8c32cd49826dd1adf50cbf7006ee323b40067d92019d",
+      "README.md": "c62a8f8515e753d331822330cad02a4d5fcc968251800b0156b2f9a9d641ccd6",
+      "package.json": "243e9b2bcbe5aaeabf4a11c276e1b687bb31be4754872e04457d2bcd1e4c28b2"
+    },
+    "options": [
+      {
+        "name": "config",
+        "valueType": "string",
+        "short": "c"
+      },
+      {
+        "name": "help",
+        "valueType": "boolean",
+        "short": "h"
+      },
+      {
+        "name": "out-dir",
+        "valueType": "string",
+        "short": "o"
+      },
+      {
+        "name": "title",
+        "valueType": "string"
+      },
+      {
+        "name": "version",
+        "valueType": "boolean",
+        "short": "v"
+      },
+      {
+        "name": "workspace-root",
+        "valueType": "string"
+      }
+    ],
+    "positionals": [
+      {
+        "name": "positionals",
+        "valueType": "string"
+      }
+    ]
+  },
+  {
+    "commandId": "dotnetdoc",
+    "sourceDigests": {
+      "src/cli.mjs": "98bbcbfc17e37feee2e243690ace48fc0f77d1e7c3fdbe6c850e9da83a38d1d7",
+      "src/command-content.mjs": "3c7282a7503da5b6c99f3785e6390636a8fc6be4b8c126f84201e94211e9db43",
+      "src/metadata.mjs": "6d27ddcfccfdac5e941cf983645b5fac76114383d5df566edbcec999eda37bfb",
+      "src/index.mjs": "7bdec377cb2069878db55e7931898b0759b3f69ee7eea39afd052340db2da0a6",
+      "src/schema.mjs": "fc58dc8eff5312ce359b1bcad5550fa10b59310768c30558b19888b2e0ff5699",
+      "src/config-compatibility.mjs": "5d29bed6587ab1d2a430815e36264ed94e9332c38acbc002ae2437b7bdab79d6",
+      "src/schemas/dotnetdoc-config-0.1.0-draft.schema.json": "1b97dc60616d2ea2c1215c1dcc04a6e9e396abcfc5d11f5cff6bae1e8559c0bf",
+      "src/schemas/dotnetdoc-config-1.0.0.schema.json": "2518b2807e9f5703526e8c32cd49826dd1adf50cbf7006ee323b40067d92019d",
+      "README.md": "c62a8f8515e753d331822330cad02a4d5fcc968251800b0156b2f9a9d641ccd6",
+      "package.json": "243e9b2bcbe5aaeabf4a11c276e1b687bb31be4754872e04457d2bcd1e4c28b2"
+    },
+    "options": [
+      {
+        "name": "config",
+        "valueType": "string",
+        "short": "c"
+      },
+      {
+        "name": "help",
+        "valueType": "boolean",
+        "short": "h"
+      },
+      {
+        "name": "out-dir",
+        "valueType": "string",
+        "short": "o"
+      },
+      {
+        "name": "title",
+        "valueType": "string"
+      },
+      {
+        "name": "version",
+        "valueType": "boolean",
+        "short": "v"
+      },
+      {
+        "name": "workspace-root",
+        "valueType": "string"
+      }
+    ],
+    "positionals": [
+      {
+        "name": "positionals",
+        "valueType": "string"
+      }
+    ]
+  }
+]
