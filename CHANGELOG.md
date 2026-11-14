@@ -9,6 +9,9 @@
 
 ## Unreleased
 
+- C#多行与块文档注释按Roslyn外壳trivia去除语法标记，保留双语正文及有意写入的字面三斜线。
+- Remove Roslyn documentation-comment exterior trivia from multiline and block comments while preserving bilingual content and intentional literal triple slashes.
+
 - 历史配置别名逐项文档化并保留原对象引用及原身份/版本值；历史模块与schema不变。
 - Document legacy config aliases individually while retaining original object references and identity/version values; historical modules and schemas are unchanged.
 

@@ -92,6 +92,21 @@ describe("DotNetDoc XML documentation intake", () => {
     assert.equal(artifact.members.some((member) => Object.hasOwn(member, "documentationXml")), false);
   });
 
+  it("removes documentation exterior trivia while preserving literal slash content", async () => {
+    // <lang><zh-CN>真实Roslyn多行/块注释应去除语法外壳，正文中的三斜线仍是有效原文。</zh-CN><en>Real Roslyn multiline/block comments must drop their syntax exteriors while preserving triple slashes in actual text.</en></lang>
+    const artifact = await extractDotnetSourceFiles({
+      workspaceRoot: repositoryRoot,
+      paths: ["fixtures/source/DocumentationTrivia.cs"]
+    });
+    const line = artifact.members.find((member) => member.name === "LineDocumentation");
+    const block = artifact.members.find((member) => member.name === "BlockDocumentation");
+    assert.equal(line?.summary, "保留文档正文中的字面标记。 Preserve the literal /// marker in documentation text.");
+    assert.equal(line?.remarks, "中文备注。 English remarks with /// inside content.");
+    assert.equal(block?.summary, "保留块注释正文。 Preserve block-comment content and the literal /// marker.");
+    assert.equal(line?.i18n?.fields.summary.defaultText, line?.summary);
+    assert.equal(block?.i18n?.fields.summary.defaultText, block?.summary);
+  });
+
   it("extracts C# source files from a project path without a full MSBuild workspace", async () => {
     const artifact = await extractDotnetSourceFiles({
       workspaceRoot: repositoryRoot,

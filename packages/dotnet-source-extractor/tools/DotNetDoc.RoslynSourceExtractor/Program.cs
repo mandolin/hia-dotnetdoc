@@ -577,9 +577,14 @@ sealed class DocumentationData
     public List<ReferenceOutput> SeeAlso { get; set; } = new();
     public string Xml { get; set; } = "";
 
+    /// <summary>从声明的结构化文档注释读取XML与字段。 Read XML and fields from a declaration's structured documentation comments.</summary>
+    /// <param name="node">只读声明节点；未带文档时返回空字段。 Read-only declaration node; absent documentation yields empty fields.</param>
+    /// <returns>移除语法外壳后的独立文档数据，不修改语法树或正文内容。 Independent documentation data without syntax exteriors, preserving the tree and content.</returns>
     public static DocumentationData FromNode(SyntaxNode node)
     {
+        // <lang><zh-CN>本次声明独占的字段累积器，与原语法树无共享可变状态。</zh-CN><en>A declaration-local field accumulator with no shared mutable state in the original syntax tree.</en></lang>
         var data = new DocumentationData();
+        // <lang><zh-CN>按原注释顺序保留XML片段，后续统一字段读取器消费同一正文。</zh-CN><en>Preserve XML fragments in comment order for the common field reader to consume the same content.</en></lang>
         var xmlFragments = new List<string>();
         foreach (var trivia in node.GetLeadingTrivia())
         {
@@ -588,7 +593,12 @@ sealed class DocumentationData
                 continue;
             }
 
-            foreach (var item in documentation.Content)
+            // <lang><zh-CN>仅移除Roslyn识别的注释外壳trivia；XML文本/CDATA里的字面斜线、星号和空白保持。</zh-CN><en>Remove only Roslyn-recognized comment-exterior trivia, preserving literal slashes, stars and whitespace in XML text and CDATA.</en></lang>
+            var content = documentation.ReplaceTrivia(
+                documentation.DescendantTrivia(descendIntoTrivia: true)
+                    .Where(item => item.IsKind(SyntaxKind.DocumentationCommentExteriorTrivia)),
+                (_, _) => default(SyntaxTrivia));
+            foreach (var item in content.Content)
             {
                 xmlFragments.Add(item.ToFullString());
                 CollectXmlNode(data, item);
