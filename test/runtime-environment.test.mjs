@@ -64,11 +64,11 @@ it('runs the complete release gate on both supported operating systems and Node 
   assert.match(workflow, /run: npm run release:gate/u);
 });
 
-it('uses the same .NET 10 tooling for the separately authorized publishing workflow', async () => {
-  // <lang><zh-CN>这里只读workflow；测试绝不触发发布。</zh-CN><en>Read the workflow only; the test never triggers publication.</en></lang>
+it('publishes verified archives without running another build or target SDK', async () => {
+  // <lang><zh-CN>上面的矩阵锁住 .NET 10，发行入口复用归档，不得添加另一个构建。</zh-CN><en>The matrix above pins .NET 10. The publisher reuses the archives without a separate build.</en></lang>
   const workflow = await readFile(path.join(root, '.github/workflows/npm-trusted-publish.yml'), 'utf8');
-  assert.match(workflow, /dotnet-version: 10\.0\.x/u);
-  assert.doesNotMatch(workflow, /dotnet-version: 8\.0\.x/u);
+  assert.match(workflow, /publish-npm-stable\.yml@[a-f0-9]{40}/u);
+  assert.doesNotMatch(workflow, /dotnet-version:|actions\/setup-dotnet|npm pack/u);
 });
 
 it('executes the real helper on .NET 10 and preserves bilingual C# documentation', async (context) => {

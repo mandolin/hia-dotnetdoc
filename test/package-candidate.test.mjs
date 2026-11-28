@@ -103,11 +103,13 @@ it('rejects stale, duplicated or falsely ready release inventories', async () =>
   assert.throws(() => validateReleasePlan({ ...plan, publishedToNpm: true }, loadReleasePackages()));
 });
 
-it('guards the manual publisher with explicit publication readiness', async () => {
-  // <lang><zh-CN>只读workflow，保护声明须早于实际npm发布语句。</zh-CN><en>Read the workflow only; the readiness guard must precede actual npm publication.</en></lang>
+it('routes stable publication through an explicit dispatch and immutable control', async () => {
+  // <lang><zh-CN>仓内入口仅提交显式请求，统一控制再校验已批准波次和固定归档。</zh-CN><en>The owner submits an explicit request; shared control verifies the approved wave and frozen archive.</en></lang>
   const workflow = await readFile(new URL('.github/workflows/npm-trusted-publish.yml', root), 'utf8');
-  assert.ok(workflow.includes('node scripts/check-release-plan.cjs --publication-ready'));
-  assert.ok(workflow.indexOf('node scripts/check-release-plan.cjs --publication-ready') < workflow.indexOf('run: npm publish'));
+  const stablePin = workflow.match(/^    uses: mandolin\/HIA-Documentation\/\.github\/workflows\/publish-npm-stable\.yml@([a-f0-9]{40})\s*$/mu)?.[1];
+  assert.ok(stablePin && workflow.includes('release_revision: ' + stablePin));
+  assert.ok(workflow.includes("github.event_name == 'workflow_dispatch' && inputs.operation == 'stable-publish'"));
+  assert.doesNotMatch(workflow, /run: npm publish/u);
 });
 
 it('resolves every actual release package at its candidate version without publishing', async () => {
